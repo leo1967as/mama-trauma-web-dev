@@ -1,0 +1,3 @@
+- Add export/import support for local check-in history.
+- Add multi-user or caregiver/hospital views once requirements are defined.
+- Split large tab files into smaller feature components where it improves maintainability.

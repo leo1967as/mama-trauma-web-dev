@@ -1,0 +1,8 @@
+- Wire mood history and project inputs to a real backend contract.
+- Decide hospital-facing fields and screens from the captured client chat.
+- Assign permanent destinations for Legacy modules, starting with Journal and Mood Insights.
+- Continue rewriting remaining dashboard-like labels into conversational postpartum copy where needed.
+- Apply the same save/feedback motion language to any other success or warning states that still feel abrupt.
+- Decide whether the new Mood success popup should sit slightly higher or become a centered modal-style toast.
+- Validate risk and insight rules with product/domain expectations.
+- Replace remaining placeholder/static content outside Home, Mood, and Legacy with product-approved logic.
