@@ -39,10 +39,11 @@ export default function DailyGoal() {
                 whileTap={{ scale: 0.93 }}
                 transition={{ type: "spring", stiffness: 400, damping: 22 }}
                 style={{
-                  padding: "7px 14px", borderRadius: 30,
-                  background: "#A8C4AE", color: "#fff",
+                  padding: "8px 16px", borderRadius: 30,
+                  background: "#6B9E78", color: "#fff",
                   fontSize: 12, fontWeight: 700, border: 0,
                   cursor: "pointer", fontFamily: F, whiteSpace: "nowrap",
+                  boxShadow: "0 3px 10px rgba(83,140,100,.25)",
                 }}
               >
                 {started ? "Mark done" : "Start now"}
@@ -51,7 +52,7 @@ export default function DailyGoal() {
                 onClick={() => setStarted(true)}
                 style={{
                   padding: "0 4px", background: "none", border: 0,
-                  fontSize: 11, fontWeight: 600, color: "#B8CAC0",
+                  fontSize: 11, fontWeight: 600, color: "#9ABBA3",
                   cursor: "pointer", fontFamily: F, whiteSpace: "nowrap",
                 }}
               >
