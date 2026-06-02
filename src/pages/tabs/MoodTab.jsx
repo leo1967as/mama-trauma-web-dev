@@ -232,17 +232,19 @@ export default function MoodTab({ onCheckIn }) {
       transition={{ duration: 0.25 }}
       style={{ fontFamily: F }}
     >
-      {/* ── Gradient header ── */}
+      {/* ── Mood gradient header — same blob system as Home ── */}
       <div
         className="relative px-6 pb-8 overflow-hidden"
-        style={{ background: "radial-gradient(140% 85% at 85% -15%,#EFE9EF 0%,#E8D5E2 25%,#E2C5D0 50%,#DCBFC8 70%,#FBF6F0 100%)" }}
+        style={{ background: "#F5EEF2" }}
       >
-        <div style={{
-          position: "absolute", width: 220, height: 220, borderRadius: "50%",
-          right: -55, top: -80, pointerEvents: "none",
-          background: "radial-gradient(circle,rgba(255,235,240,.9),rgba(240,210,220,.3) 45%,transparent 70%)",
-          filter: "blur(2px)",
-        }} />
+        {/* blob 1 — dusty rose, top-right */}
+        <div className="dawn-blob dawn-blob-2" style={{ width: 320, height: 320, top: -100, right: -80,  background: "radial-gradient(circle, rgba(220,191,200,0.88), transparent 68%)", filter: "blur(60px)" }} />
+        {/* blob 2 — lavender, left */}
+        <div className="dawn-blob dawn-blob-1" style={{ width: 270, height: 270, top:   20, left:  -70, background: "radial-gradient(circle, rgba(232,213,226,0.82), transparent 68%)", filter: "blur(55px)" }} />
+        {/* blob 3 — blush, bottom */}
+        <div className="dawn-blob dawn-blob-3" style={{ width: 250, height: 250, bottom: -50, left: "28%", background: "radial-gradient(circle, rgba(226,197,208,0.78), transparent 68%)", filter: "blur(52px)" }} />
+        {/* blob 4 — light purple accent */}
+        <div className="dawn-blob dawn-blob-4" style={{ width: 200, height: 200, top:   40, left: "48%", background: "radial-gradient(circle, rgba(200,185,215,0.72), transparent 68%)", filter: "blur(48px)" }} />
 
         <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14 }}>
           <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#8A5060" }}>
@@ -273,6 +275,10 @@ export default function MoodTab({ onCheckIn }) {
               : "Your trends and patterns, all in one place."}
           </p>
         </div>
+
+        {/* bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{ height: 64, background: "linear-gradient(to bottom, transparent 0%, #FBF6F0 100%)" }} />
       </div>
 
       {/* ── Sheet ── */}

@@ -27,9 +27,9 @@ function getDayLabel() {
 export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
   const [showSliders, setShowSliders] = useState(false);
-  const [speed, setSpeed]   = useState(12);   // animation duration in seconds
-  const [warmth, setWarmth] = useState(100);  // 0=cool 100=warm (opacity of warm layer)
-  const [size, setSize]     = useState(150);  // gradient spread %
+  const [speed, setSpeed]   = useState(14);   // base duration seconds (12–60)
+  const [warmth, setWarmth] = useState(90);   // blob opacity 0–100
+  const [size, setSize]     = useState(60);   // blur px 40–100
 
   useEffect(() => {
     setMoodEntries(getMoodHistory());
@@ -42,22 +42,33 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const riskLevel = getMoodRiskSummary(moodEntries).level;
   const showSupport = ["orange", "red"].includes(riskLevel);
 
-  // build animated gradient based on sliders
-  const warmAlpha = (warmth / 100).toFixed(2);
-  const spreadPct = size + "%";
-  const dawnBg = `radial-gradient(${spreadPct} 90% at 88% -20%, rgba(244,201,168,${warmAlpha}) 0%, rgba(238,182,164,${warmAlpha}) 26%, rgba(226,160,164,${warmAlpha}) 52%, rgba(215,160,171,${warmAlpha}) 74%, #FBF6F0 100%)`;
+  // blob params from sliders
+  const blur   = size;                        // size slider reused as blur (40–100px)
+  const alpha  = (warmth / 100 * 0.82 + 0.08).toFixed(2); // 0.08–0.90
+  const sp1 = speed * 1.0, sp2 = speed * 1.3, sp3 = speed * 0.8, sp4 = speed * 1.5;
 
   return (
     <div style={{ fontFamily: FONT_BODY }}>
 
-      {/* ── Dawn gradient header ── */}
+      {/* ── Dawn header — cream base + slow blobs ── */}
       <div
-        className="dawn-animated relative px-6 pb-8 overflow-hidden"
+        className="relative px-6 pb-8 overflow-hidden"
         style={{
-          background: dawnBg,
-          "--dawn-speed": `${speed}s`,
+          background: "#FBF2EC",
+          "--blob-speed-1": `${sp1}s`,
+          "--blob-speed-2": `${sp2}s`,
+          "--blob-speed-3": `${sp3}s`,
+          "--blob-speed-4": `${sp4}s`,
         }}
       >
+        {/* blob 1 — peach, top-right, biggest */}
+        <div className="dawn-blob dawn-blob-1" style={{ width: 360, height: 360, top: -120, right: -80,  background: `radial-gradient(circle, rgba(244,201,168,${alpha}), transparent 68%)`, filter: `blur(${blur}px)` }} />
+        {/* blob 2 — rose, left side */}
+        <div className="dawn-blob dawn-blob-2" style={{ width: 300, height: 300, top:   10, left: -90,  background: `radial-gradient(circle, rgba(226,160,164,${alpha}), transparent 68%)`, filter: `blur(${blur * 0.9}px)` }} />
+        {/* blob 3 — dusty rose, bottom-center */}
+        <div className="dawn-blob dawn-blob-3" style={{ width: 280, height: 280, bottom: -60, left: "30%", background: `radial-gradient(circle, rgba(215,160,171,${alpha}), transparent 68%)`, filter: `blur(${blur * 0.85}px)` }} />
+        {/* blob 4 — salmon, top-center, smaller accent */}
+        <div className="dawn-blob dawn-blob-4" style={{ width: 220, height: 220, top:  30, left: "45%", background: `radial-gradient(circle, rgba(238,182,164,${alpha * 0.9}), transparent 68%)`, filter: `blur(${blur * 0.75}px)` }} />
         {/* dbar */}
         <div className="relative flex items-center justify-between pt-3.5">
           <span
@@ -102,9 +113,9 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
                 style={{ background: "rgba(255,255,255,.55)", backdropFilter: "blur(8px)" }}
               >
                 {[
-                  { label: "Speed", value: speed, min: 4, max: 30, step: 1, set: setSpeed, fmt: v => `${v}s`, flip: true },
-                  { label: "Warmth", value: warmth, min: 20, max: 100, step: 1, set: setWarmth, fmt: v => `${v}%` },
-                  { label: "Spread", value: size, min: 80, max: 250, step: 10, set: setSize, fmt: v => `${v}%` },
+                  { label: "Speed",   value: speed,  min: 12, max: 60,  step: 2,  set: setSpeed,  fmt: v => v <= 18 ? "Fast" : v <= 36 ? "Medium" : "Slow", flip: true },
+                  { label: "Warmth",  value: warmth, min: 20, max: 100, step: 5,  set: setWarmth, fmt: v => `${v}%` },
+                  { label: "Softness",value: size,   min: 40, max: 100, step: 5,  set: setSize,   fmt: v => `${v}px` },
                 ].map(({ label, value, min, max, step, set, fmt, flip }) => (
                   <div key={label}>
                     <div className="flex justify-between mb-1">
@@ -115,7 +126,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
                       type="range" min={min} max={max} step={step}
                       value={flip ? max + min - value : value}
                       onChange={e => set(flip ? max + min - Number(e.target.value) : Number(e.target.value))}
-                      className="w-full appearance-none rounded-full cursor-pointer"
+                      className="dawn-slider-thumb w-full appearance-none rounded-full cursor-pointer"
                       style={{ height: 5, background: `linear-gradient(to right,#C77E83 0%,#C77E83 ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) 100%)` }}
                     />
                   </div>
@@ -135,6 +146,15 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
             You're finding your rhythm — one gentle day at a time.
           </p>
         </div>
+
+        {/* bottom fade — always blends into sheet no matter where gradient animates */}
+        <div
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: 64,
+            background: "linear-gradient(to bottom, transparent 0%, #FBF6F0 100%)",
+          }}
+        />
       </div>
 
       {/* ── Sheet ── */}

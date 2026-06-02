@@ -1,4 +1,3 @@
-import { FlowerSvg } from "../../lib/faces";
 const FONT_SERIF = "'Newsreader', serif";
 
 const nodes = [
@@ -29,7 +28,7 @@ export default function CareTimeline() {
       {/* rtop */}
       <div className="flex items-baseline justify-between" style={{ marginBottom: 16 }}>
         <div className="font-medium text-[19px]" style={{ fontFamily: FONT_SERIF }}>
-          Day 7 <FlowerSvg size={14} color="#C77E83" /> <b style={{ color: "#AF636A", fontStyle: "italic", fontWeight: 500 }}>Finding rhythm</b>
+          Day 7 · <b style={{ color: "#AF636A", fontStyle: "italic", fontWeight: 500 }}>Finding rhythm</b>
         </div>
         <div className="text-[11px] font-black" style={{ color: "#9C8E83" }}>25%</div>
       </div>
