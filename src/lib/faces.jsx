@@ -138,19 +138,36 @@ export function HeartSvg({ size = 14, color = "#C77E83" }) {
   );
 }
 
-// Flower SVG (replaces 🌸)
+// Sakura blossom SVG — 5 petals (replaces 🌸)
 export function FlowerSvg({ size = 14, color = "#C77E83" }) {
+  // 5 petals, each is an ellipse rotated around center (12,12)
+  const petals = [0, 72, 144, 216, 288];
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
-      <circle cx="12" cy="12" r="2.5" fill={color}/>
-      <ellipse cx="12" cy="6" rx="2" ry="3" fill={color} opacity="0.6"/>
-      <ellipse cx="12" cy="18" rx="2" ry="3" fill={color} opacity="0.6"/>
-      <ellipse cx="6" cy="12" rx="3" ry="2" fill={color} opacity="0.6"/>
-      <ellipse cx="18" cy="12" rx="3" ry="2" fill={color} opacity="0.6"/>
-      <ellipse cx="7.8" cy="7.8" rx="2" ry="3" fill={color} opacity="0.45" transform="rotate(-45 7.8 7.8)"/>
-      <ellipse cx="16.2" cy="7.8" rx="2" ry="3" fill={color} opacity="0.45" transform="rotate(45 16.2 7.8)"/>
-      <ellipse cx="7.8" cy="16.2" rx="2" ry="3" fill={color} opacity="0.45" transform="rotate(45 7.8 16.2)"/>
-      <ellipse cx="16.2" cy="16.2" rx="2" ry="3" fill={color} opacity="0.45" transform="rotate(-45 16.2 16.2)"/>
+    <svg viewBox="0 0 24 24" width={size} height={size}>
+      {petals.map(angle => (
+        <ellipse
+          key={angle}
+          cx="12" cy="5.8"
+          rx="2.6" ry="4.2"
+          fill={color}
+          opacity="0.78"
+          transform={`rotate(${angle} 12 12)`}
+        />
+      ))}
+      {/* center */}
+      <circle cx="12" cy="12" r="3" fill={color}/>
+      <circle cx="12" cy="12" r="1.4" fill="white" opacity="0.7"/>
+      {/* petal notch tips — subtle */}
+      {petals.map(angle => (
+        <circle
+          key={`dot-${angle}`}
+          cx="12" cy="2.4"
+          r="0.8"
+          fill="white"
+          opacity="0.5"
+          transform={`rotate(${angle} 12 12)`}
+        />
+      ))}
     </svg>
   );
 }

@@ -182,7 +182,7 @@ function Step1({ face, setFace, onBack, onNext }) {
         </div>
 
         {/* faces */}
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 6 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 4, marginBottom: 6 }}>
           {FACES.map(f => (
             <motion.button
               key={f.word}
@@ -191,22 +191,29 @@ function Step1({ face, setFace, onBack, onNext }) {
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
               style={{
                 flex: 1, border: 0, background: "transparent", cursor: "pointer",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "6px 0",
+                display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 7, padding: "4px 0", minWidth: 0,
               }}
             >
               <motion.div
-                animate={{ scale: face === f.word ? 1.14 : 1 }}
+                animate={{ scale: face === f.word ? 1.12 : 1 }}
                 transition={{ type: "spring", stiffness: 420, damping: 22 }}
                 style={{
-                  width: 50, height: 50, borderRadius: "50%",
+                  width: 52, height: 52, borderRadius: "50%", flexShrink: 0,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "#fff",
-                  border: face === f.word ? "1.5px solid transparent" : "1.5px solid #E6DBCF",
-                  boxShadow: face === f.word ? "0 8px 18px rgba(86,62,48,.18)" : "none",
+                  background: face === f.word ? f.bg : "#fff",
+                  border: `1.5px solid ${face === f.word ? "transparent" : "#E6DBCF"}`,
+                  boxShadow: face === f.word ? "0 8px 18px rgba(86,62,48,.16)" : "none",
+                  overflow: "hidden",
                 }}>
                 {f.svg}
               </motion.div>
-              <span style={{ fontSize: 10, fontWeight: face === f.word ? 800 : 700, color: face === f.word ? "#3E342C" : "#9C8E83", transition: "color 0.15s" }}>
+              <span style={{
+                fontSize: 10, lineHeight: 1,
+                fontWeight: face === f.word ? 800 : 600,
+                color: face === f.word ? "#3E342C" : "#9C8E83",
+                transition: "color 0.15s",
+              }}>
                 {f.word}
               </span>
             </motion.button>
