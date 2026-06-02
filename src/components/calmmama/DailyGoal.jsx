@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
 
@@ -22,9 +23,12 @@ export default function DailyGoal() {
       <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
 
         {/* .kbox */}
-        <button
+        <motion.button
           onClick={() => setCompleted(!completed)}
+          whileTap={{ scale: 0.82 }}
+          transition={{ type: "spring", stiffness: 500, damping: 18 }}
           aria-label="Mark as done"
+          animate={{ scale: completed ? 1.08 : 1 }}
           style={{
             width: 34, height: 34,
             borderRadius: "50%",
@@ -52,7 +56,7 @@ export default function DailyGoal() {
           >
             <path d="M5 13l4 4L19 7"/>
           </svg>
-        </button>
+        </motion.button>
 
         {/* .kx */}
         <div style={{ flex: 1 }}>

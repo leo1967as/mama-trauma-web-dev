@@ -2,14 +2,9 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronRight, PenLine, Sparkles } from "lucide-react";
 import { formatHistoryDate, getTodaysMoodEntry, upsertMoodEntry } from "../../lib/mood-data";
+import { MOOD_FACES } from "../../lib/faces";
 
-const moods = [
-  { emoji: "😢", value: 1 },
-  { emoji: "😔", value: 2 },
-  { emoji: "😐", value: 3 },
-  { emoji: "🙂", value: 4 },
-  { emoji: "😊", value: 5 },
-];
+const moods = MOOD_FACES.map(f => ({ svg: f.svg, bg: f.bg, value: f.score, label: f.label ?? f.word }));
 
 const prompts = [
   "What was one small win today, even if tiny?",
@@ -148,7 +143,7 @@ export default function JournalSection({ history, setHistory }) {
         <div className="space-y-3">
           {noteEntries.length ? (
             noteEntries.map((entry) => {
-              const mood = moods.find((item) => item.value === entry.moodScore)?.emoji || "•";
+              const moodFace = moods.find((item) => item.value === entry.moodScore);
               const preview = entry.note || "Mood-only check-in saved for this day.";
               return (
                 <motion.div
@@ -159,7 +154,10 @@ export default function JournalSection({ history, setHistory }) {
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] text-muted-foreground font-medium">{formatHistoryDate(entry.dateKey)}</span>
-                    <span className="text-base">{mood}</span>
+                    {moodFace
+                      ? <span style={{ width: 22, height: 22, borderRadius: "50%", background: moodFace.bg, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{moodFace.svg(18)}</span>
+                      : <span className="text-sm text-muted-foreground">·</span>
+                    }
                   </div>
                   <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2 italic">&quot;{preview}&quot;</p>
                   {entry.tags.length ? (

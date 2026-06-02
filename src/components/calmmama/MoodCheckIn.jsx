@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { MOOD_FACES } from "../../lib/faces";
 
-const moods = [
-  { emoji: "😢", label: "Sad", value: 1 },
-  { emoji: "😔", label: "Low", value: 2 },
-  { emoji: "😐", label: "Okay", value: 3 },
-  { emoji: "🙂", label: "Good", value: 4 },
-  { emoji: "😊", label: "Great", value: 5 },
-];
+const moods = MOOD_FACES.map(f => ({ svg: f.svg, bg: f.bg, label: f.label ?? f.word, value: f.score }));
 
 const tags = ["overwhelmed", "tired", "anxious", "lonely", "hopeful", "calm", "grateful"];
 
@@ -41,14 +36,17 @@ export default function MoodCheckIn() {
             className="flex flex-col items-center gap-1.5 group"
           >
             <motion.div
-              whileTap={{ scale: 0.9 }}
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-all duration-200 ${
-                selectedMood === mood.value
-                  ? "bg-primary/15 ring-2 ring-primary/40 shadow-md scale-110"
-                  : "bg-muted/60 hover:bg-muted"
-              }`}
+              whileTap={{ scale: 0.88 }}
+              animate={{ scale: selectedMood === mood.value ? 1.12 : 1 }}
+              transition={{ type: "spring", stiffness: 420, damping: 22 }}
+              style={{
+                width: 48, height: 48, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: selectedMood === mood.value ? mood.bg : "#F0EBE4",
+                boxShadow: selectedMood === mood.value ? "0 6px 16px rgba(86,62,48,.15)" : "none",
+              }}
             >
-              {mood.emoji}
+              {mood.svg(32)}
             </motion.div>
             <span className={`text-[10px] font-medium transition-colors ${
               selectedMood === mood.value ? "text-primary" : "text-muted-foreground"

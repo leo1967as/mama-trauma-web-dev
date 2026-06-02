@@ -1,4 +1,5 @@
 import { Bell, Settings } from "lucide-react";
+import { HeartSvg } from "../../lib/faces";
 import { motion } from "framer-motion";
 
 export default function Header() {
@@ -30,7 +31,7 @@ export default function Header() {
           transition={{ delay: 0.05 }}
           className="text-2xl font-bold text-foreground tracking-tight"
         >
-          Hey, Mama 💛
+          Hey, Mama <HeartSvg size={16} color="#C77E83" />
         </motion.h1>
       </div>
       <div className="flex items-center gap-2">

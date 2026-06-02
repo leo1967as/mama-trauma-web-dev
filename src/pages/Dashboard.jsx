@@ -35,7 +35,7 @@ export default function Dashboard() {
   const triggerUnlock = () => {
     setLegacyUnlocked(prev => {
       const next = !prev;
-      setToast(next ? "🔓 Legacy unlocked" : "🔒 Legacy hidden");
+      setToast(next ? "Legacy unlocked" : "Legacy hidden");
       setTimeout(() => setToast(null), 2000);
       if (!next && activeTab === "legacy") setActiveTab("home");
       return next;

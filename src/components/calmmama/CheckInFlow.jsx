@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { upsertMoodEntry } from "../../lib/mood-data";
+import { SLEEP_FACES } from "../../lib/faces";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -83,12 +85,7 @@ const CHIPS = [
   { word: "Loved",    type: "light" }, { word: "Irritable",  type: "heavy" },
 ];
 
-const SLEEP_OPTS = [
-  { val: "Hardly", em: "😶", title: "Hardly at all",  sub: "Barely managed to rest",       hours: 2 },
-  { val: "Broken", em: "😪", title: "Broken sleep",   sub: "On and off through the night",  hours: 4 },
-  { val: "Okay",   em: "🙂", title: "Okay sleep",     sub: "Not perfect, but manageable",   hours: 6 },
-  { val: "Well",   em: "😌", title: "Slept well",     sub: "Felt rested this morning",      hours: 8 },
-];
+const SLEEP_OPTS = SLEEP_FACES;
 
 const AFFIRMATIONS = {
   Rough: '"Rest is not giving up. It\'s giving yourself what you need most."',
@@ -139,8 +136,10 @@ function ProgBar({ pct }) {
 function CiFoot({ label, disabled, onClick, icon }) {
   return (
     <div style={{ padding: "16px 22px 24px" }}>
-      <button
+      <motion.button
         onClick={!disabled ? onClick : undefined}
+        whileTap={!disabled ? { scale: 0.96 } : {}}
+        transition={{ type: "spring", stiffness: 400, damping: 20 }}
         style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
           width: "100%", padding: 16, borderRadius: 18,
@@ -149,12 +148,12 @@ function CiFoot({ label, disabled, onClick, icon }) {
           fontWeight: 700, fontSize: 15, border: 0,
           boxShadow: disabled ? "none" : "0 12px 22px rgba(175,99,106,.28)",
           cursor: disabled ? "default" : "pointer",
-          fontFamily: F, transition: "0.15s",
+          fontFamily: F,
         }}
       >
         {label}
         {icon}
-      </button>
+      </motion.button>
       <div style={{ textAlign: "center", marginTop: 11, fontSize: 12, fontWeight: 700, color: "#9C8E83", fontFamily: F }}>
         Feeling unsafe?{" "}
         <span style={{ color: "#AF636A", cursor: "pointer" }}>Get help now</span>
@@ -185,29 +184,32 @@ function Step1({ face, setFace, onBack, onNext }) {
         {/* faces */}
         <div style={{ display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 6 }}>
           {FACES.map(f => (
-            <button
+            <motion.button
               key={f.word}
               onClick={() => setFace(f.word)}
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
               style={{
                 flex: 1, border: 0, background: "transparent", cursor: "pointer",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "6px 0",
               }}
             >
-              <div style={{
-                width: 50, height: 50, borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "#fff",
-                border: face === f.word ? "1.5px solid transparent" : "1.5px solid #E6DBCF",
-                transition: "0.18s",
-                transform: face === f.word ? "scale(1.14)" : "scale(1)",
-                boxShadow: face === f.word ? "0 8px 18px rgba(86,62,48,.18)" : "none",
-              }}>
+              <motion.div
+                animate={{ scale: face === f.word ? 1.14 : 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                style={{
+                  width: 50, height: 50, borderRadius: "50%",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "#fff",
+                  border: face === f.word ? "1.5px solid transparent" : "1.5px solid #E6DBCF",
+                  boxShadow: face === f.word ? "0 8px 18px rgba(86,62,48,.18)" : "none",
+                }}>
                 {f.svg}
-              </div>
-              <span style={{ fontSize: 10, fontWeight: face === f.word ? 800 : 700, color: face === f.word ? "#3E342C" : "#9C8E83", transition: "0.18s" }}>
+              </motion.div>
+              <span style={{ fontSize: 10, fontWeight: face === f.word ? 800 : 700, color: face === f.word ? "#3E342C" : "#9C8E83", transition: "color 0.15s" }}>
                 {f.word}
               </span>
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -325,12 +327,13 @@ function Step3({ sleep, setSleep, onBack, onSave }) {
                 }}
               >
                 <span style={{
-                  width: 36, height: 36, borderRadius: 12,
-                  background: on ? "#F6E2E1" : "#FBF6F0",
+                  width: 40, height: 40, borderRadius: "50%",
+                  background: opt.bg,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0, fontSize: 16, transition: "0.15s",
+                  flexShrink: 0, transition: "0.15s",
+                  transform: on ? "scale(1.1)" : "scale(1)",
                 }}>
-                  {opt.em}
+                  {opt.svg(28)}
                 </span>
                 <span>
                   <span style={{ display: "block", fontSize: 14.5, fontWeight: 700, color: "#3E342C" }}>{opt.title}</span>

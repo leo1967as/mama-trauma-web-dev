@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
@@ -172,8 +173,10 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
           </p>
 
           {/* editbtn */}
-          <button
+          <motion.button
             onClick={() => onCheckIn?.()}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
             className="relative flex items-center justify-center gap-[9px] w-full rounded-[18px] font-bold text-[14.5px] text-white border-0 cursor-pointer"
             style={{
               background: "#C77E83",
@@ -186,7 +189,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
               <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>
             </svg>
             {moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
-          </button>
+          </motion.button>
         </div>
 
         {/* slabel: Care journey */}
