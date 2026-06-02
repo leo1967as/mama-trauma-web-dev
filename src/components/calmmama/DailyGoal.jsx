@@ -1,74 +1,105 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Check } from "lucide-react";
+
+const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
 
 export default function DailyGoal() {
   const [completed, setCompleted] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="bg-gradient-to-br from-calm-cream to-calm-peach rounded-3xl p-5 border border-border/20 shadow-sm relative overflow-hidden"
+    /* .kind */
+    <div
+      style={{
+        background: "linear-gradient(150deg,#fff,#E7EFE8)",
+        border: "1px solid #D8E6DB",
+        borderRadius: 24,
+        padding: 18,
+        boxShadow: "0 2px 12px rgba(80,56,42,.05)",
+        transition: "0.25s",
+        fontFamily: FONT_BODY,
+      }}
     >
-      {/* Decorative blob */}
-      <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+      {/* .krow */}
+      <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
 
-      <div className="flex items-center gap-2 mb-3 relative">
-        <Sparkles className="w-4 h-4 text-primary" />
-        <p className="text-sm font-semibold text-foreground">Today's Tiny Goal</p>
-      </div>
-
-      <div className="flex items-center gap-3 relative">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
+        {/* .kbox */}
+        <button
           onClick={() => setCompleted(!completed)}
-          className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-            completed
-              ? "bg-primary text-primary-foreground shadow-md"
-              : "bg-card border-2 border-border/60"
-          }`}
+          aria-label="Mark as done"
+          style={{
+            width: 34, height: 34,
+            borderRadius: "50%",
+            border: `2px solid #83A48B`,
+            background: completed ? "#83A48B" : "#fff",
+            flexShrink: 0,
+            cursor: "pointer",
+            transition: "0.18s",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 0,
+          }}
         >
-          <AnimatePresence>
-            {completed && (
-              <motion.div
-                initial={{ scale: 0, rotate: -45 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0 }}
-              >
-                <Check className="w-4 h-4" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
-
-        <div className="flex-1">
-          <p className={`text-sm font-medium transition-all ${
-            completed ? "text-muted-foreground line-through" : "text-foreground"
-          }`}>
-            Rest for 10 quiet minutes
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Even closing your eyes counts 🌸
-          </p>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {completed && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mt-3 bg-card/60 rounded-xl p-3 text-center"
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            style={{
+              width: 17, height: 17,
+              color: "#fff",
+              opacity: completed ? 1 : 0,
+              transform: completed ? "scale(1)" : "scale(.5)",
+              transition: "0.18s",
+            }}
           >
-            <p className="text-xs font-medium text-primary">
-              Beautiful! You did something kind for yourself today 💛
-            </p>
-          </motion.div>
+            <path d="M5 13l4 4L19 7"/>
+          </svg>
+        </button>
+
+        {/* .kx */}
+        <div style={{ flex: 1 }}>
+          {/* .kk */}
+          <div
+            style={{
+              fontSize: 10, fontWeight: 800,
+              letterSpacing: "0.13em", textTransform: "uppercase",
+              color: "#577A62", marginBottom: 4,
+            }}
+          >
+            Just for you today
+          </div>
+          {/* .kt */}
+          <div
+            style={{
+              fontSize: 15, fontWeight: 700,
+              letterSpacing: "-0.01em",
+              textDecoration: completed ? "line-through" : "none",
+              color: completed ? "#9C8E83" : "#3E342C",
+            }}
+          >
+            Rest for 10 quiet minutes
+          </div>
+          {/* .ks */}
+          <div style={{ fontSize: 11.5, color: "#6C5F56", marginTop: 2, lineHeight: 1.4 }}>
+            No pressure — even closing your eyes counts.
+          </div>
+        </div>
+
+        {/* .klater */}
+        {!completed && (
+          <span
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              fontSize: 11, fontWeight: 700,
+              color: "#9C8E83",
+              flexShrink: 0,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              alignSelf: "center",
+            }}
+          >
+            Maybe later
+          </span>
         )}
-      </AnimatePresence>
-    </motion.div>
+      </div>
+    </div>
   );
 }

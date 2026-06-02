@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAMA · Mother App — Design Recommendations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* page */
+  --page:#E8E4DE;
+  --page-2:#EDEAE4;
+  /* brand surfaces */
+  --cream:#FBF6F0;
+  --surface:#FFFFFF;
+  --surface-2:#FFFCF8;
+  /* ink */
+  --ink:#41372F;
+  --ink-soft:#6C5F56;
+  --ink-faint:#9C8E83;
+  --line:#EDE4DA;
+  --line-2:#E4D9CD;
+  /* accents (oklch-harmonised, low chroma, warm) */
+  --rose:#C77E83;
+  --rose-deep:#B0666D;
+  --rose-tint:#F6E3E2;
+  --rose-tint-2:#FBEEED;
+  --amber:#C79A52;
+  --amber-tint:#F6EBD4;
+  --sage:#88A78F;
+  --sage-tint:#E5EEE6;
+  /* shadow */
+  --sh-soft:0 6px 22px rgba(86,62,48,.07);
+  --sh-card:0 2px 10px rgba(86,62,48,.05);
+  --sh-pop:0 12px 34px rgba(86,62,48,.13);
+  --r-lg:26px; --r-md:20px; --r-sm:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 12% -8%, #F1ECE6 0%, transparent 55%),
+    radial-gradient(1000px 600px at 100% 0%, #EFE7E6 0%, transparent 50%),
+    var(--page);
+  color:var(--ink);
+  font-family:"Plus Jakarta Sans","Noto Sans Thai",system-ui,sans-serif;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  padding:46px 28px 90px;
+}
+.wrap{max-width:1340px;margin:0 auto}
+.th{font-family:"Noto Sans Thai","Plus Jakarta Sans",sans-serif}
+
+/* ---------- masthead ---------- */
+.masthead{margin-bottom:40px;max-width:780px}
+.kicker{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rose-deep);margin-bottom:18px}
+.kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--rose)}
+.masthead h1{font-family:"Newsreader",serif;font-weight:500;font-size:46px;line-height:1.05;letter-spacing:-.01em;margin-bottom:16px}
+.masthead h1 em{font-style:italic;color:var(--rose-deep)}
+.lede{font-size:16px;color:var(--ink-soft);max-width:640px}
+
+/* ---------- section heads ---------- */
+.sec{margin-top:64px}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.sec-num{font-family:"Newsreader",serif;font-style:italic;font-size:20px;color:var(--rose);min-width:34px}
+.sec-head h2{font-family:"Newsreader",serif;font-weight:500;font-size:28px;letter-spacing:-.01em}
+.sec-head p{font-size:14px;color:var(--ink-faint);margin-left:auto;max-width:420px;text-align:right}
+
+/* ---------- notes grid ---------- */
+.notes{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:24px 24px 22px;box-shadow:var(--sh-card)}
+.note h3{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;margin-bottom:14px}
+.note h3 .tag{font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:30px;text-transform:uppercase}
+.tag.prob{background:var(--rose-tint);color:var(--rose-deep)}
+.tag.fix{background:var(--sage-tint);color:#46715A}
+.note ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.note li{position:relative;padding-left:20px;font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.note li::before{content:"";position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:2px;background:var(--rose);opacity:.8}
+.note.good li::before{background:var(--sage)}
+.note li b{color:var(--ink);font-weight:600}
+
+/* ---------- design system ---------- */
+.ds{display:grid;grid-template-columns:1.05fr 1fr;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:24px;box-shadow:var(--sh-card)}
+.panel .lbl{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:18px}
+.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.sw{border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--line)}
+.sw .chip{height:62px}
+.sw .meta{padding:9px 11px;background:var(--surface-2)}
+.sw .meta b{display:block;font-size:12px;font-weight:700}
+.sw .meta span{font-size:10.5px;color:var(--ink-faint);font-family:"Plus Jakarta Sans"}
+.ramp{display:flex;border-radius:10px;overflow:hidden;margin-top:14px;border:1px solid var(--line)}
+.ramp i{flex:1;height:26px}
+
+.type-spec > div{padding:14px 0;border-bottom:1px solid var(--line)}
+.type-spec > div:last-child{border-bottom:0;padding-bottom:0}
+.type-spec .rolelbl{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+.t-display{font-family:"Newsreader",serif;font-size:30px;font-weight:500;letter-spacing:-.01em}
+.t-display em{font-style:italic;color:var(--rose-deep)}
+.t-title{font-size:18px;font-weight:700}
+.t-body{font-size:14px;color:var(--ink-soft)}
+.t-cap{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rose-deep)}
+
+.comp-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:14px}
+.ui-btn{border:0;font-family:inherit;font-weight:700;font-size:13px;padding:13px 22px;border-radius:30px;background:var(--rose);color:#fff;box-shadow:0 6px 16px rgba(176,102,109,.28);cursor:default}
+.ui-btn.ghost{background:var(--rose-tint);color:var(--rose-deep);box-shadow:none}
+.ui-btn.line{background:#fff;color:var(--ink);border:1px solid var(--line-2);box-shadow:none}
+.ui-chip{font-size:11px;font-weight:700;padding:7px 13px;border-radius:30px;background:var(--cream);border:1px solid var(--line-2);color:var(--ink-soft)}
+.ui-chip.on{background:var(--rose);color:#fff;border-color:var(--rose)}
+.ui-pillbadge{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:30px;background:var(--sage-tint);color:#46715A}
+
+/* ---------- options / phones ---------- */
+.options{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+.option{flex:1 1 300px;min-width:300px;max-width:360px;margin:0 auto}
+.option-head{margin:0 4px 18px}
+.option-head .o-id{font-family:"Newsreader",serif;font-style:italic;font-size:15px;color:var(--rose);margin-bottom:5px}
+.option-head h3{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:7px}
+.option-head p{font-size:13px;color:var(--ink-soft);line-height:1.55}
+
+/* phone shell */
+.phone{width:330px;margin:0 auto;background:#1c1714;border-radius:46px;padding:11px;box-shadow:var(--sh-pop)}
+.screen{position:relative;background:var(--cream);border-radius:36px;overflow:hidden}
+.status{display:flex;align-items:center;justify-content:space-between;padding:13px 24px 4px;font-size:12px;font-weight:700;color:var(--ink)}
+.status .icons{display:flex;align-items:center;gap:5px}
+.status .icons .sig{display:flex;gap:2px;align-items:flex-end;height:10px}
+.status .icons .sig i{width:3px;background:var(--ink);border-radius:1px}
+.status .icons .sig i:nth-child(1){height:4px}.status .icons .sig i:nth-child(2){height:6px}.status .icons .sig i:nth-child(3){height:8px}.status .icons .sig i:nth-child(4){height:10px}
+.status .bat{width:20px;height:10px;border:1.4px solid var(--ink);border-radius:3px;position:relative}
+.status .bat::after{content:"";position:absolute;left:1.4px;top:1.4px;bottom:1.4px;width:70%;background:var(--ink);border-radius:1px}
+.status .bat::before{content:"";position:absolute;right:-3px;top:3px;bottom:3px;width:2px;background:var(--ink);border-radius:2px}
+
+.app{padding:8px 18px 0}
+.appbar{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0 16px}
+.eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px}
+.greet{font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.greet .heart{color:var(--rose)}
+.iconbtn{width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);flex-shrink:0}
+.icongrp{display:flex;gap:8px}
+
+/* generic card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;margin-bottom:13px}
+.card.flat{box-shadow:none}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.card-h .t{font-size:15px;font-weight:700}
+.card-h .s{font-size:11.5px;color:var(--ink-faint);margin-top:1px}
+.seg{display:flex;background:var(--cream);border-radius:30px;padding:3px;gap:2px}
+.seg span{font-size:11px;font-weight:700;color:var(--ink-faint);padding:5px 11px;border-radius:30px}
+.seg span.on{background:var(--surface);color:var(--ink);box-shadow:var(--sh-card)}
+
+/* timeline */
+.tl{display:flex;gap:9px;overflow:hidden}
+.tl .d{flex:0 0 auto;width:50px;text-align:center}
+.tl .dot{width:44px;height:44px;border-radius:50%;background:var(--cream);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--ink-soft);margin:0 auto 7px}
+.tl .d.on .dot{background:var(--rose);color:#fff;border-color:var(--rose);box-shadow:0 0 0 4px var(--rose-tint)}
+.tl .d.done .dot{background:var(--rose-tint);color:var(--rose-deep);border-color:transparent}
+.tl .lab{font-size:9.5px;color:var(--ink-faint);line-height:1.2}
+.tl .d.on .lab{color:var(--rose-deep);font-weight:700}
+.progress{height:6px;border-radius:30px;background:var(--cream);margin-top:14px;overflow:hidden}
+.progress i{display:block;height:100%;width:48%;background:linear-gradient(90deg,var(--rose),#D9989C);border-radius:30px}
+.link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--rose-deep);margin-top:13px}
+
+/* primary action card */
+.cta{background:linear-gradient(150deg,var(--rose-tint-2),var(--rose-tint));border:1px solid #F0D6D5;border-radius:var(--r-md);padding:18px;margin-bottom:13px;position:relative;overflow:hidden}
+.cta .pillbadge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:#fff;color:var(--rose-deep);padding:5px 11px;border-radius:30px;margin-bottom:13px}
+.cta h4{font-size:18px;font-weight:800;letter-spacing:-.01em;margin-bottom:7px}
+.cta p{font-size:12.5px;color:var(--ink-soft);max-width:74%;line-height:1.5}
+.cta .go{position:absolute;right:16px;bottom:16px;width:46px;height:46px;border-radius:50%;background:var(--rose);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(176,102,109,.35)}
+
+/* gentle note */
+.gentle{background:var(--amber-tint);border:1px solid #F0DEB9;border-radius:var(--r-md);padding:16px;margin-bottom:13px;display:flex;gap:13px}
+.gentle .ic{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#fff;color:var(--amber);display:flex;align-items:center;justify-content:center}
+.gentle .t{font-size:13px;font-weight:700;margin-bottom:4px;color:#7A5A1E}
+.gentle p{font-size:12px;color:#8A6A33;line-height:1.5}
+.spark{display:flex;align-items:flex-end;gap:4px;height:30px;margin-top:11px}
+.spark i{flex:1;background:#E6C57E;border-radius:3px 3px 0 0;opacity:.85}
+
+/* support */
+.support .t{font-size:14px;font-weight:700;margin-bottom:5px}
+.support p{font-size:12px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px}
+.btn-pill{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:14px;border-radius:30px;background:var(--rose);color:#fff;font-weight:700;font-size:14px;box-shadow:0 8px 18px rgba(176,102,109,.28)}
+.btn-pill .sub{font-weight:500;font-size:10.5px;opacity:.85;display:block}
+
+/* tiny goal */
+.goal{display:flex;align-items:center;gap:13px}
+.goal .box{width:26px;height:26px;border-radius:9px;border:2px solid var(--line-2);flex-shrink:0}
+.goal.checked .box{background:var(--sage);border-color:var(--sage);position:relative}
+.goal.checked .box::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(42deg)}
+.goal .t{font-size:14px;font-weight:700}
+.goal .s{font-size:11.5px;color:var(--ink-faint);margin-top:1px}
+
+/* bottom nav */
+.nav{display:flex;justify-content:space-between;padding:12px 22px 20px;background:linear-gradient(0deg,var(--cream) 70%,transparent);border-top:1px solid var(--line)}
+.nav .it{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--ink-faint);font-size:9.5px;font-weight:600}
+.nav .it svg{width:21px;height:21px}
+.nav .it.on{color:var(--rose-deep)}
+
+/* ===== V2 calm focus overrides ===== */
+.v2 .screen{background:#FCFAF6}
+.v2 .greet-serif{font-family:"Newsreader",serif;font-weight:500;font-size:27px;letter-spacing:-.01em;line-height:1.1}
+.v2 .greet-serif em{font-style:italic;color:var(--rose-deep)}
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:24px 20px;text-align:center;box-shadow:var(--sh-soft);margin:6px 0 16px}
+.hero .q{font-family:"Newsreader",serif;font-size:21px;font-weight:500;margin-bottom:18px}
+.moods{display:flex;justify-content:space-between;gap:8px}
+.moods .m{flex:1;border-radius:18px;padding:14px 4px 11px;background:var(--cream);border:1px solid var(--line)}
+.moods .m .face{width:30px;height:30px;border-radius:50%;margin:0 auto 8px;border:2px solid var(--line-2)}
+.moods .m.sel{background:var(--rose-tint);border-color:var(--rose)}
+.moods .m.sel .face{border-color:var(--rose);background:var(--rose)}
+.moods .m span{font-size:10px;font-weight:700;color:var(--ink-soft)}
+.moods .m.sel span{color:var(--rose-deep)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px}
+.tile .k{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:9px}
+.tile .v{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.tile .v small{font-size:12px;font-weight:600;color:var(--ink-faint)}
+.tile.accent{background:var(--rose-tint-2);border-color:#F0D6D5}
+.tile.accent .v{color:var(--rose-deep)}
+.quietrow{display:flex;align-items:center;gap:13px;padding:15px 16px;background:var(--surface);border:1px solid var(--line);border-radius:18px;margin-bottom:13px}
+.quietrow .ic{width:38px;height:38px;border-radius:12px;background:var(--sage-tint);color:#46715A;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.quietrow .tx{flex:1}
+.quietrow .tx .t{font-size:13.5px;font-weight:700}
+.quietrow .tx .s{font-size:11px;color:var(--ink-faint)}
+.quietrow .arr{color:var(--ink-faint)}
+
+/* ===== V3 editorial overrides ===== */
+.v3 .screen{background:#FAF4EE}
+.v3 .hdr{position:relative;padding:18px 22px 70px;background:
+  radial-gradient(120% 90% at 80% 0%, #E7B7B4 0%, #DDA0A4 38%, #CE8C92 100%);
+  color:#fff;overflow:hidden}
+.v3 .hdr .blob{position:absolute;border-radius:50%;background:rgba(255,255,255,.14)}
+.v3 .hdr .b1{width:150px;height:150px;right:-40px;top:-50px}
+.v3 .hdr .b2{width:90px;height:90px;left:-30px;bottom:0;background:rgba(255,255,255,.1)}
+.v3 .h-eye{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.85;margin-bottom:12px;position:relative}
+.v3 .h-title{font-family:"Newsreader",serif;font-weight:500;font-size:29px;line-height:1.12;letter-spacing:-.01em;position:relative}
+.v3 .h-title em{font-style:italic}
+.v3 .h-row{display:flex;align-items:center;justify-content:space-between;position:relative}
+.v3 .feed{margin-top:-52px;padding:0 16px 0;position:relative}
+.v3 .seclabel{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin:18px 4px 11px}
+.v3 .ecard{background:var(--surface);border-radius:22px;padding:18px;box-shadow:var(--sh-soft);border:1px solid rgba(237,228,218,.7)}
+.v3 .ecard.lead{padding:20px}
+.v3 .ecard h4{font-family:"Newsreader",serif;font-weight:500;font-size:19px;margin-bottom:6px}
+.v3 .ecard p{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+.v3 .ecard .go2{margin-top:14px;display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff;background:var(--rose);padding:11px 18px;border-radius:30px}
+.v3 .affirm{background:var(--sage-tint);border:1px solid #D7E5DA;border-radius:22px;padding:18px}
+.v3 .affirm .q{font-family:"Newsreader",serif;font-style:italic;font-size:17px;color:#3C6650;line-height:1.4}
+.v3 .affirm .by{font-size:11px;color:#5A8068;margin-top:8px;font-weight:600}
+
+/* ---------- ideas ---------- */
+.ideas{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:22px 20px;box-shadow:var(--sh-card)}
+.idea .n{font-family:"Newsreader",serif;font-style:italic;font-size:17px;color:var(--rose);margin-bottom:12px}
+.idea h4{font-size:15px;font-weight:800;margin-bottom:8px;letter-spacing:-.01em}
+.idea p{font-size:12.5px;color:var(--ink-soft);line-height:1.55}
+
+.steps{background:linear-gradient(150deg,#fff,var(--cream));border:1px solid var(--line);border-radius:var(--r-md);padding:28px 30px;margin-top:22px}
+.steps h3{font-family:"Newsreader",serif;font-weight:500;font-size:21px;margin-bottom:16px}
+.steps ol{margin-left:20px;display:flex;flex-direction:column;gap:10px}
+.steps li{font-size:14px;color:var(--ink-soft);line-height:1.55;padding-left:6px}
+.steps li b{color:var(--ink);font-weight:700}
+
+.foot{margin-top:50px;text-align:center;font-size:12px;color:var(--ink-faint)}
+
+@media(max-width:980px){
+  .notes,.ds,.ideas{grid-template-columns:1fr}
+  .ideas{grid-template-columns:1fr 1fr}
+  .sec-head p{text-align:left;margin-left:0}
+  .masthead h1{font-size:36px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== masthead ===== -->
+  <header class="masthead">
+    <div class="kicker"><span class="dot"></span> MAMA · Postpartum Care — Mother App</div>
+    <h1>ปรับหน้า Home ให้ <em>อบอุ่น โปร่ง และปลอบโยน</em> ขึ้น</h1>
+    <p class="lede th">เอกสารนี้รวมการวิเคราะห์ของเดิม, ระบบดีไซน์ที่เสนอ (สี/ฟอนต์/component) และหน้า Home ฝั่งคุณแม่ 3 ทิศทางบนมือถือ ให้เลือกผสมกันได้ — โทนทั้งหมดยึด "warm, soft, comforting" ตามที่คุยกัน ภาษาบน UI คงเป็นอังกฤษเหมือนแอปเดิม ส่วนคำอธิบายเป็นไทย</p>
+  </header>
+
+  <!-- ===== 1. analysis ===== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>สิ่งที่เห็นจากของเดิม</h2>
+      <p class="th">โครงข้อมูลดีอยู่แล้ว ปัญหาหลักคือ "ความหนาแน่น" และ "คอนทราสต์"</p>
+    </div>
+    <div class="notes">
+      <div class="note">
+        <h3><span class="tag prob">ปัญหา</span> <span class="th">การมองเห็น &amp; จังหวะ</span></h3>
+        <ul class="th">
+          <li><b>การ์ดเยอะและหน้าตาเหมือนกันหมด</b> — ทุกบล็อกเป็นกล่องมนเงานุ่มเท่ากัน เลยแข่งกันเอง ตาไม่รู้จะมองอะไรก่อน</li>
+          <li><b>คอนทราสต์ต่ำ</b> — ตัวอักษรเทาอ่อนบนพื้นครีม อ่านยาก โดยเฉพาะคุณแม่ที่อ่อนเพลีย/พักผ่อนน้อย</li>
+          <li><b>CTA หลัก ("today's check-in") จมอยู่กลางหน้า</b> ไม่เด่นเท่าที่ควรสำหรับสิ่งที่อยากให้ทำทุกวัน</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3><span class="tag prob">ปัญหา</span> <span class="th">โทน &amp; การนำทาง</span></h3>
+        <ul class="th">
+          <li><b>"GENTLE ATTENTION" ออกคลินิก/ชวนกังวล</b> — คำว่า "early signs to watch", "sleep averaging 7.1 hours" อ่านแล้วเหมือนรายงานแพทย์ ไม่ปลอบโยน</li>
+          <li><b>Bottom nav 6 ช่องเยอะไป</b> (มือถือควร ≤5) และชื่อ <b>"Legacy"</b> สื่อความไม่ชัด</li>
+          <li><b>ข้อความยาว</b>หลายจุดอธิบายเกินจำเป็น ทำให้หน้ารู้สึกหนัก</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 2. design system ===== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Design System ที่เสนอ</h2>
+      <p class="th">accent ชุดเดียวคุมทั้งแอป + ฟอนต์ serif อุ่นคู่ sans สะอาด</p>
+    </div>
+    <div class="ds">
+      <div class="panel">
+        <div class="lbl">Palette · warm, low-chroma</div>
+        <div class="swatches">
+          <div class="sw"><div class="chip" style="background:#FBF6F0"></div><div class="meta"><b>Cream</b><span>#FBF6F0 · surface</span></div></div>
+          <div class="sw"><div class="chip" style="background:#41372F"></div><div class="meta"><b>Ink</b><span>#41372F · text</span></div></div>
+          <div class="sw"><div class="chip" style="background:#C77E83"></div><div class="meta"><b>Rose</b><span>#C77E83 · primary</span></div></div>
+          <div class="sw"><div class="chip" style="background:#88A78F"></div><div class="meta"><b>Sage</b><span>#88A78F · calm</span></div></div>
+          <div class="sw"><div class="chip" style="background:#C79A52"></div><div class="meta"><b>Amber</b><span>#C79A52 · gentle</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F6E3E2"></div><div class="meta"><b>Rose tint</b><span>#F6E3E2 · fills</span></div></div>
+        </div>
+        <div class="ramp" title="rose tint scale">
+          <i style="background:#FBEEED"></i><i style="background:#F6E3E2"></i><i style="background:#E9BFC0"></i><i style="background:#D9989C"></i><i style="background:#C77E83"></i><i style="background:#B0666D"></i>
+        </div>
+        <div class="comp-row">
+          <button class="ui-btn">Primary</button>
+          <button class="ui-btn ghost">Ghost</button>
+          <button class="ui-btn line">Outline</button>
+          <span class="ui-chip on">Day</span><span class="ui-chip">Week</span>
+          <span class="ui-pillbadge">Connected care</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="lbl">Type · Newsreader + Plus Jakarta Sans</div>
+        <div class="type-spec">
+          <div><div class="rolelbl">Display — Newsreader</div><div class="t-display">Hey, <em>Mama</em></div></div>
+          <div><div class="rolelbl">Title — Jakarta 700</div><div class="t-title">Complete today's check-in</div></div>
+          <div><div class="rolelbl">Body — Jakarta 400/500</div><div class="t-body">A quick mood check-in keeps support gentle and easy.</div></div>
+          <div><div class="rolelbl">Eyebrow / label</div><div class="t-cap">Jun 1 · Good morning</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. options ===== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>หน้า Home — 3 ทิศทาง</h2>
+      <p class="th">เรียงจาก "ใกล้ของเดิม" ไป "ตีความใหม่" — หยิบมาผสมกันได้</p>
+    </div>
+    <div class="options">
+
+      <!-- ===== V1 Soft Refine ===== -->
+      <div class="option">
+        <div class="option-head">
+          <div class="o-id">Option 1</div>
+          <h3>Soft Refine</h3>
+          <p class="th">โครงเดิมทุกอย่าง แต่โปร่งขึ้น คอนทราสต์ชัดขึ้น การ์ดแบนลงเหลือเส้นบาง + CTA เด่นขึ้น ปลอดภัยที่สุด</p>
+        </div>
+        <div class="phone v1">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="icons"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+            <div class="app">
+              <div class="appbar">
+                <div><div class="eyebrow">Jun 1 · Good morning</div><div class="greet">Hey, Mama <span class="heart">♥</span></div></div>
+                <div class="icongrp">
+                  <div class="iconbtn"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0112 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-h"><div><div class="t">Care Journey</div><div class="s">Your postpartum timeline</div></div><div class="seg"><span class="on">Day</span><span>Week</span><span>Month</span></div></div>
+                <div class="tl">
+                  <div class="d done"><div class="dot">1</div><div class="lab">Baby Blues</div></div>
+                  <div class="d done"><div class="dot">3</div><div class="lab">Peak Adjust</div></div>
+                  <div class="d on"><div class="dot">7</div><div class="lab">Finding Rhythm</div></div>
+                  <div class="d"><div class="dot">14</div><div class="lab">Settling In</div></div>
+                  <div class="d"><div class="dot">21</div><div class="lab">Growing</div></div>
+                </div>
+                <div class="progress"><i></i></div>
+                <a class="link">View full journey →</a>
+              </div>
+              <div class="cta">
+                <span class="pillbadge">Primary action</span>
+                <h4>Complete today's check-in</h4>
+                <p>A quick mood check-in keeps support gentle and easy to understand.</p>
+                <div class="go"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+              </div>
+              <div class="gentle">
+                <div class="ic"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+                <div>
+                  <div class="t">A gentle note</div>
+                  <p>Your sleep dipped a little this week — nothing alarming. Let's keep tomorrow's check-in light.</p>
+                  <div class="spark"><i style="height:60%"></i><i style="height:80%"></i><i style="height:50%"></i><i style="height:70%"></i><i style="height:40%"></i><i style="height:55%"></i><i style="height:45%"></i></div>
+                </div>
+              </div>
+              <div class="card support">
+                <div class="t">Support is here</div>
+                <p>If today feels heavy, you can talk to someone instead of pushing through alone.</p>
+                <div class="btn-pill"><svg viewBox="0 0 24 24" width="17" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg><span>Talk to a professional<span class="sub">Available when you need extra support</span></span></div>
+              </div>
+              <div class="card flat">
+                <div class="card-h" style="margin:0"><div class="goal"><div class="box"></div><div><div class="t">Today's tiny goal</div><div class="s">Rest for 10 quiet minutes</div></div></div></div>
+              </div>
+            </div>
+            <div class="nav">
+              <div class="it on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>Home</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>Mood</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18c4-9 12-9 16 0"/><circle cx="12" cy="8" r="2.5"/></svg>Journey</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11a8 8 0 01-11 7l-5 2 2-5a8 8 0 1114-4z"/></svg>Support</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1-4 13-4 14 0"/></svg>Me</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== V2 Calm Focus ===== -->
+      <div class="option">
+        <div class="option-head">
+          <div class="o-id">Option 2</div>
+          <h3>Calm Focus</h3>
+          <p class="th">เน้นสิ่งเดียว — เช็คอินอารมณ์เป็นพระเอกใหญ่กลางจอ ที่เหลือยุบเป็นแถวเรียบ ๆ เว้นที่ว่างเยอะ ลดความหนัก</p>
+        </div>
+        <div class="phone v2">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="icons"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="bat"></span></span></div>
+            <div class="app">
+              <div class="appbar">
+                <div><div class="eyebrow">Saturday, Jun 1</div><div class="greet-serif">Good morning,<br><em>Mama</em></div></div>
+                <div class="iconbtn"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 00-1.7-1L14.5 2h-5l-.4 2.6a7 7 0 00-1.7 1l-2.3-1-2 3.4L3.1 11a7 7 0 000 2l-2 1.5 2 3.4 2.3-1a7 7 0 001.7 1l.4 2.6h5l.4-2.6a7 7 0 001.7-1l2.3 1 2-3.4-2-1.5a7 7 0 00.1-1z"/></svg></div>
+              </div>
+              <div class="hero">
+                <div class="q">How are you<br>feeling today?</div>
+                <div class="moods">
+                  <div class="m"><div class="face"></div><span>Rough</span></div>
+                  <div class="m"><div class="face"></div><span>Low</span></div>
+                  <div class="m sel"><div class="face"></div><span>Okay</span></div>
+                  <div class="m"><div class="face"></div><span>Good</span></div>
+                </div>
+              </div>
+              <div class="duo">
+                <div class="tile accent"><div class="k">Your journey</div><div class="v">Day 7<small> · Finding rhythm</small></div></div>
+                <div class="tile"><div class="k">Sleep</div><div class="v">7.1<small>h avg</small></div></div>
+              </div>
+              <div class="quietrow">
+                <div class="ic"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg></div>
+                <div class="tx"><div class="t">A small win for today</div><div class="s">Rest for 10 quiet minutes</div></div>
+                <div class="arr"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+              </div>
+              <div class="quietrow">
+                <div class="ic" style="background:var(--rose-tint);color:var(--rose-deep)"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11a8 8 0 01-11 7l-5 2 2-5a8 8 0 1114-4z"/></svg></div>
+                <div class="tx"><div class="t">Need to talk?</div><div class="s">A professional is one tap away</div></div>
+                <div class="arr"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+              </div>
+            </div>
+            <div class="nav">
+              <div class="it on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>Home</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>Mood</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18c4-9 12-9 16 0"/><circle cx="12" cy="8" r="2.5"/></svg>Journey</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11a8 8 0 01-11 7l-5 2 2-5a8 8 0 1114-4z"/></svg>Support</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1-4 13-4 14 0"/></svg>Me</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== V3 Editorial Warmth ===== -->
+      <div class="option">
+        <div class="option-head">
+          <div class="o-id">Option 3</div>
+          <h3>Editorial Warmth</h3>
+          <p class="th">อารมณ์ไดอารี — เฮดเดอร์ไล่สีอุ่นเต็มจอ พาดหัว serif ให้กำลังใจ เนื้อหาเป็นฟีด "วันนี้" อ่านสบายเหมือนจดหมายถึงตัวเอง</p>
+        </div>
+        <div class="phone v3">
+          <div class="screen">
+            <div class="status"><span style="color:#fff">9:41</span><span class="icons" style="color:#fff"><span class="sig"><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i><i style="background:#fff"></i></span><span class="bat" style="border-color:#fff"></span></span></div>
+            <div class="hdr">
+              <span class="blob b1"></span><span class="blob b2"></span>
+              <div class="h-row" style="margin-bottom:16px">
+                <div class="h-eye">Day 7 · Jun 1</div>
+                <div class="iconbtn" style="background:rgba(255,255,255,.2);border-color:transparent;color:#fff"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0112 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 21a2 2 0 004 0"/></svg></div>
+              </div>
+              <div class="h-title">You're finding<br>your <em>rhythm</em>, Mama.</div>
+            </div>
+            <div class="feed">
+              <div class="ecard lead">
+                <h4>Today's check-in</h4>
+                <p>One minute, just for you. A gentle note on how today feels keeps your support right-sized.</p>
+                <span class="go2">Start check-in <svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+              </div>
+              <div class="seclabel">A word for today</div>
+              <div class="affirm">
+                <div class="q">"Healing isn't linear. Resting today is still moving forward."</div>
+                <div class="by">— Your care team</div>
+              </div>
+              <div class="seclabel">One small thing</div>
+              <div class="ecard">
+                <div class="goal"><div class="box"></div><div><div class="t" style="font-size:14px;font-weight:700">Rest for 10 quiet minutes</div><div class="s" style="font-size:11.5px;color:var(--ink-faint)">Even closing your eyes counts</div></div></div>
+              </div>
+              <div style="height:14px"></div>
+            </div>
+            <div class="nav">
+              <div class="it on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>Home</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>Mood</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18c4-9 12-9 16 0"/><circle cx="12" cy="8" r="2.5"/></svg>Journey</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11a8 8 0 01-11 7l-5 2 2-5a8 8 0 1114-4z"/></svg>Support</div>
+              <div class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1-4 13-4 14 0"/></svg>Me</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 4. ideas + next steps ===== -->
+  <section class="sec">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>ฟีเจอร์ / หน้าจอที่น่าเสนอเพิ่ม</h2>
+      <p class="th">ต่อยอดจากโครงเดิม ไม่ใช่ของใหม่ทั้งหมด</p>
+    </div>
+    <div class="ideas">
+      <div class="idea"><div class="n">i.</div><h4>Check-in 1 หน้าจอ</h4><p class="th">ไหลต่อจาก CTA หลัก — เลือกอารมณ์ + แท็กอาการสั้น ๆ จบใน 1 นาที ลดแรงต้านการทำทุกวัน</p></div>
+      <div class="idea"><div class="n">ii.</div><h4>Weekly recap อ่อนโยน</h4><p class="th">สรุปสัปดาห์เป็นภาษาให้กำลังใจ + กราฟนอน/อารมณ์เบา ๆ แทนการเตือนแบบคลินิก</p></div>
+      <div class="idea"><div class="n">iii.</div><h4>โหมดกลางคืน</h4><p class="th">ธีมมืดอุ่นสำหรับให้นมตอนดึก ลดแสงจ้า ปุ่มใหญ่ขึ้นใช้มือเดียว</p></div>
+      <div class="idea"><div class="n">iv.</div><h4>สะพานเชื่อม รพ.</h4><p class="th">การ์ด "Connected care" ที่ให้คุณแม่เลือกแชร์สรุปให้โรงพยาบาลได้ ตรงกับโจทย์ฝั่ง รพ. ที่คุยไว้</p></div>
+    </div>
+    <div class="steps">
+      <h3>ขั้นต่อไป</h3>
+      <ol class="th">
+        <li><b>เลือกทิศทาง</b> — บอกผมว่าชอบ Option ไหน หรืออยากผสม (เช่น เฮดเดอร์แบบ 3 + เนื้อหาแบบ 1)</li>
+        <li><b>เห็น UI จริงเพิ่ม</b> — ถ้าส่งสกรีนช็อตหน้าอื่น (Mood, Journey, Support) ผมจะปรับให้เป็นชุดเดียวกันทั้งแอป</li>
+        <li><b>ทำเป็น prototype กดได้</b> — เปลี่ยนจาก mockup เป็นแอปจำลองที่ flow check-in ทำงานจริงเพื่อเทสต์กับผู้ใช้</li>
+      </ol>
+    </div>
+  </section>
+
+  <div class="foot th">MAMA · ร่างแนวทางดีไซน์ฝั่งคุณแม่ — มือถือเป็นหลัก · เลือก/ผสมได้ตามต้องการ</div>
+
+</div>
+</body>
+</html>

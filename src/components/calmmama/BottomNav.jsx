@@ -1,16 +1,20 @@
 import { motion } from "framer-motion";
 import { Archive, Home, SmilePlus, CalendarHeart, Target, Users } from "lucide-react";
 
-const tabs = [
-  { id: "home", label: "Home", icon: Home },
-  { id: "mood", label: "Mood", icon: SmilePlus },
-  { id: "legacy", label: "Legacy", icon: Archive },
-  { id: "therapy", label: "Therapy", icon: CalendarHeart, disabled: true },
-  { id: "careplans", label: "Plans", icon: Target, disabled: true },
-  { id: "circle", label: "Circle", icon: Users, disabled: true },
+const BASE_TABS = [
+  { id: "home",      label: "Home",    icon: Home },
+  { id: "mood",      label: "Mood",    icon: SmilePlus },
+  { id: "therapy",   label: "Therapy", icon: CalendarHeart, disabled: true },
+  { id: "careplans", label: "Plans",   icon: Target,        disabled: true },
+  { id: "circle",    label: "Circle",  icon: Users,         disabled: true },
 ];
 
-export default function BottomNav({ activeTab, onTabChange }) {
+const LEGACY_TAB = { id: "legacy", label: "Legacy", icon: Archive };
+
+export default function BottomNav({ activeTab, onTabChange, legacyUnlocked }) {
+  const tabs = legacyUnlocked
+    ? [BASE_TABS[0], BASE_TABS[1], LEGACY_TAB, ...BASE_TABS.slice(2)]
+    : BASE_TABS;
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
       <div className="max-w-md mx-auto px-3 pb-4">

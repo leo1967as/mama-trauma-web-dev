@@ -1,547 +1,377 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { AlertCircle, MessageCircleHeart, Moon, Pencil, TrendingUp } from "lucide-react";
 import {
-  AlertCircle,
-  Archive,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
-  MessageCircleHeart,
-  Moon,
-  Smile,
-  TrendingUp,
-} from "lucide-react";
-import {
-  getMoodChartData,
-  getMoodHistory,
-  getMoodInsights,
-  getMoodRiskSummary,
-  getMoodSummary,
-  getTodaysMoodEntry,
-  hasMoodChartData,
-  subscribeToMoodHistory,
-  upsertMoodEntry,
+  formatHistoryDate,
+  getMoodChartData, getMoodHistory, getMoodInsights, getMoodRiskSummary,
+  getMoodSummary, hasMoodChartData, subscribeToMoodHistory,
 } from "../../lib/mood-data";
 
-const moods = [
-  { emoji: "😢", label: "Sad", value: 1 },
-  { emoji: "😔", label: "Low", value: 2 },
-  { emoji: "😐", label: "Okay", value: 3 },
-  { emoji: "🙂", label: "Good", value: 4 },
-  { emoji: "😊", label: "Great", value: 5 },
-];
+const F = "'Plus Jakarta Sans', system-ui, sans-serif";
+const S = "'Newsreader', serif";
 
-const tags = ["overwhelmed", "tired", "anxious", "lonely", "hopeful", "calm", "grateful", "proud"];
-const supportOptions = [
-  { value: "yes", label: "Yes" },
-  { value: "no", label: "No" },
-];
-const sleepHoursOptions = Array.from({ length: 25 }, (_, hour) => String(hour));
+// ── face data ─────────────────────────────────────────────────────────────────
 
-const insightIconMap = {
-  sleep: Moon,
-  support: MessageCircleHeart,
-  tag: AlertCircle,
-  trend: TrendingUp,
+const SCORE_FACE = {
+  1: { word: "Rough", bg: "#EDEFF3", color: "#7E8AA0",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#EDEFF3"/><circle cx="14" cy="17" r="1.8" fill="#7E8AA0"/><circle cx="26" cy="17" r="1.8" fill="#7E8AA0"/><path d="M13 27c2-3 12-3 14 0" stroke="#7E8AA0" strokeWidth="2.2" strokeLinecap="round"/></svg> },
+  2: { word: "Low",   bg: "#EFE9EF", color: "#8E7E90",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#EFE9EF"/><circle cx="14" cy="18" r="1.8" fill="#8E7E90"/><circle cx="26" cy="18" r="1.8" fill="#8E7E90"/><path d="M14 26c2-1.5 10-1.5 12 0" stroke="#8E7E90" strokeWidth="2.2" strokeLinecap="round"/></svg> },
+  3: { word: "Okay",  bg: "#F6EBD4", color: "#B58B3C",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6EBD4"/><circle cx="14" cy="18" r="1.9" fill="#B58B3C"/><circle cx="26" cy="18" r="1.9" fill="#B58B3C"/><path d="M14 25h12" stroke="#B58B3C" strokeWidth="2.4" strokeLinecap="round"/></svg> },
+  4: { word: "Good",  bg: "#E5EEE6", color: "#5E8169",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#E5EEE6"/><circle cx="14" cy="17" r="1.9" fill="#5E8169"/><circle cx="26" cy="17" r="1.9" fill="#5E8169"/><path d="M13 23c2 3 12 3 14 0" stroke="#5E8169" strokeWidth="2.3" strokeLinecap="round"/></svg> },
+  5: { word: "Light", bg: "#F6E3E2", color: "#B0666D",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6E3E2"/><circle cx="14" cy="16" r="1.9" fill="#B0666D"/><circle cx="26" cy="16" r="1.9" fill="#B0666D"/><path d="M12 22c2.5 4.5 13.5 4.5 16 0" stroke="#B0666D" strokeWidth="2.4" strokeLinecap="round"/></svg> },
 };
 
-const riskToneMap = {
-  red: "border-red-200/80 bg-red-50 text-red-700",
-  orange: "border-amber-200/80 bg-amber-50 text-amber-700",
-  yellow: "border-yellow-200/80 bg-yellow-50 text-yellow-700",
-  green: "border-emerald-200/80 bg-emerald-50 text-emerald-700",
-  none: "border-border/40 bg-card text-foreground",
+const SLEEP_LABEL = { 2: "Hardly any", 4: "Broken", 6: "Okay", 8: "Slept well" };
+
+const insightIconMap = { sleep: Moon, support: MessageCircleHeart, tag: AlertCircle, trend: TrendingUp };
+const insightLabels = ["Pattern to notice", "Another signal", "One more thing"];
+
+const insightColors = [
+  { bg: "#F7EDD8", color: "#9A7322" },
+  { bg: "#E7EFE8", color: "#577A62" },
+  { bg: "#F6E2E1", color: "#AF636A" },
+];
+
+const riskStyle = {
+  red:    { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2" },
+  orange: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0" },
+  yellow: { bg: "#F7EDD8", border: "#E8D3A0", text: "#9A7322", tag: "#F2E2BE" },
+  green:  { bg: "#E7EFE8", border: "#C8DFC9", text: "#577A62", tag: "#D8EDD9" },
+  none:   { bg: "#fff",    border: "#EFE6DC", text: "#6C5F56", tag: "#FBF6F0" },
 };
 
-function formatSavedTime(updatedAt) {
-  if (!updatedAt) {
-    return null;
-  }
+// ── shared ────────────────────────────────────────────────────────────────────
 
-  return new Date(updatedAt).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function Card({ children, style }) {
+  return (
+    <div style={{
+      background: "#fff", border: "1px solid #EFE6DC", borderRadius: 24,
+      padding: 20, boxShadow: "0 2px 12px rgba(80,56,42,.05)",
+      fontFamily: F, ...style,
+    }}>
+      {children}
+    </div>
+  );
 }
 
-export default function MoodTab({ onNavigate }) {
+function SectionLabel({ children }) {
+  return (
+    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 0 }}>
+      {children}
+    </div>
+  );
+}
+
+// ── today summary ─────────────────────────────────────────────────────────────
+
+function TodaySummary({ todayEntry, onCheckIn }) {
+  const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
+  const sleepLabel = todayEntry?.sleepHours != null
+    ? (SLEEP_LABEL[todayEntry.sleepHours] ?? `${todayEntry.sleepHours} hrs`)
+    : null;
+
+  if (!face) {
+    return (
+      <Card>
+        <SectionLabel>Today</SectionLabel>
+        <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.55, margin: "10px 0 16px" }}>
+          No check-in yet. Tap below to log how you're feeling.
+        </p>
+        <button onClick={onCheckIn} style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
+          width: "100%", padding: 15, borderRadius: 18,
+          background: "#C77E83", color: "#fff",
+          fontWeight: 700, fontSize: 14.5, border: 0,
+          boxShadow: "0 12px 24px rgba(175,99,106,.28)",
+          cursor: "pointer", fontFamily: F,
+        }}>
+          <svg viewBox="0 0 24 24" width="17" fill="none" stroke="currentColor" strokeWidth="2.1">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>
+          </svg>
+          Complete today's check-in
+        </button>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <SectionLabel>Today's log</SectionLabel>
+        <button onClick={onCheckIn} style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          fontSize: 12, fontWeight: 700, color: "#AF636A",
+          background: "#F6E2E1", border: "none",
+          padding: "5px 12px", borderRadius: 30, cursor: "pointer", fontFamily: F,
+        }}>
+          <Pencil size={11} /> Edit
+        </button>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: todayEntry.tags?.length ? 14 : 0 }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: "50%", background: face.bg,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <svg viewBox="0 0 40 40" fill="none" width="48" height="48">{face.svg.props.children}</svg>
+        </div>
+        <div>
+          <div style={{ fontFamily: S, fontSize: 22, fontWeight: 500, color: "#3E342C" }}>{face.word}</div>
+          {sleepLabel && (
+            <div style={{ fontSize: 12, color: "#9C8E83", marginTop: 2 }}>Sleep · {sleepLabel}</div>
+          )}
+        </div>
+      </div>
+
+      {todayEntry.tags?.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {todayEntry.tags.map(tag => (
+            <span key={tag} style={{
+              fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 30,
+              background: "#FBF6F0", border: "1px solid #E6DBCF", color: "#6C5F56",
+              textTransform: "capitalize",
+            }}>{tag}</span>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ── recent history ────────────────────────────────────────────────────────────
+
+function RecentHistory({ history }) {
+  const recent = history.filter(e => e.moodScore != null).slice(0, 7);
+  if (!recent.length) return null;
+
+  return (
+    <Card style={{ padding: 0, overflow: "hidden" }}>
+      <div style={{ padding: "18px 20px 12px" }}>
+        <SectionLabel>Recent days</SectionLabel>
+      </div>
+      {recent.map((entry, i) => {
+        const face = SCORE_FACE[entry.moodScore];
+        if (!face) return null;
+        const sleepLabel = entry.sleepHours != null
+          ? (SLEEP_LABEL[entry.sleepHours] ?? `${entry.sleepHours}h`)
+          : null;
+        const tags = entry.tags?.slice(0, 2) || [];
+        const dateLabel = formatHistoryDate(entry.dateKey);
+
+        return (
+          <div key={entry.dateKey} style={{
+            display: "flex", alignItems: "center", gap: 14,
+            padding: "13px 20px",
+            borderTop: "1px solid #F5EFE8",
+          }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: "50%", background: face.bg,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              <svg viewBox="0 0 40 40" fill="none" width="38" height="38">{face.svg.props.children}</svg>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                <span style={{ fontFamily: S, fontSize: 16, fontWeight: 500, color: "#3E342C" }}>{face.word}</span>
+                {tags.map(tag => (
+                  <span key={tag} style={{
+                    fontSize: 11, fontWeight: 600, color: "#9C8E83",
+                    background: "#FBF6F0", border: "1px solid #EFE6DC",
+                    padding: "2px 8px", borderRadius: 20,
+                    textTransform: "capitalize",
+                  }}>{tag}</span>
+                ))}
+              </div>
+              {sleepLabel && (
+                <div style={{ fontSize: 11, color: "#9C8E83", marginTop: 2 }}>Sleep · {sleepLabel}</div>
+              )}
+            </div>
+
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#9C8E83", flexShrink: 0 }}>
+              {dateLabel}
+            </span>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
+
+// ── main ──────────────────────────────────────────────────────────────────────
+
+export default function MoodTab({ onCheckIn }) {
   const [history, setHistory] = useState(() => getMoodHistory());
-  const [selectedMood, setSelectedMood] = useState(() => getTodaysMoodEntry()?.moodScore ?? null);
-  const [selectedTags, setSelectedTags] = useState(() => getTodaysMoodEntry()?.tags ?? []);
-  const [energy, setEnergy] = useState(() => getTodaysMoodEntry()?.energyLevel ?? 50);
-  const [sleepHours, setSleepHours] = useState(() => String(getTodaysMoodEntry()?.sleepHours ?? 0));
-  const [supportContacted, setSupportContacted] = useState(() => getTodaysMoodEntry()?.supportContacted ?? "no");
-  const [note, setNote] = useState(() => getTodaysMoodEntry()?.note ?? "");
-  const [detailsOpen, setDetailsOpen] = useState(() => {
-    const todayEntry = getTodaysMoodEntry();
-    return Boolean(todayEntry?.note || todayEntry?.sleepHours || todayEntry?.supportContacted === "yes");
-  });
-  const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [sleepPickerOpen, setSleepPickerOpen] = useState(false);
-  const [sleepPickerClosing, setSleepPickerClosing] = useState(false);
-  const [sleepTriggerBounce, setSleepTriggerBounce] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = subscribeToMoodHistory((nextHistory) => {
-      setHistory(nextHistory);
-    });
-
-    return unsubscribe;
+    const unsub = subscribeToMoodHistory(setHistory);
+    return unsub;
   }, []);
 
   const summary = useMemo(() => getMoodSummary(history), [history]);
   const todayEntry = summary.todayEntry;
   const riskSummary = useMemo(() => getMoodRiskSummary(history), [history]);
-  const primaryInsight = useMemo(() => getMoodInsights(history)[0] || null, [history]);
+  const insights = useMemo(() => getMoodInsights(history), [history]);
 
-  useEffect(() => {
-    setSelectedMood(todayEntry?.moodScore ?? null);
-    setSelectedTags(todayEntry?.tags ?? []);
-    setEnergy(todayEntry?.energyLevel ?? 50);
-    setSleepHours(String(todayEntry?.sleepHours ?? 0));
-    setSupportContacted(todayEntry?.supportContacted ?? "no");
-    setNote(todayEntry?.note ?? "");
-  }, [todayEntry?.updatedAt]);
+  const chartData = getMoodChartData(history, 7);
+  const chartAnimKey = chartData.map(r => `${r.dateKey}:${r.mood ?? "n"}`).join("|");
+  const showChart = hasMoodChartData(chartData);
 
-  const chartData = getMoodChartData(history, 7, { previewMoodScore: selectedMood });
-  const chartAnimationKey = useMemo(
-    () => chartData.map((row) => `${row.dateKey}:${row.mood ?? "null"}`).join("|"),
-    [chartData],
-  );
-  const showChartData = hasMoodChartData(chartData);
-  const statusLabel = summary.hasTodayCheckIn ? "Saved today" : "Not checked in yet";
-  const statusMessage = summary.hasTodayCheckIn
-    ? "Today’s check-in is already saved. You can adjust it anytime."
-    : "Keep this short: choose your mood, add what matters, and save.";
-  const savedTime = formatSavedTime(todayEntry?.updatedAt);
-
-  const toggleTag = (tag) => {
-    setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]));
-  };
-
-  const handleSleepSelect = (hour) => {
-    setSleepHours(hour);
-    setSleepPickerClosing(true);
-    setSleepTriggerBounce(true);
-
-    window.setTimeout(() => {
-      setSleepPickerOpen(false);
-      setSleepPickerClosing(false);
-    }, 260);
-
-    window.setTimeout(() => {
-      setSleepTriggerBounce(false);
-    }, 420);
-  };
-
-  const handleSave = () => {
-    setSaveError("");
-
-    try {
-      const nextHistory = upsertMoodEntry({
-        moodScore: selectedMood,
-        energyLevel: energy,
-        sleepHours,
-        tags: selectedTags,
-        note,
-        supportContacted,
-      });
-
-      const savedEntry = getTodaysMoodEntry();
-      if (!savedEntry || savedEntry.moodScore !== selectedMood) {
-        throw new Error("Saved entry could not be verified.");
-      }
-
-      setHistory(nextHistory);
-      setSaved(true);
-      window.setTimeout(() => setSaved(false), 2500);
-    } catch {
-      setSaveError("Save did not complete. Please try again.");
-    }
-  };
-
-  const sleepPickerPortal =
-    sleepPickerOpen && typeof document !== "undefined"
-      ? createPortal(
-          <AnimatePresence>
-            <motion.div
-              key="sleep-picker-backdrop"
-              onClick={() => {
-                setSleepPickerOpen(false);
-                setSleepPickerClosing(false);
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[50] bg-black/30 backdrop-blur-[2px]"
-            />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-              <motion.div
-                key="sleep-picker-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Sleep time picker"
-                onClick={(event) => event.stopPropagation()}
-                initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                animate={
-                  sleepPickerClosing
-                    ? { opacity: [1, 1, 0], y: [0, -6, 10], scale: [1, 1.04, 0.96] }
-                    : { opacity: 1, y: 0, scale: [0.96, 1.01, 1] }
-                }
-                exit={{ opacity: 0, y: 18, scale: 0.96 }}
-                transition={{ duration: sleepPickerClosing ? 0.26 : 0.3, ease: "easeOut" }}
-                className="z-[60] w-[min(92vw,320px)] overflow-hidden rounded-3xl border border-border/40 bg-card shadow-2xl shadow-black/20"
-              >
-                <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
-                  <p className="text-xs font-semibold text-foreground">Sleep time</p>
-                </div>
-                <div className="max-h-[min(60vh,320px)] overflow-y-auto p-2">
-                  {sleepHoursOptions.map((hour) => {
-                    const active = String(sleepHours) === hour;
-                    return (
-                      <motion.button
-                        key={hour}
-                        type="button"
-                        onClick={() => handleSleepSelect(hour)}
-                        animate={{ scale: 1 }}
-                        className={`flex w-full items-center justify-between rounded-2xl px-3 py-2.5 text-xs font-medium transition-colors duration-150 ${
-                          active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                        }`}
-                      >
-                        <span>{hour} hrs</span>
-                        {active ? <span className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </div>
-          </AnimatePresence>,
-          document.body,
-        )
-      : null;
-
-  const saveSuccessPortal =
-    saved && typeof document !== "undefined"
-      ? createPortal(
-          <AnimatePresence>
-            <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[70] flex justify-center px-4">
-              <motion.div
-                key="save-success-popup"
-                initial={{ opacity: 0, y: 18, scale: 0.94 }}
-                animate={{ opacity: 1, y: 0, scale: [0.94, 1.025, 1] }}
-                exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                transition={{
-                  opacity: { duration: 0.2, ease: "easeOut" },
-                  y: { type: "spring", stiffness: 360, damping: 24 },
-                  scale: { type: "spring", stiffness: 320, damping: 18 },
-                }}
-                className="w-[min(92vw,360px)] rounded-[28px] border border-emerald-200/70 bg-white/95 px-4 py-4 shadow-2xl shadow-emerald-900/10 backdrop-blur-xl"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Check-in saved</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      Today&apos;s mood was saved and verified. Your trend has been updated.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </AnimatePresence>,
-          document.body,
-        )
-      : null;
-
-  const InsightIcon = primaryInsight ? insightIconMap[primaryInsight.type] || TrendingUp : TrendingUp;
+  const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
+  const rs = riskStyle[riskSummary.level] ?? riskStyle.none;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="space-y-4">
-      <div className="pt-2 pb-1">
-        <div className="flex items-center gap-2 mb-1">
-          <Smile className="w-5 h-5 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">Mood Check-In</h1>
-        </div>
-        <p className="text-xs text-muted-foreground">A quick daily check-in first. Deeper reflection can wait.</p>
-      </div>
-
-      <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Today&apos;s check-in</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{statusMessage}</p>
-          </div>
-          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">{statusLabel}</span>
-        </div>
-        {savedTime ? <p className="mt-3 text-[11px] font-medium text-muted-foreground">Last saved at {savedTime}</p> : null}
-      </div>
-
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <p className="text-sm font-semibold text-foreground">How are you feeling?</p>
-          <span className="text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary font-bold">
-            {selectedMood ? "Selected" : "Choose one"}
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          {moods.map((mood) => (
-            <button key={mood.value} type="button" onClick={() => setSelectedMood(mood.value)} className="flex flex-col items-center gap-1.5">
-              <motion.div
-                whileTap={{ scale: 0.88 }}
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-all duration-200 ${
-                  selectedMood === mood.value ? "bg-primary/15 ring-2 ring-primary/40 shadow-md scale-110" : "bg-muted/60 hover:bg-muted"
-                }`}
-              >
-                {mood.emoji}
-              </motion.div>
-              <span className={`text-[10px] font-medium ${selectedMood === mood.value ? "text-primary" : "text-muted-foreground"}`}>{mood.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-foreground">Energy level</p>
-          <span className="text-sm font-bold text-primary">{energy}%</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={energy}
-          onChange={(event) => setEnergy(Number(event.target.value))}
-          className="w-full h-2 rounded-full appearance-none cursor-pointer"
-          style={{ background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${energy}%, hsl(var(--muted)) ${energy}%, hsl(var(--muted)) 100%)` }}
-        />
-        <style>{`input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: white; border: 3px solid hsl(var(--primary)); box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; }`}</style>
-        <div className="flex justify-between mt-1.5">
-          <span className="text-[10px] text-muted-foreground">Exhausted</span>
-          <span className="text-[10px] text-muted-foreground">Energized</span>
-        </div>
-      </div>
-
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <p className="text-sm font-semibold text-foreground mb-3">Tags / issues today</p>
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <motion.button
-              key={tag}
-              type="button"
-              whileTap={{ scale: 0.95 }}
-              onClick={() => toggleTag(tag)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                selectedTags.includes(tag) ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted/60 text-muted-foreground border border-transparent hover:bg-muted"
-              }`}
-            >
-              {tag}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-card rounded-3xl border border-border/40 shadow-sm overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setDetailsOpen((prev) => !prev)}
-          className="flex w-full items-center justify-between px-5 py-4 text-left"
-        >
-          <div>
-            <p className="text-sm font-semibold text-foreground">More details</p>
-            <p className="mt-1 text-xs text-muted-foreground">Optional: sleep, support, and a short note.</p>
-          </div>
-          {detailsOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-        </button>
-        <AnimatePresence initial={false}>
-          {detailsOpen ? (
-            <motion.div
-              key="details"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-3 border-t border-border/30 px-5 pb-5 pt-3">
-                <div className="relative rounded-2xl border border-border/30 bg-[hsl(var(--muted)/0.45)] p-4 shadow-inner">
-                  <p className="text-[11px] font-medium text-muted-foreground/85">Sleep last night</p>
-                  <motion.button
-                    type="button"
-                    onClick={() => setSleepPickerOpen(true)}
-                    animate={sleepTriggerBounce ? { scale: [1, 1.035, 0.985, 1] } : { scale: 1 }}
-                    transition={{ duration: 0.32, ease: "easeOut" }}
-                    className="mt-2 flex w-full items-end justify-between rounded-2xl border border-transparent bg-background/70 px-4 py-3 text-left outline-none transition-all duration-200 ease-out hover:border-primary/25 focus:border-primary/40 focus:shadow-md focus:shadow-primary/10"
-                  >
-                    <div>
-                      <span className="block text-2xl font-semibold leading-none text-foreground">{String(sleepHours || "0")} hrs</span>
-                      <span className="mt-1 block text-[11px] text-muted-foreground">Tap to change</span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </motion.button>
-                </div>
-
-                <div className="rounded-2xl border border-border/30 bg-[hsl(var(--muted)/0.45)] p-4 shadow-inner">
-                  <p className="text-[11px] font-medium text-muted-foreground/85">Did you reach out to someone today?</p>
-                  <div className="mt-3 flex rounded-2xl border border-border/30 bg-background/60 p-1.5 relative">
-                    <motion.div
-                      animate={{ x: supportContacted === "yes" ? "0%" : "100%" }}
-                      transition={{ type: "spring", stiffness: 550, damping: 38 }}
-                      className="absolute inset-y-1.5 left-1.5 w-[calc(50%-0.375rem)] rounded-xl bg-primary shadow-[0_8px_18px_rgba(0,0,0,0.12)] ring-1 ring-primary/20"
-                    />
-                    {supportOptions.map((option) => {
-                      const active = supportContacted === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => setSupportContacted(option.value)}
-                          className={`relative z-10 flex-1 rounded-xl py-3 text-sm font-semibold transition-colors duration-200 ${
-                            active ? "text-primary-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-border/30 bg-[hsl(var(--muted)/0.3)] p-4">
-                  <p className="text-[11px] font-medium text-muted-foreground/85">Anything else you want to note today?</p>
-                  <textarea
-                    value={note}
-                    onChange={(event) => setNote(event.target.value)}
-                    placeholder="You can keep this short."
-                    className="mt-3 w-full min-h-20 bg-background/70 border border-border/30 rounded-2xl p-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/40"
-                  />
-                </div>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
-      {sleepPickerPortal}
-      {saveSuccessPortal}
-
-      <motion.button
-        type="button"
-        whileTap={{ scale: 0.97 }}
-        onClick={handleSave}
-        disabled={!selectedMood}
-        className={`w-full py-4 rounded-2xl font-semibold text-sm transition-all ${
-          selectedMood ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted text-muted-foreground cursor-not-allowed"
-        }`}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      style={{ fontFamily: F }}
+    >
+      {/* ── Gradient header ── */}
+      <div
+        className="relative px-6 pb-8 overflow-hidden"
+        style={{ background: "radial-gradient(140% 85% at 85% -15%,#EFE9EF 0%,#E8D5E2 25%,#E2C5D0 50%,#DCBFC8 70%,#FBF6F0 100%)" }}
       >
-        <AnimatePresence mode="wait">
-          {saved ? (
-            <motion.span key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              Saved today&apos;s check-in
-            </motion.span>
-          ) : (
-            <motion.span key="save" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              Save today&apos;s mood
-            </motion.span>
+        <div style={{
+          position: "absolute", width: 220, height: 220, borderRadius: "50%",
+          right: -55, top: -80, pointerEvents: "none",
+          background: "radial-gradient(circle,rgba(255,235,240,.9),rgba(240,210,220,.3) 45%,transparent 70%)",
+          filter: "blur(2px)",
+        }} />
+
+        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#8A5060" }}>
+            Mood
+          </span>
+          {face && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              background: "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)",
+              padding: "5px 13px 5px 8px", borderRadius: 30,
+            }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: face.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg viewBox="0 0 40 40" fill="none" width="22" height="22">{face.svg.props.children}</svg>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#5A3F3A" }}>{face.word} today</span>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.button>
-
-      {saveError ? (
-        <div className="rounded-2xl border border-red-200/70 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">{saveError}</div>
-      ) : null}
-
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <p className="text-sm font-semibold text-foreground">Your 7-day trend</p>
         </div>
-        <div className="relative h-32 -mx-2">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="moodGrad2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} dy={8} />
-              <YAxis hide domain={[0, 5]} />
-              <Tooltip
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "12px", fontSize: "12px" }}
-                formatter={(value) => [`${value}/5`, "Mood"]}
-              />
-              <Area
-                key={chartAnimationKey}
-                type="monotone"
-                dataKey="mood"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2.5}
-                fill="url(#moodGrad2)"
-                isAnimationActive
-                animationBegin={40}
-                animationDuration={720}
-                animationEasing="ease-out"
-                dot={({ cx, cy, payload }) =>
-                  payload?.mood !== null ? <circle cx={cx} cy={cy} r={3.5} fill="hsl(var(--primary))" stroke="white" strokeWidth={1.5} /> : null
-                }
-                connectNulls
-                activeDot={{ r: 5, fill: "hsl(var(--primary))", stroke: "white", strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          {!showChartData ? (
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-b from-transparent to-background/50">
-              <p className="px-4 text-center text-[11px] font-medium text-muted-foreground">
-                Pick today&apos;s mood or save a check-in to start the trend line.
-              </p>
-            </div>
-          ) : null}
+
+        <div style={{ position: "relative", marginTop: 26 }}>
+          <h1 style={{ fontFamily: S, fontWeight: 500, fontSize: 42, lineHeight: 1.0, letterSpacing: "-0.015em", color: "#4A2F2C" }}>
+            How you've
+            <em style={{ display: "block", fontStyle: "italic" }}>been feeling.</em>
+          </h1>
+          <p style={{ marginTop: 14, fontSize: 15, fontWeight: 600, color: "#7A453F", maxWidth: "78%" }}>
+            {summary.hasTodayCheckIn
+              ? "Today's check-in is saved. Here's your pattern."
+              : "Your trends and patterns, all in one place."}
+          </p>
         </div>
       </div>
 
-      {primaryInsight ? (
-        <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <InsightIcon className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold text-foreground">One pattern to notice</p>
-          </div>
-          <p className="text-xs leading-relaxed text-foreground/80">{primaryInsight.text}</p>
-        </div>
-      ) : null}
+      {/* ── Sheet ── */}
+      <div style={{ background: "#FBF6F0", borderRadius: "26px 26px 0 0", marginTop: -16, padding: "24px 22px 0", display: "flex", flexDirection: "column", gap: 13 }}>
 
-      <div className={`rounded-3xl border px-5 py-4 shadow-sm ${riskToneMap[riskSummary.level]}`}>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">{riskSummary.label}</p>
-            <p className="mt-1 text-xs leading-relaxed opacity-90">{riskSummary.message}</p>
-            <p className="mt-3 text-xs font-semibold">Next step: {riskSummary.action}</p>
+        <TodaySummary todayEntry={todayEntry} onCheckIn={onCheckIn} />
+
+        {/* 7-day trend */}
+        <Card>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <TrendingUp size={15} color="#C77E83" />
+            <SectionLabel>7-day trend</SectionLabel>
           </div>
-          <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <div style={{ position: "relative", height: 128, margin: "0 -8px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="moodGradMT" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#C77E83" stopOpacity={0.28} />
+                    <stop offset="100%" stopColor="#C77E83" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="day" axisLine={false} tickLine={false}
+                  tick={{ fontSize: 10, fill: "#9C8E83", fontFamily: F }} dy={8} />
+                <YAxis hide domain={[0, 5]} />
+                <Tooltip
+                  contentStyle={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 12, fontSize: 12, fontFamily: F }}
+                  formatter={v => [`${v}/5`, "Mood"]}
+                />
+                <Area key={chartAnimKey} type="monotone" dataKey="mood"
+                  stroke="#C77E83" strokeWidth={2.5} fill="url(#moodGradMT)"
+                  isAnimationActive animationBegin={40} animationDuration={720}
+                  dot={({ cx, cy, payload }) =>
+                    payload?.mood != null
+                      ? <circle cx={cx} cy={cy} r={3.5} fill="#C77E83" stroke="white" strokeWidth={1.5} />
+                      : null
+                  }
+                  connectNulls
+                  activeDot={{ r: 5, fill: "#C77E83", stroke: "white", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            {!showChart && (
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <p style={{ fontSize: 11, color: "#9C8E83", textAlign: "center", fontFamily: F }}>
+                  Complete a check-in to start your trend line.
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* all insights */}
+        {insights.slice(0, 3).map((insight, i) => {
+          const Icon = insightIconMap[insight.type] || TrendingUp;
+          const ic = insightColors[i] || insightColors[0];
+          return (
+            <Card key={insight.key}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 11,
+                  background: ic.bg, color: ic.color,
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <Icon size={16} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83" }}>
+                  {insightLabels[i]}
+                </span>
+              </div>
+              <p style={{ fontSize: 13.5, color: "#3E342C", lineHeight: 1.55 }}>{insight.text}</p>
+            </Card>
+          );
+        })}
+
+        {/* risk card */}
+        <div style={{
+          borderRadius: 24, padding: 20,
+          background: rs.bg, border: `1px solid ${rs.border}`,
+          boxShadow: "0 2px 12px rgba(80,56,42,.05)", fontFamily: F,
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: rs.text }}>{riskSummary.label}</span>
+            <span style={{
+              fontSize: 9.5, fontWeight: 800, letterSpacing: "0.09em", textTransform: "uppercase",
+              color: rs.text, background: rs.tag, padding: "4px 10px", borderRadius: 30,
+            }}>
+              {riskSummary.level === "none" ? "Baseline" : riskSummary.level.charAt(0).toUpperCase() + riskSummary.level.slice(1)}
+            </span>
+          </div>
+          <p style={{ fontSize: 12.5, color: rs.text, opacity: 0.85, lineHeight: 1.5, marginBottom: 12 }}>{riskSummary.message}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: rs.text }}>Next step: {riskSummary.action}</p>
         </div>
+
+        {/* recent history list */}
+        <RecentHistory history={history} />
+
+        <div style={{ height: 8 }} />
       </div>
-
-      {onNavigate ? (
-        <button
-          type="button"
-          onClick={() => onNavigate("legacy")}
-          className="w-full rounded-3xl border border-border/40 bg-card px-5 py-4 text-left shadow-sm transition-colors hover:bg-muted/20"
-        >
-          <div className="flex items-start gap-3">
-            <Archive className="mt-0.5 h-4 w-4 text-primary" />
-            <div>
-              <p className="text-sm font-semibold text-foreground">Looking for journal or older modules?</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Previous Mood sections now live in Legacy so this page can stay focused on the daily check-in.
-              </p>
-            </div>
-          </div>
-        </button>
-      ) : null}
     </motion.div>
   );
 }
