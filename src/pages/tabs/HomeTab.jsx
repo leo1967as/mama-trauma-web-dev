@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Settings, SlidersHorizontal } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
 import DailyGoal from "../../components/calmmama/DailyGoal";
@@ -26,6 +26,10 @@ function getDayLabel() {
 
 export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
+  const [showSliders, setShowSliders] = useState(false);
+  const [speed, setSpeed]   = useState(12);   // animation duration in seconds
+  const [warmth, setWarmth] = useState(100);  // 0=cool 100=warm (opacity of warm layer)
+  const [size, setSize]     = useState(150);  // gradient spread %
 
   useEffect(() => {
     setMoodEntries(getMoodHistory());
@@ -38,26 +42,22 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const riskLevel = getMoodRiskSummary(moodEntries).level;
   const showSupport = ["orange", "red"].includes(riskLevel);
 
+  // build animated gradient based on sliders
+  const warmAlpha = (warmth / 100).toFixed(2);
+  const spreadPct = size + "%";
+  const dawnBg = `radial-gradient(${spreadPct} 90% at 88% -20%, rgba(244,201,168,${warmAlpha}) 0%, rgba(238,182,164,${warmAlpha}) 26%, rgba(226,160,164,${warmAlpha}) 52%, rgba(215,160,171,${warmAlpha}) 74%, #FBF6F0 100%)`;
+
   return (
     <div style={{ fontFamily: FONT_BODY }}>
 
       {/* ── Dawn gradient header ── */}
       <div
-        className="relative px-6 pb-8 overflow-hidden"
+        className="dawn-animated relative px-6 pb-8 overflow-hidden"
         style={{
-          background: "radial-gradient(150% 90% at 88% -20%,#F4C9A8 0%,#EEB6A4 26%,#E2A0A4 52%,#D7A0AB 74%,#FBF6F0 100%)",
+          background: dawnBg,
+          "--dawn-speed": `${speed}s`,
         }}
       >
-        {/* glow */}
-        <div
-          className="absolute rounded-full pointer-events-none"
-          style={{
-            width: 240, height: 240, right: -60, top: -90,
-            background: "radial-gradient(circle,rgba(255,240,214,.85),rgba(255,221,186,.25) 45%,transparent 70%)",
-            filter: "blur(2px)",
-          }}
-        />
-
         {/* dbar */}
         <div className="relative flex items-center justify-between pt-3.5">
           <span
@@ -72,30 +72,62 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
               className="relative w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
             >
-              <span
-                className="absolute rounded-full"
-                style={{ top: 8, right: 9, width: 7, height: 7, background: "#AF636A", border: "1.5px solid #fff" }}
-              />
-              {/* bell icon */}
+              <span className="absolute rounded-full" style={{ top: 8, right: 9, width: 7, height: 7, background: "#AF636A", border: "1.5px solid #fff" }} />
               <svg viewBox="0 0 24 24" width="17" fill="none" stroke="currentColor" strokeWidth="1.9">
                 <path d="M6 8a6 6 0 0112 0c0 7 3 7 3 9H3c0-2 3-2 3-9"/><path d="M10 21a2 2 0 004 0"/>
               </svg>
             </button>
             <button
+              onClick={() => setShowSliders(s => !s)}
               className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
+              style={{ background: showSliders ? "rgba(255,255,255,.7)" : "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
             >
-              <Settings size={17} strokeWidth={1.9} />
+              <SlidersHorizontal size={16} strokeWidth={1.9} />
             </button>
           </div>
         </div>
 
+        {/* slider panel */}
+        <AnimatePresence>
+          {showSliders && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 30 }}
+              className="overflow-hidden"
+            >
+              <div
+                className="mt-3 rounded-2xl px-4 py-3 flex flex-col gap-3"
+                style={{ background: "rgba(255,255,255,.55)", backdropFilter: "blur(8px)" }}
+              >
+                {[
+                  { label: "Speed", value: speed, min: 4, max: 30, step: 1, set: setSpeed, fmt: v => `${v}s`, flip: true },
+                  { label: "Warmth", value: warmth, min: 20, max: 100, step: 1, set: setWarmth, fmt: v => `${v}%` },
+                  { label: "Spread", value: size, min: 80, max: 250, step: 10, set: setSize, fmt: v => `${v}%` },
+                ].map(({ label, value, min, max, step, set, fmt, flip }) => (
+                  <div key={label}>
+                    <div className="flex justify-between mb-1">
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#7A453F" }}>{label}</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: "#AF636A" }}>{fmt(value)}</span>
+                    </div>
+                    <input
+                      type="range" min={min} max={max} step={step}
+                      value={flip ? max + min - value : value}
+                      onChange={e => set(flip ? max + min - Number(e.target.value) : Number(e.target.value))}
+                      className="w-full appearance-none rounded-full cursor-pointer"
+                      style={{ height: 5, background: `linear-gradient(to right,#C77E83 0%,#C77E83 ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) 100%)` }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* hello */}
         <div className="relative mt-[26px]">
-          <h1
-            className="font-medium leading-none tracking-[-0.015em]"
-            style={{ fontFamily: FONT_SERIF, fontSize: 42, color: "#4A2F2C" }}
-          >
+          <h1 className="font-medium leading-none tracking-[-0.015em]" style={{ fontFamily: FONT_SERIF, fontSize: 42, color: "#4A2F2C" }}>
             Good morning,
             <em className="block" style={{ fontStyle: "italic" }}>Mama.</em>
           </h1>
