@@ -1,73 +1,72 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
+const S = "'Newsreader', serif";
 
 export default function DailyGoal() {
-  const [completed, setCompleted] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [done, setDone] = useState(false);
 
   return (
     <div style={{
-      background: "#F0F5F1",
-      border: "1px solid #DDE8DF",
-      borderRadius: 22,
-      padding: "18px 18px 18px 16px",
-      fontFamily: F,
-      transition: "opacity 0.25s",
-      opacity: completed ? 0.7 : 1,
+      background: "#F6FAF7", border: "1px solid #E8F0EA",
+      borderRadius: 22, padding: "16px 18px", fontFamily: F,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-
-        {/* circle checkbox */}
-        <motion.button
-          onClick={() => setCompleted(!completed)}
-          whileTap={{ scale: 0.82 }}
-          animate={{ scale: completed ? 1.06 : 1 }}
-          transition={{ type: "spring", stiffness: 500, damping: 18 }}
-          aria-label="Mark as done"
-          style={{
-            width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-            border: `2px solid ${completed ? "#83A48B" : "#A8C4AE"}`,
-            background: completed ? "#83A48B" : "transparent",
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            padding: 0,
-          }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"
-            style={{ width: 16, height: 16, opacity: completed ? 1 : 0, transition: "opacity 0.18s, transform 0.18s", transform: completed ? "scale(1)" : "scale(0.5)" }}>
-            <path d="M5 13l4 4L19 7"/>
-          </svg>
-        </motion.button>
-
-        {/* text */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.13em", textTransform: "uppercase", color: "#577A62", marginBottom: 5 }}>
+          {/* label */}
+          <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9ABBA3", marginBottom: 4 }}>
             Just for you today
           </div>
-          <div style={{
-            fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.3,
-            color: completed ? "#9C8E83" : "#3E342C",
-            textDecoration: completed ? "line-through" : "none",
-          }}>
+          {/* task */}
+          <div style={{ fontSize: 14, fontWeight: 600, color: done ? "#B0C4B6" : "#5A7A64", textDecoration: done ? "line-through" : "none", marginBottom: 2 }}>
             Rest for 10 quiet minutes
           </div>
-          <div style={{ fontSize: 12, color: "#7A9082", marginTop: 3, lineHeight: 1.4 }}>
+          {/* desc */}
+          <div style={{ fontSize: 11.5, color: "#A8C0AD", lineHeight: 1.4 }}>
             No pressure — even closing your eyes counts.
           </div>
         </div>
 
-        {/* maybe later */}
-        {!completed && (
-          <span
-            onClick={e => e.stopPropagation()}
-            style={{
-              fontSize: 11.5, fontWeight: 600, color: "#9C8E83",
-              flexShrink: 0, cursor: "pointer", whiteSpace: "nowrap", alignSelf: "center",
-            }}
-          >
-            Maybe later
-          </span>
-        )}
+        {/* actions — compact */}
+        <AnimatePresence mode="wait">
+          {!done ? (
+            <motion.div key="btns" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+              <motion.button
+                onClick={() => setDone(true)}
+                whileTap={{ scale: 0.93 }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                style={{
+                  padding: "7px 14px", borderRadius: 30,
+                  background: "#A8C4AE", color: "#fff",
+                  fontSize: 12, fontWeight: 700, border: 0,
+                  cursor: "pointer", fontFamily: F, whiteSpace: "nowrap",
+                }}
+              >
+                {started ? "Mark done" : "Start now"}
+              </motion.button>
+              <button
+                onClick={() => setStarted(true)}
+                style={{
+                  padding: "0 4px", background: "none", border: 0,
+                  fontSize: 11, fontWeight: 600, color: "#B8CAC0",
+                  cursor: "pointer", fontFamily: F, whiteSpace: "nowrap",
+                }}
+              >
+                Maybe later
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div key="done" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+              style={{ width: 28, height: 28, borderRadius: "50%", background: "#A8C4AE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" width="13" height="13">
+                <path d="M5 13l4 4L19 7"/>
+              </svg>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

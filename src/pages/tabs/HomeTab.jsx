@@ -4,6 +4,7 @@ import { Settings, SlidersHorizontal } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
 import DailyGoal from "../../components/calmmama/DailyGoal";
+import CheckInBtn from "../../components/calmmama/CheckInBtn";
 
 const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
 const FONT_SERIF = "'Newsreader', serif";
@@ -224,24 +225,11 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
               : "A quick mood check-in keeps support gentle, early, and easier to understand."}
           </p>
 
-          {/* editbtn */}
-          <motion.button
-            onClick={() => onCheckIn?.()}
-            whileTap={{ scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            className="relative flex items-center justify-center gap-[9px] w-full rounded-[18px] font-bold text-[14.5px] text-white border-0 cursor-pointer"
-            style={{
-              background: "#C77E83",
-              padding: 15,
-              boxShadow: "0 12px 24px rgba(175,99,106,.3)",
-              fontFamily: FONT_BODY,
-            }}
-          >
-            <svg viewBox="0 0 24 24" width="17" fill="none" stroke="currentColor" strokeWidth="2.1">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>
-            </svg>
-            {moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
-          </motion.button>
+          {/* check-in button */}
+          <CheckInBtn
+            label={moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
+            onCheckIn={onCheckIn}
+          />
         </div>
 
         {/* slabel: Care journey */}
@@ -266,31 +254,33 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
         {/* ribbon */}
         <CareTimeline />
 
-        {/* Support row — always visible */}
+        {/* Support card */}
         <motion.button
           whileTap={{ scale: 0.98 }}
           transition={{ type: "spring", stiffness: 400, damping: 22 }}
           style={{
             marginTop: 13,
             display: "flex", alignItems: "center", gap: 14,
-            width: "100%", padding: "14px 18px",
+            width: "100%", padding: "16px 18px",
             background: "#fff", border: "1px solid #EFE6DC",
-            borderRadius: 20, cursor: "pointer", textAlign: "left",
+            borderRadius: 22, cursor: "pointer", textAlign: "left",
             fontFamily: FONT_BODY,
-            boxShadow: "0 2px 8px rgba(80,56,42,.04)",
+            boxShadow: "0 2px 10px rgba(80,56,42,.05)",
           }}
         >
+          {/* blush icon tile */}
           <span style={{
-            width: 38, height: 38, borderRadius: "50%",
+            width: 42, height: 42, borderRadius: 14,
             background: "#F6E2E1", flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#C77E83" strokeWidth="1.9">
+            <svg viewBox="0 0 24 24" width="18" fill="none" stroke="#C77E83" strokeWidth="1.9">
               <path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>
             </svg>
           </span>
-          <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#3E342C" }}>
-            Support is here
+          <span style={{ flex: 1 }}>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>Support is here</span>
+            <span style={{ display: "block", fontSize: 12, color: "#9C8E83", marginTop: 2 }}>Chat, resources & your care team</span>
           </span>
           <svg viewBox="0 0 24 24" width="15" fill="none" stroke="#C8BEB8" strokeWidth="2">
             <path d="M9 6l6 6-6 6"/>
