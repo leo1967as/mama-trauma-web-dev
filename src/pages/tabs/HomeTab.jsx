@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
-import { getMoodHistory, getMoodSummary, subscribeToMoodHistory } from "../../lib/mood-data";
+import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
-import RiskIndicator from "../../components/calmmama/RiskIndicator";
 import DailyGoal from "../../components/calmmama/DailyGoal";
 
 const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
@@ -35,6 +34,8 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
 
   const moodSummary = getMoodSummary(moodEntries);
   const todayMood = moodSummary.todayEntry?.moodScore ?? null;
+  const riskLevel = getMoodRiskSummary(moodEntries).level;
+  const showSupport = ["orange", "red"].includes(riskLevel);
 
   return (
     <div style={{ fontFamily: FONT_BODY }}>
@@ -210,66 +211,37 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
         {/* ribbon */}
         <CareTimeline />
 
-        {/* qrow */}
-        <div style={{ marginTop: 13 }}>
-          <RiskIndicator entries={moodEntries} />
-        </div>
-
-        {/* sup-card */}
-        <div
-          className="rounded-[24px]"
-          style={{
-            marginTop: 13,
-            padding: 19,
-            background: "linear-gradient(150deg,#fff,#FBEDEC)",
-            border: "1px solid #F0D7D6",
-          }}
-        >
-          <div className="flex items-start justify-between" style={{ marginBottom: 5 }}>
-            <h3 className="text-[16px] font-black" style={{ color: "#3E342C" }}>
-              Support is here
-            </h3>
-            <span
-              className="text-[9.5px] font-black uppercase tracking-[0.09em] rounded-full"
-              style={{ color: "#AF636A", background: "#fff", padding: "5px 10px" }}
-            >
-              Connected care
-            </span>
-          </div>
-          <p
-            className="text-[12.5px] leading-[1.5]"
-            style={{ color: "#6C5F56", marginBottom: 15 }}
-          >
-            If today feels too heavy, you can talk to someone instead of carrying it alone.
-          </p>
+        {/* Support row — subtle, only when risk is elevated */}
+        {showSupport && (
           <button
-            className="flex items-center w-full rounded-[18px] text-white border-0 text-left cursor-pointer"
             style={{
-              gap: 13,
-              background: "#C77E83",
-              padding: "15px 17px",
-              boxShadow: "0 12px 24px rgba(175,99,106,.28)",
+              marginTop: 13,
+              display: "flex", alignItems: "center", gap: 14,
+              width: "100%", padding: "14px 18px",
+              background: "#fff", border: "1px solid #F0D7D6",
+              borderRadius: 20, cursor: "pointer", textAlign: "left",
               fontFamily: FONT_BODY,
             }}
           >
-            <span
-              className="flex items-center justify-center flex-shrink-0 rounded-full"
-              style={{ width: 40, height: 40, background: "rgba(255,255,255,.2)" }}
-            >
-              <svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" strokeWidth="1.9">
+            <span style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: "#F6E2E1", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#C77E83" strokeWidth="1.9">
                 <path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>
               </svg>
             </span>
-            <span>
-              <span className="block text-[14.5px] font-black">Talk to a professional</span>
-              <span className="block text-[11px] font-medium" style={{ opacity: 0.9, marginTop: 1 }}>
-                Available whenever you need extra support
-              </span>
+            <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#3E342C" }}>
+              Support is here
             </span>
+            <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#9C8E83" strokeWidth="2">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
           </button>
-        </div>
+        )}
 
-        {/* kind card */}
+        {/* Daily goal — main warm element */}
         <div style={{ marginTop: 13 }}>
           <DailyGoal />
         </div>
