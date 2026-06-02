@@ -24,7 +24,7 @@ function getDayLabel() {
   return `${weekday} · ${month} ${day} · Day 7`;
 }
 
-export default function HomeTab({ onNavigate, onCheckIn }) {
+export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
 
   useEffect(() => {
@@ -59,8 +59,9 @@ export default function HomeTab({ onNavigate, onCheckIn }) {
         {/* dbar */}
         <div className="relative flex items-center justify-between pt-3.5">
           <span
-            className="text-[11px] font-black uppercase tracking-[0.18em]"
+            className="text-[11px] font-black uppercase tracking-[0.18em] cursor-default select-none"
             style={{ color: "#8A4F4C" }}
+            onClick={onSecretTap}
           >
             {getDayLabel()}
           </span>

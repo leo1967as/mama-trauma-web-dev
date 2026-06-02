@@ -19,6 +19,8 @@ const tabComponents = {
 };
 
 const SECRET = "ADMIN";
+const TAP_TARGET = 5;
+const TAP_WINDOW_MS = 2000;
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("home");
@@ -26,26 +28,44 @@ export default function Dashboard() {
   const [legacyUnlocked, setLegacyUnlocked] = useState(false);
   const [toast, setToast] = useState(null);
   const bufferRef = useRef("");
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef(null);
   const TabContent = tabComponents[activeTab];
 
-  // keyboard listener for "ADMIN" secret code
+  const triggerUnlock = () => {
+    setLegacyUnlocked(prev => {
+      const next = !prev;
+      setToast(next ? "🔓 Legacy unlocked" : "🔒 Legacy hidden");
+      setTimeout(() => setToast(null), 2000);
+      if (!next && activeTab === "legacy") setActiveTab("home");
+      return next;
+    });
+  };
+
+  // desktop: keyboard "ADMIN"
   useEffect(() => {
     const handleKey = (e) => {
       bufferRef.current = (bufferRef.current + e.key).slice(-SECRET.length);
       if (bufferRef.current === SECRET) {
-        setLegacyUnlocked(prev => {
-          const next = !prev;
-          setToast(next ? "Legacy unlocked" : "Legacy hidden");
-          setTimeout(() => setToast(null), 2000);
-          if (!next && activeTab === "legacy") setActiveTab("home");
-          return next;
-        });
+        triggerUnlock();
         bufferRef.current = "";
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeTab]);
+
+  // mobile: 5 rapid taps on date label
+  const handleSecretTap = () => {
+    tapCountRef.current += 1;
+    clearTimeout(tapTimerRef.current);
+    if (tapCountRef.current >= TAP_TARGET) {
+      tapCountRef.current = 0;
+      triggerUnlock();
+    } else {
+      tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, TAP_WINDOW_MS);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,7 +79,7 @@ export default function Dashboard() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "home"
-              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} />
+              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onSecretTap={handleSecretTap} />
               : activeTab === "mood"
                 ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} />
                 : activeTab === "legacy"

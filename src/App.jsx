@@ -5,7 +5,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider } from '@/lib/AuthContext';
 import Dashboard from './pages/Dashboard';
-// Add page imports here
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const AuthenticatedApp = () => {
   return (
@@ -25,6 +26,8 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <Analytics />
+        <SpeedInsights />
       </QueryClientProvider>
     </AuthProvider>
   )
