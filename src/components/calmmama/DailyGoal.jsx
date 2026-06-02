@@ -1,103 +1,68 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
+const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 
 export default function DailyGoal() {
   const [completed, setCompleted] = useState(false);
 
   return (
-    /* .kind */
-    <div
-      style={{
-        background: "linear-gradient(150deg,#fff,#E7EFE8)",
-        border: "1px solid #D8E6DB",
-        borderRadius: 24,
-        padding: 18,
-        boxShadow: "0 2px 12px rgba(80,56,42,.05)",
-        transition: "0.25s",
-        fontFamily: FONT_BODY,
-      }}
-    >
-      {/* .krow */}
-      <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
+    <div style={{
+      background: "#F0F5F1",
+      border: "1px solid #DDE8DF",
+      borderRadius: 22,
+      padding: "18px 18px 18px 16px",
+      fontFamily: F,
+      transition: "opacity 0.25s",
+      opacity: completed ? 0.7 : 1,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
 
-        {/* .kbox */}
+        {/* circle checkbox */}
         <motion.button
           onClick={() => setCompleted(!completed)}
           whileTap={{ scale: 0.82 }}
+          animate={{ scale: completed ? 1.06 : 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 18 }}
           aria-label="Mark as done"
-          animate={{ scale: completed ? 1.08 : 1 }}
           style={{
-            width: 34, height: 34,
-            borderRadius: "50%",
-            border: `2px solid #83A48B`,
-            background: completed ? "#83A48B" : "#fff",
-            flexShrink: 0,
-            cursor: "pointer",
-            transition: "0.18s",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+            border: `2px solid ${completed ? "#83A48B" : "#A8C4AE"}`,
+            background: completed ? "#83A48B" : "transparent",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
             padding: 0,
           }}
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            style={{
-              width: 17, height: 17,
-              color: "#fff",
-              opacity: completed ? 1 : 0,
-              transform: completed ? "scale(1)" : "scale(.5)",
-              transition: "0.18s",
-            }}
-          >
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"
+            style={{ width: 16, height: 16, opacity: completed ? 1 : 0, transition: "opacity 0.18s, transform 0.18s", transform: completed ? "scale(1)" : "scale(0.5)" }}>
             <path d="M5 13l4 4L19 7"/>
           </svg>
         </motion.button>
 
-        {/* .kx */}
+        {/* text */}
         <div style={{ flex: 1 }}>
-          {/* .kk */}
-          <div
-            style={{
-              fontSize: 10, fontWeight: 800,
-              letterSpacing: "0.13em", textTransform: "uppercase",
-              color: "#577A62", marginBottom: 4,
-            }}
-          >
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.13em", textTransform: "uppercase", color: "#577A62", marginBottom: 5 }}>
             Just for you today
           </div>
-          {/* .kt */}
-          <div
-            style={{
-              fontSize: 15, fontWeight: 700,
-              letterSpacing: "-0.01em",
-              textDecoration: completed ? "line-through" : "none",
-              color: completed ? "#9C8E83" : "#3E342C",
-            }}
-          >
+          <div style={{
+            fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.3,
+            color: completed ? "#9C8E83" : "#3E342C",
+            textDecoration: completed ? "line-through" : "none",
+          }}>
             Rest for 10 quiet minutes
           </div>
-          {/* .ks */}
-          <div style={{ fontSize: 11.5, color: "#6C5F56", marginTop: 2, lineHeight: 1.4 }}>
+          <div style={{ fontSize: 12, color: "#7A9082", marginTop: 3, lineHeight: 1.4 }}>
             No pressure — even closing your eyes counts.
           </div>
         </div>
 
-        {/* .klater */}
+        {/* maybe later */}
         {!completed && (
           <span
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
             style={{
-              fontSize: 11, fontWeight: 700,
-              color: "#9C8E83",
-              flexShrink: 0,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              alignSelf: "center",
+              fontSize: 11.5, fontWeight: 600, color: "#9C8E83",
+              flexShrink: 0, cursor: "pointer", whiteSpace: "nowrap", alignSelf: "center",
             }}
           >
             Maybe later

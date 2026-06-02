@@ -266,35 +266,36 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
         {/* ribbon */}
         <CareTimeline />
 
-        {/* Support row — subtle, only when risk is elevated */}
-        {showSupport && (
-          <button
-            style={{
-              marginTop: 13,
-              display: "flex", alignItems: "center", gap: 14,
-              width: "100%", padding: "14px 18px",
-              background: "#fff", border: "1px solid #F0D7D6",
-              borderRadius: 20, cursor: "pointer", textAlign: "left",
-              fontFamily: FONT_BODY,
-            }}
-          >
-            <span style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "#F6E2E1", flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#C77E83" strokeWidth="1.9">
-                <path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>
-              </svg>
-            </span>
-            <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#3E342C" }}>
-              Support is here
-            </span>
-            <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#9C8E83" strokeWidth="2">
-              <path d="M9 6l6 6-6 6"/>
+        {/* Support row — always visible */}
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+          style={{
+            marginTop: 13,
+            display: "flex", alignItems: "center", gap: 14,
+            width: "100%", padding: "14px 18px",
+            background: "#fff", border: "1px solid #EFE6DC",
+            borderRadius: 20, cursor: "pointer", textAlign: "left",
+            fontFamily: FONT_BODY,
+            boxShadow: "0 2px 8px rgba(80,56,42,.04)",
+          }}
+        >
+          <span style={{
+            width: 38, height: 38, borderRadius: "50%",
+            background: "#F6E2E1", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <svg viewBox="0 0 24 24" width="16" fill="none" stroke="#C77E83" strokeWidth="1.9">
+              <path d="M5 4h4l2 5-3 2a12 12 0 005 5l2-3 5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>
             </svg>
-          </button>
-        )}
+          </span>
+          <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#3E342C" }}>
+            Support is here
+          </span>
+          <svg viewBox="0 0 24 24" width="15" fill="none" stroke="#C8BEB8" strokeWidth="2">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </motion.button>
 
         {/* Daily goal — main warm element */}
         <div style={{ marginTop: 13 }}>
