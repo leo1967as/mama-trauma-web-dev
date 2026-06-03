@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
+import { getDisplayName, getDayLabel } from "../../lib/user-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
 import DailyGoal from "../../components/calmmama/DailyGoal";
 import CheckInBtn from "../../components/calmmama/CheckInBtn";
@@ -17,13 +18,6 @@ function heroHeading(hasTodayCheckIn, todayMood) {
   return "Today felt like a lighter day.";
 }
 
-function getDayLabel() {
-  const d = new Date();
-  const weekday = d.toLocaleDateString("en-US", { weekday: "long" });
-  const month = d.toLocaleDateString("en-US", { month: "short" });
-  const day = d.getDate();
-  return `${weekday} · ${month} ${day} · Day 7`;
-}
 
 export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
@@ -141,7 +135,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
         <div className="relative mt-[26px]">
           <h1 className="font-medium leading-none tracking-[-0.015em]" style={{ fontFamily: FONT_SERIF, fontSize: 42, color: "#4A2F2C" }}>
             Good morning,
-            <em className="block" style={{ fontStyle: "italic" }}>Mama.</em>
+            <em className="block" style={{ fontStyle: "italic" }}>{getDisplayName()}.</em>
           </h1>
           <p className="mt-3.5 text-[15px] font-semibold max-w-[78%]" style={{ color: "#7A453F" }}>
             You're finding your rhythm — one gentle day at a time.
