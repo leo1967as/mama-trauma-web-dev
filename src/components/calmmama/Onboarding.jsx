@@ -128,8 +128,24 @@ function StepWelcome({ onNext, onSkipAll }) {
 
 // ── step 1: birth date ────────────────────────────────────────────────────────
 
+function formatDate(ymd) {
+  if (!ymd) return "";
+  const d = new Date(ymd + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+function daysSince(ymd) {
+  if (!ymd) return 0;
+  return Math.max(0, Math.floor((Date.now() - new Date(ymd + "T00:00:00")) / 86400000));
+}
+
 function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
+  const [confirming, setConfirming] = useState(false);
   const [warnSkip, setWarnSkip] = useState(false);
+
+  const handleContinue = () => {
+    if (value) { setConfirming(true); }
+    else { handleSkip(); }
+  };
 
   const handleSkip = () => {
     if (!value) {
@@ -140,7 +156,7 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
     }
   };
 
-  const handleConfirmSkip = () => { setWarnSkip(false); onSkip(); };
+  const days = daysSince(value);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
@@ -158,7 +174,7 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
           Your Care Journey timeline is built from this date.
         </div>
 
-        <DatePicker value={value} onChange={onChange} />
+        <DatePicker value={value} onChange={v => { onChange(v); setConfirming(false); }} />
 
         {/* soft skip warning */}
         <AnimatePresence>
@@ -170,14 +186,14 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
               style={{ marginTop: 14, background: "#FEF0E7", border: "1px solid #F5D5B8", borderRadius: 14, padding: "12px 16px" }}
             >
               <div style={{ fontSize: 12.5, color: "#C2460A", fontWeight: 600, lineHeight: 1.5, marginBottom: 10 }}>
-                Without a birth date, your timeline won't be personalised and daily insights will be generic.
+                Without a birth date, your timeline won't be personalised.
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={handleConfirmSkip} style={{ fontSize: 11.5, fontWeight: 700, color: "#C2460A", background: "none", border: 0, cursor: "pointer", fontFamily: F, textDecoration: "underline" }}>
+                <button onClick={() => { setWarnSkip(false); onSkip(); }} style={{ fontSize: 11.5, fontWeight: 700, color: "#C2460A", background: "none", border: 0, cursor: "pointer", fontFamily: F, textDecoration: "underline" }}>
                   Skip anyway
                 </button>
                 <button onClick={() => setWarnSkip(false)} style={{ fontSize: 11.5, fontWeight: 700, color: "#9C8E83", background: "none", border: 0, cursor: "pointer", fontFamily: F }}>
-                  Add date instead
+                  Add date
                 </button>
               </div>
             </motion.div>
@@ -186,8 +202,72 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
       </div>
 
       <div style={{ padding: "20px 26px 44px" }}>
-        <button className="ci-btn" onClick={onNext}>Continue</button>
+        <button className="ci-btn" onClick={handleContinue}>Continue</button>
       </div>
+
+      {/* ── Confirm date popup ── */}
+      <AnimatePresence>
+        {confirming && (
+          <>
+            {/* backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setConfirming(false)}
+              style={{ position: "absolute", inset: 0, background: "rgba(62,52,44,.35)", zIndex: 10 }}
+            />
+            {/* sheet */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              transition={{ type: "spring", stiffness: 380, damping: 34 }}
+              style={{
+                position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 11,
+                background: "#FBF6F0", borderRadius: "28px 28px 0 0",
+                padding: "28px 26px 44px",
+                boxShadow: "0 -8px 32px rgba(80,56,42,.12)",
+              }}
+            >
+              {/* handle */}
+              <div style={{ width: 36, height: 4, borderRadius: 30, background: "#E6DBCF", margin: "0 auto 24px" }} />
+
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 14 }}>
+                Is this right?
+              </div>
+
+              {/* date display */}
+              <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 18, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
+                <div style={{ fontFamily: S, fontSize: 26, fontWeight: 500, color: "#3E342C", marginBottom: 6 }}>
+                  {formatDate(value)}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#C77E83", boxShadow: "0 0 0 3px #F6E2E1" }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#AF636A" }}>
+                    {days === 0 ? "Day 1 · Today" : `Day ${days + 1} · ${days} day${days !== 1 ? "s" : ""} ago`}
+                  </span>
+                </div>
+              </div>
+
+              <motion.button
+                className="ci-btn"
+                onClick={onNext}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                style={{ marginBottom: 12 }}
+              >
+                <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                Yes, this is correct
+              </motion.button>
+              <button
+                onClick={() => setConfirming(false)}
+                style={{ width: "100%", background: "none", border: 0, fontSize: 13, fontWeight: 600, color: "#9C8E83", cursor: "pointer", fontFamily: F, padding: "4px 0" }}
+              >
+                Change date
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

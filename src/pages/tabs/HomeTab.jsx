@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
-import { getDisplayName, getDayLabel, consumeJustOnboarded } from "../../lib/user-data";
+import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding } from "../../lib/user-data";
+import DatePicker from "../../components/calmmama/DatePicker";
 import CareTimeline from "../../components/calmmama/CareTimeline";
 import DailyGoal from "../../components/calmmama/DailyGoal";
 import CheckInBtn from "../../components/calmmama/CheckInBtn";
@@ -23,9 +24,15 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
   const [showSliders, setShowSliders] = useState(false);
   const [justOnboarded] = useState(() => consumeJustOnboarded());
-  const [speed, setSpeed]   = useState(14);   // base duration seconds (12–60)
-  const [warmth, setWarmth] = useState(90);   // blob opacity 0–100
-  const [size, setSize]     = useState(60);   // blur px 40–100
+  const [speed, setSpeed]   = useState(14);
+  const [warmth, setWarmth] = useState(90);
+  const [size, setSize]     = useState(60);
+  // settings panel
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsName, setSettingsName] = useState(() => getOnboardingData().displayName || "");
+  const [settingsBirthDate, setSettingsBirthDate] = useState(() => getOnboardingData().birthDate || "");
+  const [settingsSaved, setSettingsSaved] = useState(false);
+  const [settingsShowDate, setSettingsShowDate] = useState(false);
 
   useEffect(() => {
     setMoodEntries(getMoodHistory());
@@ -85,18 +92,18 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
               </svg>
             </button>
             <button
-              onClick={() => setShowSliders(s => !s)}
+              onClick={() => { setShowSettings(s => !s); setSettingsShowDate(false); setSettingsSaved(false); }}
               className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ background: showSliders ? "rgba(255,255,255,.7)" : "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
+              style={{ background: showSettings ? "rgba(255,255,255,.7)" : "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
             >
               <SlidersHorizontal size={16} strokeWidth={1.9} />
             </button>
           </div>
         </div>
 
-        {/* slider panel */}
+        {/* settings panel */}
         <AnimatePresence>
-          {showSliders && (
+          {showSettings && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -104,29 +111,53 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
               className="overflow-hidden"
             >
-              <div
-                className="mt-3 rounded-2xl px-4 py-3 flex flex-col gap-3"
-                style={{ background: "rgba(255,255,255,.55)", backdropFilter: "blur(8px)" }}
-              >
-                {[
-                  { label: "Speed",   value: speed,  min: 12, max: 60,  step: 2,  set: setSpeed,  fmt: v => v <= 18 ? "Fast" : v <= 36 ? "Medium" : "Slow", flip: true },
-                  { label: "Warmth",  value: warmth, min: 20, max: 100, step: 5,  set: setWarmth, fmt: v => `${v}%` },
-                  { label: "Softness",value: size,   min: 40, max: 100, step: 5,  set: setSize,   fmt: v => `${v}px` },
-                ].map(({ label, value, min, max, step, set, fmt, flip }) => (
-                  <div key={label}>
-                    <div className="flex justify-between mb-1">
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#7A453F" }}>{label}</span>
-                      <span style={{ fontSize: 11, fontWeight: 800, color: "#AF636A" }}>{fmt(value)}</span>
-                    </div>
-                    <input
-                      type="range" min={min} max={max} step={step}
-                      value={flip ? max + min - value : value}
-                      onChange={e => set(flip ? max + min - Number(e.target.value) : Number(e.target.value))}
-                      className="dawn-slider-thumb w-full appearance-none rounded-full cursor-pointer"
-                      style={{ height: 5, background: `linear-gradient(to right,#C77E83 0%,#C77E83 ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) ${((value-min)/(max-min))*100}%,rgba(0,0,0,.12) 100%)` }}
-                    />
-                  </div>
-                ))}
+              <div className="mt-3 rounded-2xl flex flex-col gap-3" style={{ background: "rgba(255,255,255,.62)", backdropFilter: "blur(12px)", padding: "16px 16px 14px" }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8A4F4C" }}>My Profile</div>
+
+                {/* name field */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#7A453F", marginBottom: 5 }}>Name</div>
+                  <input
+                    type="text" placeholder="Your name" maxLength={30}
+                    value={settingsName}
+                    onChange={e => { setSettingsName(e.target.value); setSettingsSaved(false); }}
+                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 12, color: "#3E342C", outline: "none" }}
+                  />
+                </div>
+
+                {/* birth date field */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#7A453F", marginBottom: 5 }}>Baby's arrival date</div>
+                  <button
+                    onClick={() => setSettingsShowDate(s => !s)}
+                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 12, color: settingsBirthDate ? "#3E342C" : "#9C8E83", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                  >
+                    <span>{settingsBirthDate ? new Date(settingsBirthDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Not set"}</span>
+                    <span style={{ fontSize: 11, color: "#AF636A", fontWeight: 700 }}>{settingsShowDate ? "Close" : "Change"}</span>
+                  </button>
+                  <AnimatePresence>
+                    {settingsShowDate && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden" style={{ marginTop: 8 }}>
+                        <DatePicker value={settingsBirthDate} onChange={v => { setSettingsBirthDate(v); setSettingsSaved(false); }} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* save button */}
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  onClick={() => {
+                    saveOnboarding({ displayName: settingsName || "Mama", birthDate: settingsBirthDate || null });
+                    setSettingsSaved(true);
+                    setSettingsShowDate(false);
+                    setTimeout(() => { setSettingsSaved(false); setShowSettings(false); }, 1200);
+                  }}
+                  style={{ padding: "11px 0", borderRadius: 12, background: settingsSaved ? "#83A48B" : "#C77E83", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: FONT_BODY, border: 0, cursor: "pointer", transition: "background 0.2s" }}
+                >
+                  {settingsSaved ? "Saved ✓" : "Save changes"}
+                </motion.button>
               </div>
             </motion.div>
           )}
