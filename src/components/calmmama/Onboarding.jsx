@@ -60,68 +60,76 @@ const inputStyle = {
 
 function StepWelcome({ onNext, onSkipAll }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF2EC" }}>
-      {/* X exit button */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 20px 0", position: "relative", zIndex: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FAF0EC", position: "relative", overflow: "hidden" }}>
+
+      {/* background blobs — ref: calmmama.html */}
+      <div className="welcome-blob welcome-blob-1" style={{ width: 340, height: 280, top: -60,  right: -80,  background: "radial-gradient(circle,rgba(245,200,168,.82),transparent 70%)" }} />
+      <div className="welcome-blob welcome-blob-2" style={{ width: 300, height: 260, top:  180, left: -90,  background: "radial-gradient(circle,rgba(240,192,176,.75),transparent 70%)" }} />
+      <div className="welcome-blob welcome-blob-3" style={{ width: 320, height: 260, bottom: -60, left: "15%", background: "radial-gradient(circle,rgba(238,184,176,.72),transparent 70%)" }} />
+
+      {/* breathing ring */}
+      <svg style={{ position: "absolute", top: "38%", left: "50%", transform: "translate(-50%,-50%)", width: 280, height: 280, pointerEvents: "none", zIndex: 1 }} viewBox="0 0 260 260">
+        {[0, 1, 2].map(i => (
+          <circle key={i} cx="130" cy="130" r={60 + i * 28} style={{ fill: "none", stroke: "rgba(200,112,106,.1)", strokeWidth: 1, animation: `ring-pulse 4s ease-in-out ${1.5 + i * 0.7}s infinite`, transformOrigin: "130px 130px" }} />
+        ))}
+      </svg>
+
+      {/* X exit */}
+      <div style={{ position: "absolute", top: 16, right: 20, zIndex: 20 }}>
         <motion.button
           onClick={onSkipAll}
           whileTap={{ scale: 0.88 }}
-          style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: "rgba(255,255,255,.5)", border: "1px solid rgba(255,255,255,.7)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", color: "#9C8E83", fontSize: 14, fontFamily: F, fontWeight: 700,
-          }}
+          style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.75)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9C8E83", fontSize: 14, fontFamily: F, fontWeight: 700 }}
         >✕</motion.button>
       </div>
 
-      {/* blob header */}
-      <div className="relative overflow-hidden" style={{ flex: "0 0 auto", paddingBottom: 56, marginTop: -50 }}>
-        <div className="dawn-blob dawn-blob-1" style={{ width: 320, height: 320, top: -80, right: -60, background: "radial-gradient(circle,rgba(244,201,168,.88),transparent 68%)", filter: "blur(60px)" }} />
-        <div className="dawn-blob dawn-blob-2" style={{ width: 280, height: 280, top: 30, left: -70, background: "radial-gradient(circle,rgba(226,160,164,.82),transparent 68%)", filter: "blur(55px)" }} />
-        <div className="dawn-blob dawn-blob-3" style={{ width: 240, height: 240, bottom: -20, left: "28%", background: "radial-gradient(circle,rgba(215,160,171,.75),transparent 68%)", filter: "blur(52px)" }} />
+      {/* centered text content */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "0 30px", position: "relative", zIndex: 10 }}>
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C8706A", marginBottom: 20 }}>
+            CalmMama
+          </div>
+        </motion.div>
 
-        <div style={{ position: "relative", padding: "64px 30px 0", zIndex: 1 }}>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#AF636A", marginBottom: 16 }}>
-              CalmMama
-            </div>
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            style={{ fontFamily: S, fontWeight: 500, fontSize: 44, lineHeight: 1.0, letterSpacing: "-0.015em", color: "#4A2F2C" }}
-          >
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }}>
+          <div style={{ fontSize: 29, fontWeight: 700, color: "#2A1815", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
             Welcome to
-            <em style={{ display: "block", fontStyle: "italic", color: "#C77E83" }}>CalmMama.</em>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
-            style={{ marginTop: 18, fontSize: 15, fontWeight: 500, color: "#7A453F", maxWidth: "80%", lineHeight: 1.6 }}
-          >
-            A gentle companion for your postpartum journey.
-          </motion.p>
-        </div>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95 }}>
+          <div style={{ fontFamily: S, fontStyle: "italic", fontWeight: 500, fontSize: 38, color: "#C8706A", lineHeight: 1.1, letterSpacing: "-0.015em", marginBottom: 18 }}>
+            CalmMama.
+          </div>
+        </motion.div>
+
+        <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}
+          style={{ fontSize: 15, fontWeight: 300, color: "#7A5A55", lineHeight: 1.65, maxWidth: 240, marginBottom: 28 }}>
+          A gentle companion for your postpartum journey.
+        </motion.p>
+
+        {/* float dots */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.55 }}
+          style={{ display: "flex", gap: 7 }}>
+          {["#C8706A", "#D89088", "#EAD8D2", "#EAD8D2", "#EAD8D2"].map((c, i) => (
+            <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: c }} />
+          ))}
+        </motion.div>
       </div>
 
-      {/* sheet */}
-      <div style={{ flex: 1, background: "#FBF6F0", borderRadius: "28px 28px 0 0", marginTop: -20, padding: "32px 24px 40px", display: "flex", flexDirection: "column", gap: 14 }}>
-        <motion.button
-          className="ci-btn"
-          onClick={onNext}
-          whileTap={{ scale: 0.96 }}
-          transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}
-        >
+      {/* CTA pinned to bottom */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45 }}
+        style={{ position: "relative", zIndex: 10, padding: "0 24px 44px", display: "flex", flexDirection: "column", gap: 12 }}
+      >
+        <button className="ci-btn" onClick={onNext}>
           Get started
-        </motion.button>
-        <motion.button
-          onClick={onSkipAll}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.54 }}
-          style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", fontFamily: F, padding: "2px 0" }}
-        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </button>
+        <button onClick={onSkipAll} style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#A8908A", fontFamily: F, padding: "2px 0" }}>
           Already set up? Continue →
-        </motion.button>
-      </div>
+        </button>
+      </motion.div>
     </div>
   );
 }

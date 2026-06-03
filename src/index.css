@@ -179,6 +179,32 @@
 /* ripple */
 .ci-ripple { position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);pointer-events:none;animation:ci-ripple .6s ease-out forwards;z-index:3; }
 
+/* ── Onboarding welcome blobs ─────────────────────────────────────────────── */
+@keyframes drift-1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  30%  { transform: translate(30px,-25px) scale(1.05); }
+  65%  { transform: translate(-20px,18px) scale(.96); }
+}
+@keyframes drift-2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%  { transform: translate(-25px,35px) scale(1.04); }
+  66%  { transform: translate(15px,-20px) scale(.97); }
+}
+@keyframes drift-3 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  40%  { transform: translate(20px,-30px) scale(1.06); }
+  70%  { transform: translate(-10px,15px) scale(.95); }
+}
+@keyframes ring-pulse {
+  0%   { transform: scale(.55); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.welcome-blob { position: absolute; border-radius: 50%; pointer-events: none; will-change: transform; filter: blur(60px); }
+.welcome-blob-1 { animation: drift-1 18s ease-in-out infinite; }
+.welcome-blob-2 { animation: drift-2 22s ease-in-out infinite; }
+.welcome-blob-3 { animation: drift-3 16s ease-in-out infinite; }
+
 /* ── Dawn animated blobs ───────────────────────────────────────────────────── */
 
 /* each blob drifts its own organic path, very slow */
