@@ -58,9 +58,8 @@ const inputStyle = {
 
 // ── step 0: welcome ───────────────────────────────────────────────────────────
 
-function WelcomeBtn({ onDone }) {
-  const btnRef = useRef(null);
-  const ckRef  = useRef(null);
+function WelcomeBtn({ onReady }) {
+  const ckRef = useRef(null);
   const [phase, setPhase] = useState("idle");
 
   const handleClick = () => {
@@ -70,13 +69,12 @@ function WelcomeBtn({ onDone }) {
       setPhase("done");
       ckRef.current?.classList.add("draw");
       try { navigator.vibrate?.([12, 60, 20]); } catch {}
-      setTimeout(() => onDone(), 900);
-    }, 1400);
+      setTimeout(() => onReady(), 700);
+    }, 1300);
   };
 
   return (
     <button
-      ref={btnRef}
       className={`ci-btn${phase === "loading" ? " loading" : ""}${phase === "done" ? " done-state" : ""}`}
       onClick={handleClick}
     >
@@ -88,14 +86,10 @@ function WelcomeBtn({ onDone }) {
       </div>
       <div className="ci-btn__loading">
         <div className="ci-spinner" />
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,.9)" }}>
-          Setting up your journey…
-        </span>
+        <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,.9)" }}>Setting up your journey…</span>
       </div>
       <div className="ci-btn__done">
-        <svg ref={ckRef} className="ci-checkmark" viewBox="0 0 24 24">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
+        <svg ref={ckRef} className="ci-checkmark" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Ready, Mama
       </div>
     </button>
@@ -103,6 +97,13 @@ function WelcomeBtn({ onDone }) {
 }
 
 function StepWelcome({ onNext, onSkipAll }) {
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  const handleReady = () => {
+    setShowOverlay(true);
+    setTimeout(() => onNext(), 1800);
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FAF0EC", position: "relative", overflow: "hidden" }}>
 
@@ -152,11 +153,57 @@ function StepWelcome({ onNext, onSkipAll }) {
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45 }}
         style={{ position: "relative", zIndex: 10, padding: "0 24px 44px", display: "flex", flexDirection: "column", gap: 12 }}
       >
-        <WelcomeBtn onDone={onNext} />
+        <WelcomeBtn onReady={handleReady} />
         <button onClick={onSkipAll} style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#A8908A", fontFamily: F, padding: "2px 0" }}>
           Already set up? Continue →
         </button>
       </motion.div>
+
+      {/* ── Transition overlay ── */}
+      <AnimatePresence>
+        {showOverlay && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 50,
+              background: "#FBF6F3",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 12,
+            }}
+          >
+            {/* CalmMama. */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{ fontFamily: S, fontStyle: "italic", fontWeight: 500, fontSize: 28, color: "#C8706A", letterSpacing: "-0.3px" }}
+            >
+              CalmMama.
+            </motion.div>
+
+            {/* subtitle */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              style={{ fontSize: 13, fontWeight: 300, color: "#A08580", fontFamily: F }}
+            >
+              Preparing your space…
+            </motion.div>
+
+            {/* pulsing dot */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 1, 1], scale: [1, 1.5, 1], background: ["#EAD8D2", "#C8706A", "#EAD8D2"] }}
+              transition={{ delay: 0.5, duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              style={{ width: 6, height: 6, borderRadius: "50%", marginTop: 8 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
