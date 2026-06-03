@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalmMama — Layout Variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+
+/* shared phone shell */
+.ph {
+  width: 260px;
+  height: 540px;
+  border-radius: 38px;
+  box-shadow:
+    0 0 0 7px #1A0E0C,
+    0 0 0 9px #2E1A17,
+    0 24px 60px rgba(0,0,0,.45);
+  overflow: hidden;
+  position: relative;
+  background: #FAF0EC;
+  flex-shrink: 0;
+}
+.ph-island {
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  width: 84px; height: 22px;
+  background: #1A0E0C;
+  border-radius: 13px;
+  z-index: 20;
+}
+
+/* mesh bg — same for all */
+.ph-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 110% 65% at 75% -5%, #F5C4A4 0%, transparent 60%),
+    radial-gradient(ellipse 80% 55% at -10% 25%, #F0BCAC 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 50% 110%, #EEB8B0 0%, transparent 60%),
+    #FAF0EC;
+}
+.ph-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 80% 70%, #F8D8C8 0%, transparent 55%);
+}
+
+/* status bar */
+.ph-status {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 20px 0;
+  height: 44px; z-index: 15;
+}
+.ph-time { font-size: 11px; font-weight: 600; color: rgba(42,24,21,.7); }
+.ph-bat {
+  width: 18px; height: 8px;
+  border: 1px solid rgba(42,24,21,.35);
+  border-radius: 2px; overflow: hidden;
+  display: flex; align-items: center; padding: 1px;
+}
+.ph-bat-fill { flex:1; background: rgba(42,24,21,.7); border-radius: 1px; }
+
+/* shared CTAs */
+.ph-btn {
+  width: 100%;
+  background: linear-gradient(138deg, #A84848, #C27068 48%, #CC8070 80%, #D49888);
+  border: none; border-radius: 13px; padding: 13px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: #fff;
+  cursor: pointer; position: relative; overflow: hidden;
+  box-shadow: 0 10px 24px rgba(168,72,72,.34), inset 0 1px 0 rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.ph-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.14) 0%, transparent 55%);
+  border-radius: 12px;
+}
+.ph-sec {
+  font-size: 10.5px; font-weight: 400; color: #A08580;
+  text-align: center; margin-top: 12px; cursor: pointer;
+}
+.ph-wordmark {
+  font-size: 8px; font-weight: 700;
+  letter-spacing: 2.2px; text-transform: uppercase;
+  color: #C8706A;
+}
+.ph-hl-sm { font-size: 21px; font-weight: 700; color: #2A1815; line-height: 1.15; }
+.ph-hl-it {
+  font-family: 'Playfair Display', serif;
+  font-style: italic; font-size: 26px; font-weight: 500;
+  color: #C8706A; line-height: 1.15; letter-spacing: -.2px;
+}
+.ph-sub { font-size: 11px; font-weight: 300; color: #7A5A55; line-height: 1.6; }
+.ph-dots { display: flex; gap: 5px; margin-top: 10px; }
+.ph-dot { width: 4px; height: 4px; border-radius: 50%; background: #EAD8D2; }
+.ph-dot:nth-child(1) { background: #C8706A; }
+.ph-dot:nth-child(2) { background: #D89088; }
+
+/* breathing ring (decorative) */
+.ph-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(200,112,106,.1);
+  pointer-events: none; z-index: 1;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+/* ════════════════════════
+   LAYOUT A · Top-Left
+   Editorial, personal feel
+   ════════════════════════ */
+function LayoutA() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="ph">
+        <div className="ph-island"/>
+        <div className="ph-bg"/>
+        {/* breathing ring top-left area */}
+        <div className="ph-ring" style={{width:200,height:200,top:-60,left:-60,opacity:.6}}/>
+        <div className="ph-ring" style={{width:160,height:160,top:-40,left:-40,opacity:.4}}/>
+        <div className="ph-status"><span className="ph-time">9:41</span><div className="ph-bat"><div className="ph-bat-fill"/></div></div>
+        {/* content */}
+        <div style={{position:'absolute',inset:0,zIndex:10,display:'flex',flexDirection:'column',padding:'50px 22px 22px'}}>
+          {/* top content */}
+          <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',paddingTop:12}}>
+            <div className="ph-wordmark" style={{marginBottom:18}}>CalmMama</div>
+            <div className="ph-hl-sm">Welcome to</div>
+            <div className="ph-hl-it">CalmMama.</div>
+            <div className="ph-sub" style={{marginTop:10,maxWidth:160}}>A gentle companion for your postpartum journey.</div>
+            <div className="ph-dots" style={{marginTop:14}}>
+              <div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/>
+            </div>
+          </div>
+          {/* bottom CTA */}
+          <div>
+            <button className="ph-btn">
+              Get started
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            </button>
+            <div className="ph-sec">Already set up? Continue →</div>
+          </div>
+        </div>
+      </div>
+      {/* annotation */}
+      <div style={{marginTop:14,width:'100%',maxWidth:260}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:'#C8706A',marginBottom:5}}>A · Top-Left Editorial</div>
+        <div style={{fontSize:11.5,color:'rgba(0,0,0,0.45)',lineHeight:1.6}}>
+          Content anchored top-left like a journal or letter. CTA at thumb-zone bottom. Feels warm, personal, handwritten. Most common in wellness/journaling apps (Calm, Reflectly). CTA is far but thumb can reach.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════
+   LAYOUT B · Center Stage
+   Meditative, symmetric
+   ════════════════════════ */
+function LayoutB() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="ph">
+        <div className="ph-island"/>
+        <div className="ph-bg"/>
+        {/* breathing rings centered */}
+        <div className="ph-ring" style={{width:220,height:220,top:'50%',left:'50%',transform:'translate(-50%,-68%)',opacity:.5}}/>
+        <div className="ph-ring" style={{width:160,height:160,top:'50%',left:'50%',transform:'translate(-50%,-68%)',opacity:.35}}/>
+        <div className="ph-ring" style={{width:100,height:100,top:'50%',left:'50%',transform:'translate(-50%,-68%)',opacity:.25}}/>
+        <div className="ph-status"><span className="ph-time">9:41</span><div className="ph-bat"><div className="ph-bat-fill"/></div></div>
+        <div style={{position:'absolute',inset:0,zIndex:10,display:'flex',flexDirection:'column',padding:'50px 22px 22px',alignItems:'center',textAlign:'center'}}>
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',paddingBottom:20}}>
+            <div className="ph-wordmark" style={{marginBottom:22}}>CalmMama</div>
+            <div className="ph-hl-sm">Welcome to</div>
+            <div className="ph-hl-it">CalmMama.</div>
+            <div className="ph-sub" style={{marginTop:10,maxWidth:170}}>A gentle companion for your postpartum journey.</div>
+            <div className="ph-dots" style={{marginTop:14,justifyContent:'center'}}>
+              <div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/><div className="ph-dot"/>
+            </div>
+          </div>
+          <div style={{width:'100%'}}>
+            <button className="ph-btn">Get started <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
+            <div className="ph-sec">Already set up? Continue →</div>
+          </div>
+        </div>
+      </div>
+      <div style={{marginTop:14,width:'100%',maxWidth:260}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:'#C8706A',marginBottom:5}}>B · Center Stage</div>
+        <div style={{fontSize:11.5,color:'rgba(0,0,0,0.45)',lineHeight:1.6}}>
+          Everything centered — breathing rings radiate from behind content. Meditative, spa-like, symmetric. Used by Apple Health, Headspace. Feels calm and authoritative. Breathing rings work best with this layout.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════
+   LAYOUT C · Bottom Hero
+   Content low, sky above
+   ════════════════════════ */
+function LayoutC() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="ph">
+        <div className="ph-island"/>
+        <div className="ph-bg"/>
+        <div className="ph-ring" style={{width:240,height:240,top:-30,left:'50%',transform:'translateX(-50%)',opacity:.5}}/>
+        <div className="ph-ring" style={{width:170,height:170,top:10,left:'50%',transform:'translateX(-50%)',opacity:.35}}/>
+        <div className="ph-status"><span className="ph-time">9:41</span><div className="ph-bat"><div className="ph-bat-fill"/></div></div>
+        {/* top wordmark only */}
+        <div style={{position:'absolute',top:50,left:0,right:0,zIndex:10,display:'flex',justifyContent:'center'}}>
+          <div className="ph-wordmark">CalmMama</div>
+        </div>
+        {/* bottom content card */}
+        <div style={{
+          position:'absolute',bottom:0,left:0,right:0,zIndex:10,
+          background:'rgba(251,246,243,0.92)',
+          backdropFilter:'blur(14px)',
+          borderRadius:'22px 22px 0 0',
+          padding:'22px 22px 22px',
+          borderTop:'1px solid rgba(237,213,204,0.6)'
+        }}>
+          <div className="ph-hl-sm" style={{fontSize:18}}>Welcome to</div>
+          <div className="ph-hl-it" style={{fontSize:22}}>CalmMama.</div>
+          <div className="ph-sub" style={{marginTop:7,marginBottom:14,maxWidth:180}}>A gentle companion for your postpartum journey.</div>
+          <button className="ph-btn">Get started <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
+          <div className="ph-sec">Already set up? Continue →</div>
+        </div>
+      </div>
+      <div style={{marginTop:14,width:'100%',maxWidth:260}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:'#C8706A',marginBottom:5}}>C · Bottom Sheet</div>
+        <div style={{fontSize:11.5,color:'rgba(0,0,0,0.45)',lineHeight:1.6}}>
+          Open sky above for the mesh gradient to breathe — content + CTA in a frosted glass sheet at bottom. CTA perfectly in thumb zone. Used by Airbnb, many modern onboarding flows. Most thumb-friendly.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════
+   LAYOUT D · Split
+   Logo top-center, content mid-left, CTA bottom
+   ════════════════════════ */
+function LayoutD() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="ph">
+        <div className="ph-island"/>
+        <div className="ph-bg"/>
+        <div className="ph-ring" style={{width:190,height:190,top:40,right:-50,opacity:.45}}/>
+        <div className="ph-ring" style={{width:130,height:130,top:70,right:-20,opacity:.3}}/>
+        <div className="ph-status"><span className="ph-time">9:41</span><div className="ph-bat"><div className="ph-bat-fill"/></div></div>
+        <div style={{position:'absolute',inset:0,zIndex:10,display:'flex',flexDirection:'column',padding:'50px 22px 22px'}}>
+          {/* top: logo center */}
+          <div style={{textAlign:'center',paddingTop:10}}>
+            <div style={{display:'inline-flex',alignItems:'center',gap:6}}>
+              {/* logomark circle */}
+              <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#EDD5CC,#C8706A)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)" strokeWidth="2" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div className="ph-wordmark" style={{letterSpacing:'1.8px'}}>CalmMama</div>
+            </div>
+          </div>
+          {/* mid-left: headline */}
+          <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',paddingBottom:10}}>
+            <div style={{fontSize:11,color:'#B0908A',fontWeight:500,letterSpacing:.5,marginBottom:8}}>Your gentle companion</div>
+            <div className="ph-hl-sm" style={{fontSize:24}}>Welcome to</div>
+            <div className="ph-hl-it" style={{fontSize:28}}>CalmMama.</div>
+            <div className="ph-sub" style={{marginTop:8,maxWidth:175}}>A gentle companion for your postpartum journey.</div>
+          </div>
+          {/* bottom: CTA */}
+          <div>
+            <div style={{display:'flex',gap:8,marginBottom:10}}>
+              <div style={{height:2,flex:1,background:'linear-gradient(90deg,#C8706A,#EDD5CC)',borderRadius:1}}/>
+            </div>
+            <button className="ph-btn">Get started <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
+            <div className="ph-sec">Already set up? Continue →</div>
+          </div>
+        </div>
+      </div>
+      <div style={{marginTop:14,width:'100%',maxWidth:260}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:'#C8706A',marginBottom:5}}>D · Split · Logo + Brand</div>
+        <div style={{fontSize:11.5,color:'rgba(0,0,0,0.45)',lineHeight:1.6}}>
+          Logo mark top-center for brand anchoring, headline mid-left for reading flow, ruled divider + CTA bottom. Adds a brand identity symbol. Feels structured and trustworthy.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════
+   LAYOUT E · Fullscreen Immersive
+   Text overlaid on gradient, no card
+   ════════════════════════ */
+function LayoutE() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center'}}>
+      <div className="ph">
+        <div className="ph-island"/>
+        {/* richer, darker gradient for immersive */}
+        <div style={{position:'absolute',inset:0,background:`
+          radial-gradient(ellipse 120% 80% at 80% -10%, #EDB090 0%, transparent 55%),
+          radial-gradient(ellipse 90% 70% at -15% 30%, #EAA898 0%, transparent 55%),
+          radial-gradient(ellipse 80% 60% at 50% 100%, #D8948C 0%, transparent 60%),
+          #F5E4DC`}}/>
+        <div className="ph-ring" style={{width:200,height:200,top:'30%',left:'50%',transform:'translateX(-50%)',opacity:.2,borderColor:'rgba(255,255,255,.3)'}}/>
+        <div className="ph-ring" style={{width:140,height:140,top:'30%',left:'50%',transform:'translateX(-50%)',opacity:.15,borderColor:'rgba(255,255,255,.3)'}}/>
+        <div className="ph-status"><span className="ph-time" style={{color:'rgba(42,24,21,.6)'}}>9:41</span><div className="ph-bat" style={{borderColor:'rgba(42,24,21,.25)'}}><div className="ph-bat-fill" style={{background:'rgba(42,24,21,.6)'}}/></div></div>
+        <div style={{position:'absolute',inset:0,zIndex:10,display:'flex',flexDirection:'column',padding:'50px 22px 26px'}}>
+          <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-end',paddingBottom:20}}>
+            <div className="ph-wordmark" style={{marginBottom:14,color:'rgba(42,24,21,.5)'}}>CalmMama</div>
+            <div className="ph-hl-sm" style={{color:'#2A1815'}}>Welcome to</div>
+            <div className="ph-hl-it" style={{color:'#8B3A3A',fontSize:28}}>CalmMama.</div>
+            <div className="ph-sub" style={{marginTop:8,color:'rgba(42,24,21,.55)',maxWidth:175}}>A gentle companion for your postpartum journey.</div>
+            <div className="ph-dots" style={{marginTop:12}}>
+              <div className="ph-dot" style={{background:'rgba(42,24,21,.25)'}}/><div className="ph-dot" style={{background:'rgba(42,24,21,.25)'}}/><div className="ph-dot" style={{background:'rgba(42,24,21,.25)'}}/><div className="ph-dot" style={{background:'#8B3A3A'}}/><div className="ph-dot" style={{background:'#A85050'}}/>
+            </div>
+          </div>
+          {/* white/cream button on gradient */}
+          <div>
+            <button style={{width:'100%',background:'rgba(251,246,243,0.92)',border:'none',borderRadius:13,padding:13,fontFamily:'Plus Jakarta Sans,sans-serif',fontSize:13,fontWeight:700,color:'#2A1815',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,boxShadow:'0 8px 20px rgba(100,40,40,.15)'}}>
+              Get started
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+            </button>
+            <div className="ph-sec" style={{color:'rgba(42,24,21,.45)'}}>Already set up? Continue →</div>
+          </div>
+        </div>
+      </div>
+      <div style={{marginTop:14,width:'100%',maxWidth:260}}>
+        <div style={{fontSize:10,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:'#C8706A',marginBottom:5}}>E · Full-Bleed Immersive</div>
+        <div style={{fontSize:11.5,color:'rgba(0,0,0,0.45)',lineHeight:1.6}}>
+          Gradient fills the entire screen, no white card. Content sits on the gradient directly. Cream button inverts the color logic. The most atmospheric and beautiful — gradient becomes the hero.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const variants = [
+    { id:'a', label:'A · Top-Left Editorial', C: LayoutA },
+    { id:'b', label:'B · Center Stage',       C: LayoutB },
+    { id:'c', label:'C · Bottom Sheet',       C: LayoutC },
+    { id:'d', label:'D · Split + Brand Logo', C: LayoutD },
+    { id:'e', label:'E · Full-Bleed Immersive', C: LayoutE },
+  ];
+  return (
+    <DesignCanvas>
+      <DCSection id="s1" title="CalmMama Welcome — Layout" subtitle="5 alignments compared · click any to focus fullscreen">
+        {variants.map(({ id, label, C }) => (
+          <DCArtboard key={id} id={id} label={label} width={290} height={660}>
+            <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',alignItems:'center',padding:'0 4px'}}>
+              <C />
+            </div>
+          </DCArtboard>
+        ))}
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

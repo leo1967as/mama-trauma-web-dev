@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveOnboarding, setJustOnboarded } from "../../lib/user-data";
 import TimePicker from "./TimePicker";
@@ -140,7 +140,19 @@ function daysSince(ymd) {
 
 function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
   const [confirming, setConfirming] = useState(false);
+  const [countdown, setCountdown] = useState(3);
   const [warnSkip, setWarnSkip] = useState(false);
+
+  useEffect(() => {
+    if (!confirming) { setCountdown(3); return; }
+    const t = setInterval(() => {
+      setCountdown(c => {
+        if (c <= 1) { clearInterval(t); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [confirming]);
 
   const handleContinue = () => {
     if (value) { setConfirming(true); }
@@ -250,13 +262,35 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
               <motion.button
                 className="ci-btn"
-                onClick={onNext}
-                whileTap={{ scale: 0.96 }}
+                onClick={countdown === 0 ? onNext : undefined}
+                whileTap={countdown === 0 ? { scale: 0.96 } : {}}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                style={{ marginBottom: 12 }}
+                animate={{ opacity: countdown > 0 ? 0.45 : 1 }}
+                style={{ marginBottom: 12, cursor: countdown > 0 ? "default" : "pointer", pointerEvents: countdown > 0 ? "none" : "auto" }}
               >
-                <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg>
-                Yes, this is correct
+                {countdown > 0 ? (
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={countdown}
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.3 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <span style={{ fontSize: 18, fontWeight: 800, minWidth: 16, textAlign: "center" }}>{countdown}</span>
+                      Confirm in {countdown}…
+                    </motion.span>
+                  </AnimatePresence>
+                ) : (
+                  <motion.span
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                    Yes, this is correct
+                  </motion.span>
+                )}
               </motion.button>
               <button
                 onClick={() => setConfirming(false)}
