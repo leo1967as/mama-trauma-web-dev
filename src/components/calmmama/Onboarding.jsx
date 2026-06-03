@@ -268,29 +268,30 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
                 animate={{ opacity: countdown > 0 ? 0.45 : 1 }}
                 style={{ marginBottom: 12, cursor: countdown > 0 ? "default" : "pointer", pointerEvents: countdown > 0 ? "none" : "auto" }}
               >
-                {countdown > 0 ? (
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={countdown}
-                      initial={{ opacity: 0, scale: 0.7 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 1.3 }}
-                      transition={{ duration: 0.25 }}
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span style={{ fontSize: 18, fontWeight: 800, minWidth: 16, textAlign: "center" }}>{countdown}</span>
-                      Confirm in {countdown}…
-                    </motion.span>
-                  </AnimatePresence>
-                ) : (
-                  <motion.span
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
-                    <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <AnimatePresence mode="wait">
+                      {countdown > 0 ? (
+                        <motion.span
+                          key="ring"
+                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                          style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid rgba(255,255,255,.5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                        >
+                          <AnimatePresence mode="wait">
+                            <motion.span key={countdown} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} style={{ fontSize: 11, fontWeight: 800, lineHeight: 1 }}>
+                              {countdown}
+                            </motion.span>
+                          </AnimatePresence>
+                        </motion.span>
+                      ) : (
+                        <motion.span key="check" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20 }}>
+                          <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                     Yes, this is correct
-                  </motion.span>
-                )}
+                  </span>
+                </span>
               </motion.button>
               <button
                 onClick={() => setConfirming(false)}
