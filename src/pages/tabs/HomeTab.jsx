@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, SlidersHorizontal } from "lucide-react";
 import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
-import { getDisplayName, getDayLabel } from "../../lib/user-data";
+import { getDisplayName, getDayLabel, consumeJustOnboarded } from "../../lib/user-data";
 import CareTimeline from "../../components/calmmama/CareTimeline";
 import DailyGoal from "../../components/calmmama/DailyGoal";
 import CheckInBtn from "../../components/calmmama/CheckInBtn";
@@ -22,6 +22,7 @@ function heroHeading(hasTodayCheckIn, todayMood) {
 export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
   const [showSliders, setShowSliders] = useState(false);
+  const [justOnboarded] = useState(() => consumeJustOnboarded());
   const [speed, setSpeed]   = useState(14);   // base duration seconds (12–60)
   const [warmth, setWarmth] = useState(90);   // blob opacity 0–100
   const [size, setSize]     = useState(60);   // blur px 40–100
@@ -160,70 +161,57 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
 
         {/* Hero check-in card */}
         <div
-          className="relative rounded-[28px] px-[22px] py-6 overflow-hidden"
+          className="relative rounded-[28px] px-[22px] py-7 overflow-hidden"
           style={{ background: "#fff", boxShadow: "0 12px 32px rgba(80,56,42,.09)" }}
         >
-          {/* rose circle deco */}
-          <div
-            className="absolute pointer-events-none"
-            style={{
-              right: -40, bottom: -40, width: 150, height: 150,
-              borderRadius: "50%",
-              background: "radial-gradient(circle,#FBEDEC,transparent 70%)",
-            }}
-          />
+          <div className="absolute pointer-events-none" style={{ right: -40, bottom: -40, width: 150, height: 150, borderRadius: "50%", background: "radial-gradient(circle,#FBEDEC,transparent 70%)" }} />
 
-          {/* tagrow */}
-          <div className="flex items-center justify-between relative" style={{ marginBottom: 16 }}>
-            {moodSummary.hasTodayCheckIn ? (
-              <span
-                className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full"
-                style={{ padding: "7px 13px", background: "#E7EFE8", color: "#577A62" }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" style={{ width: 13, height: 13 }}>
-                  <path d="M5 13l4 4L19 7"/>
-                </svg>
-                Check-in saved
+          {justOnboarded ? (
+            /* ── Welcome state (first open after onboarding) ── */
+            <>
+              <span className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full relative" style={{ padding: "7px 13px", background: "#E7EFE8", color: "#577A62", marginBottom: 16 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" style={{ width: 13, height: 13 }}><path d="M5 13l4 4L19 7"/></svg>
+                Journey started
               </span>
-            ) : (
-              <span
-                className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full"
-                style={{ padding: "7px 13px", background: "#F6E2E1", color: "#AF636A" }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
-                  <circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/>
-                </svg>
-                Check in now
-              </span>
-            )}
-            {moodSummary.hasTodayCheckIn && (
-              <span className="text-[11px] font-bold" style={{ color: "#9C8E83" }}>Logged today</span>
-            )}
-          </div>
-
-          {/* h2 */}
-          <h2
-            className="relative font-medium leading-[1.22] tracking-[-0.01em]"
-            style={{ fontFamily: FONT_SERIF, fontSize: 25, color: "#3E342C", marginBottom: 8 }}
-          >
-            {heroHeading(moodSummary.hasTodayCheckIn, todayMood)}
-          </h2>
-
-          {/* p */}
-          <p
-            className="relative text-[13.5px] leading-[1.55] max-w-[90%]"
-            style={{ color: "#6C5F56", marginBottom: 20 }}
-          >
-            {moodSummary.hasTodayCheckIn
-              ? "Thank you for being honest with yourself. You can update it anytime if something shifts."
-              : "A quick mood check-in keeps support gentle, early, and easier to understand."}
-          </p>
-
-          {/* check-in button */}
-          <CheckInBtn
-            label={moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
-            onCheckIn={onCheckIn}
-          />
+              <h2 className="relative font-medium leading-[1.22] tracking-[-0.01em]" style={{ fontFamily: FONT_SERIF, fontSize: 25, color: "#3E342C", marginBottom: 10, marginTop: 12 }}>
+                Your first check-in<br />starts your baseline.
+              </h2>
+              <p className="relative text-[13.5px] leading-[1.6] max-w-[90%]" style={{ color: "#6C5F56", marginBottom: 22 }}>
+                Just 30 seconds — mood, sleep, and how you feel today. That's all we need.
+              </p>
+              <CheckInBtn label="Take your first check-in" onCheckIn={onCheckIn} />
+            </>
+          ) : (
+            /* ── Normal check-in state ── */
+            <>
+              <div className="flex items-center justify-between relative" style={{ marginBottom: 16 }}>
+                {moodSummary.hasTodayCheckIn ? (
+                  <span className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full" style={{ padding: "7px 13px", background: "#E7EFE8", color: "#577A62" }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" style={{ width: 13, height: 13 }}><path d="M5 13l4 4L19 7"/></svg>
+                    Check-in saved
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full" style={{ padding: "7px 13px", background: "#F6E2E1", color: "#AF636A" }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>
+                    Check in now
+                  </span>
+                )}
+                {moodSummary.hasTodayCheckIn && <span className="text-[11px] font-bold" style={{ color: "#9C8E83" }}>Logged today</span>}
+              </div>
+              <h2 className="relative font-medium leading-[1.22] tracking-[-0.01em]" style={{ fontFamily: FONT_SERIF, fontSize: 25, color: "#3E342C", marginBottom: 10 }}>
+                {heroHeading(moodSummary.hasTodayCheckIn, todayMood)}
+              </h2>
+              <p className="relative text-[13.5px] leading-[1.6] max-w-[90%]" style={{ color: "#6C5F56", marginBottom: 22 }}>
+                {moodSummary.hasTodayCheckIn
+                  ? "Thank you for being honest with yourself. You can update it anytime if something shifts."
+                  : "A quick mood check-in keeps support gentle, early, and easier to understand."}
+              </p>
+              <CheckInBtn
+                label={moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
+                onCheckIn={onCheckIn}
+              />
+            </>
+          )}
         </div>
 
         {/* slabel: Care journey */}

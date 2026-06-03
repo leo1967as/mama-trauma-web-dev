@@ -33,6 +33,16 @@ export function getDayLabel() {
   return `${weekday} · ${month} ${day} · ${dayNum}`;
 }
 
+export function setJustOnboarded() {
+  localStorage.setItem("moji_just_onboarded", "1");
+}
+
+export function consumeJustOnboarded() {
+  const v = localStorage.getItem("moji_just_onboarded") === "1";
+  localStorage.removeItem("moji_just_onboarded");
+  return v;
+}
+
 export function getCurrentStage() {
   const days = getDaysSinceBirth();
   if (days === null) return { label: "Day 7", weekLabel: "Week 1 · Day 7", phase: "Finding Rhythm", desc: "Building small routines, some relief", pct: 25, nodeIndex: 2 };
