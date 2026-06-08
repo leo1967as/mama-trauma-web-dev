@@ -305,25 +305,25 @@ Done when:
 เป้าหมาย: follow-up ต้องโผล่เฉพาะเมื่อจำเป็น และ support need ต้องเป็น pattern-based
 
 Follow-up trigger:
-- [ ] `composite < 2.5`
-- [ ] หรือ core indicator ใดได้ `1`
+- [x] `composite < 2.5`
+- [x] หรือ core indicator ใดได้ `1`
 
 Follow-up fields:
-- [ ] `problem_tags` แบบ multi-select สูงสุด 2
-- [ ] `Something else` เป็น text จำกัดความยาว
-- [ ] `optional_journal`
-- [ ] `baby_connection_score` 1-5
+- [x] `problem_tags` (13 ตัวตาม spec) multi-select สูงสุด 2 → เก็บ `problemTags`
+- [x] `Something else` → `problemOtherText` (max 150)
+- [x] `optional_journal` → `journalEntry` (max 500, ไม่ block)
+- [x] `baby_connection_score` 1-5 → หน้าใหม่ `BabyConnectionScreen`
 
 Support Need trigger:
-- [ ] `composite < 2.5` 3 วันต่อเนื่อง
-- [ ] `mood = 1` และ `worry = 5` ในวันเดียวกัน
-- [ ] ถ้า trigger แล้ว `support_request = true` ให้ route ไปขั้น help / dashboard flag
-- [ ] ถ้าไม่ใช่ pattern ที่กำหนด ห้ามถาม support request ทุกวัน
+- [x] `composite < 2.5` 3 วันต่อเนื่อง (`shouldFlagSupportRequest`)
+- [x] `mood = 1` และ `worry = 5` ในวันเดียวกัน
+- [x] ถ้า trigger → ถาม `SupportNeedScreen` (Yes/No), เก็บ `support_request` จาก user จริง (ไม่ auto) + `supportNeedPattern` flag
+- [x] ถ้าไม่ใช่ pattern → ไม่ถาม (gate ด้วย `isSupportNeedTriggered`)
 
 งานที่ต้องทำ:
-- [ ] ทำ logic trigger ให้แยกจาก daily check-in core
-- [ ] ฟอร์ม follow-up ต้องไม่ block flow หลัก
-- [ ] state ของ support_request ต้องถูกใช้ซ้ำใน home / help / result
+- [x] logic trigger แยกจาก core (mood-data `isSupportNeedTriggered`)
+- [x] follow-up ไม่ block flow (journal optional)
+- [x] support_request ใช้ซ้ำได้ (entry field) — home/alert ใช้ต่อ Phase 7/10
 
 ไฟล์ที่ต้องแก้:
 - `src/components/afterbloom/CheckInFlow.jsx`
@@ -333,9 +333,9 @@ Support Need trigger:
 - `src/pages/tabs/MoodTab.jsx`
 
 Done when:
-- [ ] follow-up ปรากฏเฉพาะตอนเข้าเงื่อนไข
-- [ ] support request ไม่ถูกถามพร่ำเพรื่อ
-- [ ] pattern-based trigger ทำงานได้ตามสเปค
+- [x] follow-up ปรากฏเฉพาะตอนเข้าเงื่อนไข (verified headless: low scores → 3.5/3.6/3.7 ครบ)
+- [x] support request ไม่ถูกถามพร่ำเพรื่อ (pattern-gated; user ตอบเอง)
+- [x] pattern-based trigger ทำงานได้ตามสเปค (entry: supportRequest=true, supportNeedPattern=true)
 
 ---
 
@@ -518,6 +518,7 @@ Done when:
 - `2026-06-09 | Phase 3 done: onboarding stored keys aligned to spec (mother_name/baby_birth_date/is_first_time_mother/preferred_checkin_time). Verified writer+reader via headless Chrome (greeting "Good morning, Mali.").`
 - `2026-06-09 | Phase 4 done: 7-day mood trend on Home (recharts + getMoodChartData, empty state) + mock reminder copy from preferred_checkin_time. Verified headless. (Tiny goal→P8, Help button→P7.)`
 - `2026-06-09 | Phase 5 done: check-in 4-question labels/wording aligned to spec, removed worry-internal subtitle, added same-day draft resume (afterbloom_checkin_draft). Verified headless (labels + resume at Q2).`
+- `2026-06-09 | Phase 6 done: full follow-up 3.5→3.6→3.7 (13 problem tags + other-text, journal 500, baby connection screen) + pattern-gated Support Need (3.9) where support_request is the mother's own answer (not auto). mood-data: new entry fields + isSupportNeedTriggered + supportNeedPattern. Verified headless end-to-end.`
 
 ---
 

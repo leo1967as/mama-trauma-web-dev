@@ -183,10 +183,21 @@ function normalizeEntry(entry) {
     supportMessage: supportMeta.message,
     supportAction: supportMeta.action,
     followUpTriggered: Boolean(entry.followUpTriggered),
+    supportNeedPattern: Boolean(entry.supportNeedPattern),
     supportRequest: Boolean(entry.supportRequest),
     supportContacted: entry.supportContacted === "yes" ? "yes" : "no",
-    tags: Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : [],
-    note: entry.note || "",
+    // Phase 6 follow-up fields (spec 3.5–3.7)
+    problemTags: Array.isArray(entry.problemTags)
+      ? entry.problemTags.filter(Boolean).slice(0, 2)
+      : (Array.isArray(entry.tags) ? entry.tags.filter(Boolean).slice(0, 2) : []),
+    problemOtherText: (entry.problemOtherText || "").slice(0, 150),
+    journalEntry: (entry.journalEntry ?? entry.note ?? "").slice(0, 500),
+    babyConnectionScore: clampScore(entry.babyConnectionScore),
+    // legacy mirrors (kept for existing readers e.g. insights)
+    tags: Array.isArray(entry.problemTags)
+      ? entry.problemTags.filter(Boolean)
+      : (Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : []),
+    note: (entry.journalEntry ?? entry.note ?? "").slice(0, 500),
     updatedAt: entry.updatedAt || new Date().toISOString(),
   };
 }
@@ -281,7 +292,9 @@ export function upsertMoodEntry(patch) {
   const nextHistory = sortEntriesDesc(history);
   const nextEntryIndex = nextHistory.findIndex((entry) => entry.dateKey === dateKey);
   if (nextEntryIndex >= 0) {
-    const supportRequest = shouldFlagSupportRequest(nextHistory, nextHistory[nextEntryIndex]);
+    // Pattern only decides whether the Support Need question is shown.
+    // support_request itself is the mother's own Yes/No answer (from the patch), never auto.
+    const supportNeedPattern = shouldFlagSupportRequest(nextHistory, nextHistory[nextEntryIndex]);
     const followUpTriggered = Boolean(
       nextHistory[nextEntryIndex].composite !== null &&
       (nextHistory[nextEntryIndex].composite < 2.5 ||
@@ -291,7 +304,8 @@ export function upsertMoodEntry(patch) {
     const supportMeta = getSupportLevelMeta(supportLevel);
     nextHistory[nextEntryIndex] = {
       ...nextHistory[nextEntryIndex],
-      supportRequest,
+      supportNeedPattern,
+      supportRequest: Boolean(nextHistory[nextEntryIndex].supportRequest),
       followUpTriggered,
       supportLevel,
       supportLabel: supportMeta.label,
@@ -302,6 +316,14 @@ export function upsertMoodEntry(patch) {
 
   saveMoodHistory(nextHistory);
   return nextHistory;
+}
+
+// Whether today's answers + history trigger the Support Need pattern
+// (spec 3.9 Trigger A/B). Used to decide if the Support Need question is shown.
+export function isSupportNeedTriggered(currentAnswers) {
+  const preview = normalizeEntry({ dateKey: toDateKey(), ...currentAnswers });
+  const history = getMoodHistory().filter((entry) => entry.dateKey !== preview.dateKey);
+  return shouldFlagSupportRequest([preview, ...history], preview);
 }
 
 export function subscribeToMoodHistory(callback) {
