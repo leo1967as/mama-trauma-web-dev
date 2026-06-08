@@ -237,13 +237,14 @@ Done when:
 
 เป้าหมาย: home ต้องเป็น summary ของข้อมูลจริง ไม่ใช่หน้ากรอก
 
-- [ ] Greeting จาก `mother_name`
-- [ ] Stage badge จาก `baby_birth_date`
-- [ ] Daily check-in CTA แสดงสถานะว่าวันนี้ทำแล้วหรือยัง
-- [ ] Care journey card สร้างจาก postpartum stage อัตโนมัติ
-- [ ] Mood trend 7 วัน จาก history จริง
-- [ ] Tiny goal แสดงหลัง result ล่าสุด
-- [ ] ปุ่ม `I Need Help` ต้องอยู่บน home ตลอด
+- [x] Greeting จาก `mother_name`
+- [x] Stage badge จาก `baby_birth_date`
+- [x] Daily check-in CTA แสดงสถานะว่าวันนี้ทำแล้วหรือยัง
+- [x] Care journey card สร้างจาก postpartum stage อัตโนมัติ
+- [x] Mood trend 7 วัน จาก history จริง (reuse `getMoodChartData`, recharts; empty state ครบ)
+- [ ] Tiny goal แสดงหลัง result ล่าสุด → Phase 8
+- [ ] ปุ่ม `I Need Help` ต้องอยู่บน home ตลอด → Phase 7
+- [x] + reminder copy (mock) จาก `preferred_checkin_time` บน check-in CTA
 
 งานที่ต้องทำ:
 - [ ] สร้าง mapping `postpartum_day -> stage`
@@ -260,9 +261,9 @@ Done when:
 - `src/index.css`
 
 Done when:
-- [ ] home ดึงข้อมูลจาก onboarding/history จริง
-- [ ] stage badge และ journey card คำนวณได้ถูก
-- [ ] help button เห็นได้ตลอด
+- [x] home ดึงข้อมูลจาก onboarding/history จริง (verified headless: greeting "Mali", trend วาดจริง)
+- [x] stage badge และ journey card คำนวณได้ถูก (Week 2 จาก baby_birth_date 14 วัน)
+- [ ] help button เห็นได้ตลอด → ทำใน Phase 7
 
 ---
 
@@ -515,6 +516,7 @@ Done when:
 - `2026-06-08 | Phase 0 audit complete. Bulk rebrand verified spec-compliant; only 1 over-replacement fixed (AuthContext name). Deviations logged as backlog below.`
 - `2026-06-09 | Check-in UX pass: persistent header/footer (no per-answer replay), fade-up question body, options rise as one group, hid per-option Score. Phase 2 done: "Today's Support Level" heading + removed duplicate level label.`
 - `2026-06-09 | Phase 3 done: onboarding stored keys aligned to spec (mother_name/baby_birth_date/is_first_time_mother/preferred_checkin_time). Verified writer+reader via headless Chrome (greeting "Good morning, Mali.").`
+- `2026-06-09 | Phase 4 done: 7-day mood trend on Home (recharts + getMoodChartData, empty state) + mock reminder copy from preferred_checkin_time. Verified headless. (Tiny goal→P8, Help button→P7.)`
 
 ---
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal } from "lucide-react";
-import { getMoodHistory, getMoodSummary, getMoodSupportSummary, subscribeToMoodHistory } from "../../lib/mood-data";
-import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding } from "../../lib/user-data";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory } from "../../lib/mood-data";
+import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime } from "../../lib/user-data";
 import DatePicker from "../../components/afterbloom/DatePicker";
 import CareTimeline from "../../components/afterbloom/CareTimeline";
 import DailyGoal from "../../components/afterbloom/DailyGoal";
@@ -17,6 +18,15 @@ function heroHeading(hasTodayCheckIn, todayMood) {
   if (todayMood <= 2) return "Today felt like a heavier day.";
   if (todayMood === 3) return "Today felt like an okay day.";
   return "Today felt like a lighter day.";
+}
+
+// "08:00" -> "8:00 AM" (mock reminder copy only; no real notification)
+function formatReminderTime(t) {
+  if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
+  const [h, m] = t.split(":").map(Number);
+  const period = h < 12 ? "AM" : "PM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
 }
 
 
@@ -43,6 +53,9 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const moodSummary = getMoodSummary(moodEntries);
   const todayMood = moodSummary.todayEntry?.moodScore ?? null;
   const supportSummary = getMoodSupportSummary(moodEntries);
+  const trendData = getMoodChartData(moodEntries, 7);
+  const showTrend = hasMoodChartData(trendData);
+  const reminderTime = formatReminderTime(getPreferredCheckinTime());
 
   // blob params from sliders
   const blur   = size;                        // size slider reused as blur (40–100px)
@@ -240,6 +253,12 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
                 label={moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
                 onCheckIn={onCheckIn}
               />
+              {!moodSummary.hasTodayCheckIn && reminderTime && (
+                <p className="relative text-[12px] mt-3 flex items-center gap-1.5" style={{ color: "#9C8E83" }}>
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  We'll gently nudge you around {reminderTime}.
+                </p>
+              )}
             </>
           )}
         </div>
@@ -299,6 +318,35 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
             <path d="M9 6l6 6-6 6"/>
           </svg>
         </motion.button>
+
+        {/* 7-day mood trend */}
+        <div style={{ marginTop: 13, background: "#fff", border: "1px solid #EFE6DC", borderRadius: 22, padding: "18px 18px 12px", boxShadow: "0 2px 10px rgba(80,56,42,.05)", fontFamily: FONT_BODY }}>
+          <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 10 }}>7-day mood trend</span>
+          {showTrend ? (
+            <div style={{ position: "relative", height: 96, margin: "0 -6px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="moodGradHome" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#C77E83" stopOpacity={0.26} />
+                      <stop offset="100%" stopColor="#C77E83" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9C8E83", fontFamily: FONT_BODY }} dy={6} />
+                  <YAxis hide domain={[0, 5]} />
+                  <Tooltip contentStyle={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 12, fontSize: 12, fontFamily: FONT_BODY }} formatter={(v) => [`${v}/5`, "Mood"]} />
+                  <Area type="monotone" dataKey="mood" stroke="#C77E83" strokeWidth={2.5} fill="url(#moodGradHome)"
+                    dot={({ cx, cy, payload }) => payload?.mood != null ? <circle cx={cx} cy={cy} r={3} fill="#C77E83" stroke="white" strokeWidth={1.5} /> : null}
+                    connectNulls activeDot={{ r: 5, fill: "#C77E83", stroke: "white", strokeWidth: 2 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p style={{ fontSize: 12.5, color: "#9C8E83", lineHeight: 1.55, padding: "8px 2px 12px" }}>
+              Your trend will appear here once you check in a few times.
+            </p>
+          )}
+        </div>
 
         {/* Daily goal — main warm element */}
         <div style={{ marginTop: 13 }}>

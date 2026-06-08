@@ -1,12 +1,12 @@
 ## Status: complete
-## Last Updated: 2026-06-08
+## Last Updated: 2026-06-09
 ## Confidence: high
 
 ## Priority:
-Phases 0, 2, 3 complete + a check-in UX pass, all verified in headless Chrome and committed. Onboarding stored keys now match spec field names. Next coding phase is Phase 4 (Home screen — wire stage/reminder from onboarding data) or Phase 5 (daily check-in core), per PLAN.
+Phases 0, 2, 3, 4 complete + verified (headless Chrome) + committed. Executing PLAN.md Phases 4-11 Agile (1 commit + push + review gate per phase). Phase 4 added 7-day mood trend + mock reminder copy on Home.
 
 ## Next Action:
-Begin Phase 4: use `getPreferredCheckinTime()` / `getIsFirstTimeMother()` where relevant on Home, and confirm every Home card reads from a single onboarding/history source (no hardcoded stage).
+Phase 5: align CheckInFlow 4-question option labels/wording to spec, remove the worry subtitle that exposes internals, and add localStorage draft resume (key `afterbloom_checkin_draft`).
 
 ## Risks:
 - Browser-level QA is still recommended for the new global help sheet and CTA behavior.
