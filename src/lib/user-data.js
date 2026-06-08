@@ -1,4 +1,4 @@
-const KEY = "moji_onboarding";
+const KEY = "afterbloom_onboarding";
 
 export function getOnboardingData() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
@@ -13,7 +13,7 @@ export function isOnboarded() {
 }
 
 export function getDisplayName() {
-  return getOnboardingData()?.displayName || "Mama";
+  return getOnboardingData()?.displayName || "there";
 }
 
 export function getDaysSinceBirth() {
@@ -34,12 +34,12 @@ export function getDayLabel() {
 }
 
 export function setJustOnboarded() {
-  localStorage.setItem("moji_just_onboarded", "1");
+  localStorage.setItem("afterbloom_just_onboarded", "1");
 }
 
 export function consumeJustOnboarded() {
-  const v = localStorage.getItem("moji_just_onboarded") === "1";
-  localStorage.removeItem("moji_just_onboarded");
+  const v = localStorage.getItem("afterbloom_just_onboarded") === "1";
+  localStorage.removeItem("afterbloom_just_onboarded");
   return v;
 }
 
@@ -50,6 +50,8 @@ export function getCurrentStage() {
   if (days <= 6)  return { label: "Day 3",   weekLabel: "Week 1 · Day 3",  phase: "Peak Adjustment",    desc: "Milk may come in — emotions intensify",       pct: 15, nodeIndex: 1 };
   if (days <= 13) return { label: "Day 7",   weekLabel: "Week 1 · Day 7",  phase: "Finding Rhythm",     desc: "Building small routines, some relief",        pct: 25, nodeIndex: 2 };
   if (days <= 20) return { label: "Week 2",  weekLabel: "Week 2",          phase: "Settling In",        desc: "Baby blues should start to ease",             pct: 45, nodeIndex: 3 };
-  if (days <= 29) return { label: "Week 3",  weekLabel: "Week 3",          phase: "Growing Confidence", desc: "Trust your instincts, mama",                  pct: 65, nodeIndex: 4 };
+  if (days <= 29) return { label: "Week 3",  weekLabel: "Week 3",          phase: "Growing Confidence", desc: "Trust your instincts",                  pct: 65, nodeIndex: 4 };
   return              { label: "Month 1", weekLabel: "Month 1",         phase: "New Normal",         desc: "If sadness persists, reach out",              pct: 90, nodeIndex: 5 };
 }
+
+

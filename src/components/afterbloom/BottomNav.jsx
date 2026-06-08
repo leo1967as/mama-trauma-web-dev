@@ -70,3 +70,4 @@ export default function BottomNav({ activeTab, onTabChange, legacyUnlocked }) {
     </div>
   );
 }
+

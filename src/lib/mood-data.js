@@ -1,8 +1,31 @@
-const STORAGE_KEY = "moji_mood_history";
+const STORAGE_KEY = "afterbloom_mood_history";
 const DIFFICULT_TAGS = new Set(["overwhelmed", "tired", "anxious", "lonely", "sad", "panic"]);
-const MOOD_HISTORY_EVENT = "moji:mood-history-updated";
+const MOOD_HISTORY_EVENT = "afterbloom:mood-history-updated";
 const DEMO_HISTORY_DAYS = 14;
 const DEMO_TAG_POOL = ["calm", "hopeful", "grateful", "tired", "anxious", "lonely", "proud", "overwhelmed"];
+
+const SUPPORT_LEVELS = {
+  steady: {
+    label: "Steady",
+    message: "Your recent check-ins look stable. Keep the rhythm going so changes stay easy to spot.",
+    action: "Keep one tiny routine going today.",
+  },
+  gentle: {
+    label: "Gentle Support",
+    message: "There are early signs worth watching. Gentle support and a simple plan can help.",
+    action: "Reach out to one trusted person and keep today's check-in simple.",
+  },
+  extra: {
+    label: "Extra Support Recommended",
+    message: "Your recent check-ins suggest this is a harder stretch. Extra support would be a good next step.",
+    action: "Ask for support today and consider talking to a care provider.",
+  },
+  immediate: {
+    label: "Immediate Support",
+    message: "Your recent check-ins point to a high-need moment. Please reach out for immediate support now.",
+    action: "Open I Need Help and contact support right now.",
+  },
+};
 
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -23,6 +46,14 @@ function parseNumber(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function clampScore(value) {
+  const parsed = parseNumber(value);
+  if (parsed === null) {
+    return null;
+  }
+  return Math.min(5, Math.max(1, parsed));
+}
+
 function hashString(value) {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
@@ -31,11 +62,37 @@ function hashString(value) {
   return hash;
 }
 
+function average(values) {
+  if (!values.length) {
+    return null;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function sortEntriesDesc(entries) {
+  return [...entries].sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+}
+
+export function getSupportLevelMeta(level) {
+  return SUPPORT_LEVELS[level] || SUPPORT_LEVELS.steady;
+}
+
+function getMoodSupportLevelFromComposite(composite) {
+  if (composite === null || composite === undefined) {
+    return "steady";
+  }
+  if (composite >= 4.25) return "steady";
+  if (composite >= 3.5) return "gentle";
+  if (composite >= 2.5) return "extra";
+  return "immediate";
+}
+
 function createDemoEntry(dateKey, offset) {
   const seed = hashString(`${dateKey}:${offset}`);
   const moodScore = (seed % 5) + 1;
-  const energyLevel = 38 + (seed % 48);
-  const sleepHours = 3 + (seed % 6);
+  const sleepScore = ((seed + 1) % 5) + 1;
+  const energyScore = ((seed + 2) % 5) + 1;
+  const worryScore = ((seed + 3) % 5) + 1;
   const supportContacted = seed % 3 === 0 ? "yes" : "no";
   const tagA = DEMO_TAG_POOL[seed % DEMO_TAG_POOL.length];
   const tagB = DEMO_TAG_POOL[(seed + 3) % DEMO_TAG_POOL.length];
@@ -50,8 +107,9 @@ function createDemoEntry(dateKey, offset) {
     id: `demo-${dateKey}`,
     dateKey,
     moodScore,
-    energyLevel,
-    sleepHours,
+    sleepScore,
+    energyScore,
+    worryScore,
     tags: tagA === tagB ? [tagA] : [tagA, tagB],
     note: notePool[seed % notePool.length],
     supportContacted,
@@ -74,29 +132,77 @@ function backfillDemoHistory(entries) {
 }
 
 function normalizeEntry(entry) {
+  const moodScore = clampScore(entry.moodScore);
+  const sleepScore = clampScore(entry.sleepScore ?? entry.sleepHours);
+  const energyScore = clampScore(entry.energyScore ?? entry.energyLevel);
+  const worryScore = clampScore(entry.worryScoreRaw ?? entry.worryScore ?? entry.worry_score);
+  const worryAdjustedScore = worryScore === null ? null : 6 - worryScore;
+  const compositeValues = [moodScore, sleepScore, energyScore, worryAdjustedScore].filter((value) => value !== null);
+  const composite = compositeValues.length ? average(compositeValues) : null;
+  const supportLevel = entry.supportLevel || getMoodSupportLevelFromComposite(composite);
+  const supportMeta = getSupportLevelMeta(supportLevel);
+
   return {
     id: entry.id || entry.dateKey,
     dateKey: entry.dateKey,
-    moodScore: parseNumber(entry.moodScore),
-    energyLevel: parseNumber(entry.energyLevel),
-    sleepHours: parseNumber(entry.sleepHours),
+    moodScore,
+    sleepScore,
+    sleepHours: sleepScore,
+    energyScore,
+    energyLevel: energyScore,
+    worryScore,
+    worryScoreRaw: worryScore,
+    worryAdjustedScore,
+    composite,
+    supportLevel,
+    supportLabel: supportMeta.label,
+    supportMessage: supportMeta.message,
+    supportAction: supportMeta.action,
+    followUpTriggered: Boolean(entry.followUpTriggered),
+    supportRequest: Boolean(entry.supportRequest),
+    supportContacted: entry.supportContacted === "yes" ? "yes" : "no",
     tags: Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : [],
     note: entry.note || "",
-    supportContacted: entry.supportContacted === "yes" ? "yes" : "no",
     updatedAt: entry.updatedAt || new Date().toISOString(),
   };
-}
-
-function sortEntriesDesc(entries) {
-  return [...entries].sort((a, b) => b.dateKey.localeCompare(a.dateKey));
 }
 
 function saveMoodHistory(entries) {
   if (!canUseStorage()) {
     return;
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sortEntriesDesc(entries)));
-  window.dispatchEvent(new CustomEvent(MOOD_HISTORY_EVENT, { detail: sortEntriesDesc(entries) }));
+  const nextEntries = sortEntriesDesc(entries);
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextEntries));
+  window.dispatchEvent(new CustomEvent(MOOD_HISTORY_EVENT, { detail: nextEntries }));
+}
+
+function getRecentEntries(entries, limit = 7) {
+  return sortEntriesDesc(entries).slice(0, limit);
+}
+
+function countConsecutiveLowMood(entries) {
+  let streak = 0;
+  for (const entry of sortEntriesDesc(entries)) {
+    if (entry.moodScore !== null && entry.moodScore <= 2) {
+      streak += 1;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function shouldFlagSupportRequest(entries, currentEntry) {
+  if (!currentEntry) {
+    return false;
+  }
+
+  if (currentEntry.moodScore === 1 && currentEntry.worryScore === 5) {
+    return true;
+  }
+
+  const recent = getRecentEntries(entries, 3).filter((entry) => entry.composite !== null);
+  return recent.length === 3 && recent.every((entry) => entry.composite < 2.5);
 }
 
 export function getMoodHistory() {
@@ -116,7 +222,7 @@ export function getMoodHistory() {
     }
     return backfilled;
   } catch {
-    return [];
+    return []; 
   }
 }
 
@@ -149,6 +255,27 @@ export function upsertMoodEntry(patch) {
   }
 
   const nextHistory = sortEntriesDesc(history);
+  const nextEntryIndex = nextHistory.findIndex((entry) => entry.dateKey === dateKey);
+  if (nextEntryIndex >= 0) {
+    const supportRequest = shouldFlagSupportRequest(nextHistory, nextHistory[nextEntryIndex]);
+    const followUpTriggered = Boolean(
+      nextHistory[nextEntryIndex].composite !== null &&
+      (nextHistory[nextEntryIndex].composite < 2.5 ||
+        [nextHistory[nextEntryIndex].moodScore, nextHistory[nextEntryIndex].sleepScore, nextHistory[nextEntryIndex].energyScore, nextHistory[nextEntryIndex].worryScore].includes(1))
+    );
+    const supportLevel = getMoodSupportLevelFromComposite(nextHistory[nextEntryIndex].composite);
+    const supportMeta = getSupportLevelMeta(supportLevel);
+    nextHistory[nextEntryIndex] = {
+      ...nextHistory[nextEntryIndex],
+      supportRequest,
+      followUpTriggered,
+      supportLevel,
+      supportLabel: supportMeta.label,
+      supportMessage: supportMeta.message,
+      supportAction: supportMeta.action,
+    };
+  }
+
   saveMoodHistory(nextHistory);
   return nextHistory;
 }
@@ -215,8 +342,8 @@ export function getMoodChartData(entries, days = 7, options = {}) {
       dateKey,
       day: date.toLocaleDateString("en-US", { weekday: "short" }),
       mood: entry?.moodScore ?? previewMood ?? null,
-      energy: entry?.energyLevel ?? null,
-      sleep: entry?.sleepHours ?? null,
+      energy: entry?.energyScore ?? null,
+      sleep: entry?.sleepScore ?? null,
     });
   }
 
@@ -227,90 +354,35 @@ export function hasMoodChartData(rows) {
   return rows.some((row) => row.mood !== null);
 }
 
-function average(values) {
-  if (!values.length) {
-    return null;
+export function getMoodSupportSummary(entries) {
+  const recent = getRecentEntries(entries, 7);
+  const latest = recent[0] || null;
+  if (!latest) {
+    const meta = getSupportLevelMeta("steady");
+    return {
+      level: "steady",
+      label: meta.label,
+      message: meta.message,
+      action: meta.action,
+      supportRequest: false,
+      followUpTriggered: false,
+    };
   }
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
 
-function getRecentEntries(entries, limit = 7) {
-  return sortEntriesDesc(entries).slice(0, limit);
-}
-
-function countConsecutiveLowMood(entries) {
-  let streak = 0;
-  for (const entry of sortEntriesDesc(entries)) {
-    if (entry.moodScore !== null && entry.moodScore <= 2) {
-      streak += 1;
-    } else {
-      break;
-    }
-  }
-  return streak;
+  const level = latest.supportLevel || getMoodSupportLevelFromComposite(latest.composite);
+  const meta = getSupportLevelMeta(level);
+  return {
+    level,
+    label: latest.supportLabel || meta.label,
+    message: latest.supportMessage || meta.message,
+    action: latest.supportAction || meta.action,
+    supportRequest: Boolean(latest.supportRequest),
+    followUpTriggered: Boolean(latest.followUpTriggered),
+  };
 }
 
 export function getMoodRiskSummary(entries) {
-  const recent = getRecentEntries(entries, 7).filter((entry) => entry.moodScore !== null);
-  if (!recent.length) {
-    return {
-      level: "none",
-      label: "No Check-ins Yet",
-      message: "Start daily check-ins to unlock trend analysis, pattern detection, and risk monitoring.",
-      action: "Complete today’s check-in to start your support baseline.",
-    };
-  }
-
-  const moods = recent.map((entry) => entry.moodScore);
-  const sleeps = recent.map((entry) => entry.sleepHours).filter((value) => value !== null);
-  const avgMood = average(moods);
-  const avgSleep = average(sleeps);
-  const lowMoodDays = moods.filter((value) => value <= 2).length;
-  const difficultTagHits = recent.flatMap((entry) => entry.tags).filter((tag) => DIFFICULT_TAGS.has(tag)).length;
-  const lowMoodStreak = countConsecutiveLowMood(recent);
-
-  let score = 0;
-  if (avgMood !== null && avgMood <= 2.2) score += 2;
-  else if (avgMood !== null && avgMood <= 3) score += 1;
-  if (lowMoodDays >= 3) score += 2;
-  else if (lowMoodDays >= 2) score += 1;
-  if (avgSleep !== null && avgSleep < 4.5) score += 1;
-  if (difficultTagHits >= 4) score += 1;
-  if (lowMoodStreak >= 3) score += 2;
-
-  if (score >= 5) {
-    return {
-      level: "red",
-      label: "Please Reach Out",
-      message: `Your recent check-ins show sustained low mood${avgSleep !== null ? ` and average sleep around ${avgSleep.toFixed(1)} hours` : ""}. Please prompt support outreach and professional follow-up.`,
-      action: "Talk to a professional or crisis support now.",
-    };
-  }
-
-  if (score >= 3) {
-    return {
-      level: "orange",
-      label: "Needs Support",
-      message: `Recent entries show a tougher stretch${lowMoodDays ? ` with ${lowMoodDays} low-mood days` : ""}. This is a good point to surface extra support and monitor closely.`,
-      action: "Reach out to one trusted person today and consider professional support.",
-    };
-  }
-
-  if (score >= 1) {
-    return {
-      level: "yellow",
-      label: "Gentle Attention",
-      message: `There are early signs to watch${avgSleep !== null ? `, especially sleep averaging ${avgSleep.toFixed(1)} hours` : ""}. Keep daily check-ins consistent and review patterns weekly.`,
-      action: "Keep tomorrow’s check-in simple and ask for one small support task.",
-    };
-  }
-
-  return {
-    level: "green",
-    label: "Looking Good",
-    message: "Recent check-ins are stable overall. Keep the routine going so trend changes are easier to catch early.",
-    action: "Stay with one tiny goal and keep the daily check-in habit going.",
-  };
+  return getMoodSupportSummary(entries);
 }
 
 export function getMoodInsights(entries) {
@@ -323,20 +395,20 @@ export function getMoodInsights(entries) {
 
   const insights = [];
   const chronological = [...recent].reverse();
-  const sleepEntries = chronological.filter((entry) => entry.sleepHours !== null && entry.moodScore !== null);
-  const sleepAvg = average(sleepEntries.map((entry) => entry.sleepHours));
+  const sleepEntries = chronological.filter((entry) => entry.sleepScore !== null && entry.moodScore !== null);
+  const sleepAvg = average(sleepEntries.map((entry) => entry.sleepScore));
   if (sleepAvg !== null) {
-    if (sleepAvg < 5) {
+    if (sleepAvg < 3) {
       insights.push({
         key: "sleep-low",
         type: "sleep",
-        text: `Sleep has been running low at about ${sleepAvg.toFixed(1)} hours. Short sleep may be making the next day feel heavier.`,
+        text: `Sleep has been running low at about ${sleepAvg.toFixed(1)} / 5. Short sleep may be making the next day feel heavier.`,
       });
     } else {
       insights.push({
         key: "sleep-stable",
         type: "sleep",
-        text: `Sleep has been steadier lately at about ${sleepAvg.toFixed(1)} hours. It is not the biggest stress signal right now.`,
+        text: `Sleep has been steadier lately at about ${sleepAvg.toFixed(1)} / 5. It is not the biggest stress signal right now.`,
       });
     }
   }
@@ -407,8 +479,9 @@ export function getMoodSummary(entries) {
 
   return {
     totalEntries: entries.length,
-    hasTodayCheckIn: Boolean(todayEntry?.moodScore),
+    hasTodayCheckIn: Boolean(todayEntry),
     todayEntry,
     averageMoodLast7: avgMood,
   };
 }
+

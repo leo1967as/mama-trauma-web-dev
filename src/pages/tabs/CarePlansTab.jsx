@@ -41,7 +41,7 @@ function buildLocalPlan(context) {
         habits: [
           { action: "Mood check-in after breakfast", tip: "One word is enough today." },
           { action: "Write one feeling in notes", tip: "No need for long journaling." },
-          { action: "Say a kind line to yourself", tip: "Speak as you would to a friend." },
+          { action: "Say a kind line to yourself", tip: "Speak as you would to someone you trust." },
         ],
       },
       {
@@ -214,7 +214,7 @@ export default function CarePlansTab() {
           </div>
           <h2 className="text-base font-bold text-foreground mb-1.5">Your personalized plan awaits</h2>
           <p className="text-xs text-muted-foreground leading-relaxed mb-5 px-2">
-            Based on your mood logs, journal entries, and therapy sessions, CalmMama will create a care plan tailored to where you are right now.
+            Based on your mood logs, journal entries, and therapy sessions, Afterbloom will create a care plan tailored to where you are right now.
           </p>
           <motion.button
             whileTap={{ scale: 0.97 }}
@@ -295,3 +295,5 @@ export default function CarePlansTab() {
     </motion.div>
   );
 }
+
+

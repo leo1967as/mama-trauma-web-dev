@@ -51,7 +51,7 @@ React Web  →  Capacitor MVP  →  Expo rewrite
 > สำคัญที่สุดก่อน ship
 
 - [ ] **Care Timeline dynamic** — คำนวณ day/week จากวันคลอดจริง (ตอนนี้ hardcode Day 7)
-- [ ] **CarePlans ← mood data** — generate plan จาก risk level จริง ไม่ใช่ mock context
+- [ ] **CarePlans ← mood data** — generate plan จาก support level จริง ไม่ใช่ mock context
 - [ ] **Daily Goal rotation** — เปลี่ยน goal ทุกวัน ไม่ใช่ "Rest 10 minutes" ตลอด
 - [ ] **Journal save/load** — เขียนและอ่าน entry ได้จริง (ตอนนี้ไม่ได้ save)
 

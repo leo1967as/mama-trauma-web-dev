@@ -9,7 +9,7 @@ const moods = MOOD_FACES.map(f => ({ svg: f.svg, bg: f.bg, value: f.score, label
 const prompts = [
   "What was one small win today, even if tiny?",
   "What does your body need right now?",
-  "Write a kind note to yourself as if you were your best friend.",
+  "Write a kind note to yourself.",
   "What are you most proud of this week?",
 ];
 
@@ -182,3 +182,6 @@ export default function JournalSection({ history, setHistory }) {
     </div>
   );
 }
+
+
+

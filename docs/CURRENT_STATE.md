@@ -1,17 +1,17 @@
-## Status: active
-## Last Updated: 2026-05-21
-## Confidence: medium
+## Status: complete
+## Last Updated: 2026-06-08
+## Confidence: high
 
 ## Priority:
-Lock the simplified Home and Mood flows, then replace local-only storage with a real backend contract.
+Afterbloom rebrand + Phase 0 audit complete. Bulk rebrand verified spec-compliant; one over-replacement fixed (`AuthContext` default name). Phase 2 (Support Level label/copy) and Phase 3 (onboarding field-name alignment) are the next coding phases — logged as backlog in `PLAN.md`. Browser smoke check still pending.
 
 ## Next Action:
-Define the backend/API shape for daily check-ins and decide permanent destinations for the modules parked in Legacy.
+Browser smoke-check the Home greeting (must show the onboarding name or "there", never "Afterbloom"), then begin Phase 2: add a "Support Level" heading to `SupportIndicator` and remove the duplicated level label.
 
 ## Risks:
-- Data is stored only in localStorage and is not yet synced to a backend.
-- Risk and insight logic is rule-based and should be validated against product expectations.
-- Some UI sections still use placeholder content outside the daily check-in flow.
+- Browser-level QA is still recommended for the new global help sheet and CTA behavior.
+- LocalStorage keys were intentionally reset, so older app data will not carry over.
+- Support Level and EPDS mapping are heuristic and may need tuning after browser validation.
 
 ## Recent Context:
-Base44 dependencies and stubs were removed, the app now runs standalone, client chat notes were captured in `Client_chat.md`, the Mood/Home flow now uses real local history for check-ins, insights, and risk summaries, the sleep-hour picker now opens as a viewport-centered modal from a click trigger, visible chart markers and empty-state fallbacks were added, save flow now verifies persisted data after write, Home was simplified to a task-first postpartum flow, Mood was refactored into a quick check-in-first flow with optional details and a single insight, the optional detail inputs were rewritten into stacked conversational cards so labels read like gentle questions instead of dashboard controls, the old inline green save banner was replaced with a floating success popup, the trend chart now re-animates smoothly when mood data changes, and displaced Mood/Home modules now live in a temporary Legacy tab.
+Rebranded MaMa to Afterbloom across source paths, storage keys, user-facing copy, and mock data; renamed `src/components/calmmama` to `src/components/afterbloom`; switched Risk Level to Support Level; wired a global I Need Help sheet from Dashboard; and verified the app with build and lint.

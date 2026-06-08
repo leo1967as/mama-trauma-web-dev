@@ -4,7 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "rec
 import { AlertCircle, MessageCircleHeart, Moon, Pencil, TrendingUp } from "lucide-react";
 import {
   formatHistoryDate,
-  getMoodChartData, getMoodHistory, getMoodInsights, getMoodRiskSummary,
+  getMoodChartData, getMoodHistory, getMoodInsights, getMoodSupportSummary,
   getMoodSummary, hasMoodChartData, subscribeToMoodHistory,
 } from "../../lib/mood-data";
 
@@ -37,7 +37,7 @@ const insightColors = [
   { bg: "#F6E2E1", color: "#AF636A" },
 ];
 
-const riskStyle = {
+const supportStyle = {
   red:    { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2" },
   orange: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0" },
   yellow: { bg: "#F7EDD8", border: "#E8D3A0", text: "#9A7322", tag: "#F2E2BE" },
@@ -215,7 +215,7 @@ export default function MoodTab({ onCheckIn }) {
 
   const summary = useMemo(() => getMoodSummary(history), [history]);
   const todayEntry = summary.todayEntry;
-  const riskSummary = useMemo(() => getMoodRiskSummary(history), [history]);
+  const supportSummary = useMemo(() => getMoodSupportSummary(history), [history]);
   const insights = useMemo(() => getMoodInsights(history), [history]);
 
   const chartData = getMoodChartData(history, 7);
@@ -223,7 +223,7 @@ export default function MoodTab({ onCheckIn }) {
   const showChart = hasMoodChartData(chartData);
 
   const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
-  const rs = riskStyle[riskSummary.level] ?? riskStyle.none;
+  const ss = supportStyle[supportSummary.level] ?? supportStyle.none;
 
   return (
     <motion.div
@@ -354,23 +354,23 @@ export default function MoodTab({ onCheckIn }) {
           );
         })}
 
-        {/* risk card */}
+        {/* support card */}
         <div style={{
           borderRadius: 24, padding: 20,
-          background: rs.bg, border: `1px solid ${rs.border}`,
+          background: ss.bg, border: `1px solid ${ss.border}`,
           boxShadow: "0 2px 12px rgba(80,56,42,.05)", fontFamily: F,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: rs.text }}>{riskSummary.label}</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>{supportSummary.label}</span>
             <span style={{
               fontSize: 9.5, fontWeight: 800, letterSpacing: "0.09em", textTransform: "uppercase",
-              color: rs.text, background: rs.tag, padding: "4px 10px", borderRadius: 30,
+              color: ss.text, background: ss.tag, padding: "4px 10px", borderRadius: 30,
             }}>
-              {riskSummary.level === "none" ? "Baseline" : riskSummary.level.charAt(0).toUpperCase() + riskSummary.level.slice(1)}
+              {supportSummary.label}
             </span>
           </div>
-          <p style={{ fontSize: 12.5, color: rs.text, opacity: 0.85, lineHeight: 1.5, marginBottom: 12 }}>{riskSummary.message}</p>
-          <p style={{ fontSize: 12, fontWeight: 700, color: rs.text }}>Next step: {riskSummary.action}</p>
+          <p style={{ fontSize: 12.5, color: ss.text, opacity: 0.85, lineHeight: 1.5, marginBottom: 12 }}>{supportSummary.message}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: ss.text }}>Next step: {supportSummary.action}</p>
         </div>
 
         {/* recent history list */}
@@ -381,3 +381,6 @@ export default function MoodTab({ onCheckIn }) {
     </motion.div>
   );
 }
+
+
+

@@ -94,3 +94,4 @@ export default function MoodInsights({ entries = [] }) {
     </motion.div>
   );
 }
+

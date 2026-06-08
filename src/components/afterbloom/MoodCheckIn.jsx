@@ -25,7 +25,7 @@ export default function MoodCheckIn() {
       className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm"
     >
       <p className="text-sm font-semibold text-foreground mb-1">How are you feeling right now?</p>
-      <p className="text-xs text-muted-foreground mb-4">No right or wrong answer, mama</p>
+      <p className="text-xs text-muted-foreground mb-4">No right or wrong answer.</p>
 
       {/* Mood Emojis */}
       <div className="flex items-center justify-between mb-5">

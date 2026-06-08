@@ -2,7 +2,7 @@
 - `src/App.jsx`: app shell and routing.
 - `src/pages/Dashboard.jsx`: tab container and main screen composition.
 - `src/pages/tabs/`: top-level product tabs.
-- `src/components/calmmama/`: Home/dashboard-specific components.
+- `src/components/afterbloom/`: Home/dashboard-specific components.
 - `src/lib/mood-data.js`: local mood history storage, chart shaping, risk summary, and insight rules.
 
 ## Data Flow

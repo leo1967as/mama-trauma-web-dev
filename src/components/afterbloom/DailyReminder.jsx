@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, X, Smile, BookOpen, Sparkles } from "lucide-react";
 
-const STORAGE_KEY = "calmmama_reminder";
+const STORAGE_KEY = "afterbloom_reminder";
 
 function getStoredSettings() {
   try {
@@ -17,11 +17,11 @@ function saveSettings(s) {
 }
 
 function getLastDismissed() {
-  return localStorage.getItem("calmmama_reminder_dismissed") || "";
+  return localStorage.getItem("afterbloom_reminder_dismissed") || "";
 }
 
 function setLastDismissed() {
-  localStorage.setItem("calmmama_reminder_dismissed", new Date().toDateString());
+  localStorage.setItem("afterbloom_reminder_dismissed", new Date().toDateString());
 }
 
 function shouldShowNow(time) {
@@ -35,7 +35,7 @@ function shouldShowNow(time) {
 }
 
 const PROMPTS = [
-  "How are you feeling right now, mama? 💛",
+  "How are you feeling right now? 💛",
   "What's one small win from today? ✨",
   "Take a breath — how's your heart today? 🌸",
   "A moment for you: what are you feeling? 🌿",
@@ -172,3 +172,4 @@ export default function DailyReminder({ onNavigate }) {
     </>
   );
 }
+

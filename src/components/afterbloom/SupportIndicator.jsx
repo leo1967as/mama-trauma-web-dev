@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { getMoodRiskSummary } from "../../lib/mood-data";
+import { getMoodSupportSummary } from "../../lib/mood-data";
 
 const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
 
@@ -29,17 +28,16 @@ function AlertIcon() {
   );
 }
 
-const configs = {
-  none:   { iconBg: "#E7EFE8", iconColor: "#577A62", tagBg: "#E7EFE8", tagColor: "#577A62", tagLabel: "All clear",        Icon: ShieldIcon },
-  green:  { iconBg: "#E7EFE8", iconColor: "#577A62", tagBg: "#E7EFE8", tagColor: "#577A62", tagLabel: "All clear",        Icon: ShieldIcon },
-  yellow: { iconBg: "#F7EDD8", iconColor: "#9A7322", tagBg: "#F2E2BE", tagColor: "#9A7322", tagLabel: "Gentle note",      Icon: HeartIcon  },
-  orange: { iconBg: "#FEF0E7", iconColor: "#C2460A", tagBg: "#FDE8D0", tagColor: "#C2460A", tagLabel: "Heads up",         Icon: AlertIcon  },
-  red:    { iconBg: "#FEECEC", iconColor: "#B91C1C", tagBg: "#FEE2E2", tagColor: "#B91C1C", tagLabel: "Please reach out", Icon: AlertIcon  },
+const supportConfigs = {
+  steady:    { iconBg: "#E7EFE8", iconColor: "#577A62", tagBg: "#E7EFE8", tagColor: "#577A62", tagLabel: "Steady", Icon: ShieldIcon },
+  gentle:    { iconBg: "#F7EDD8", iconColor: "#9A7322", tagBg: "#F2E2BE", tagColor: "#9A7322", tagLabel: "Gentle Support", Icon: HeartIcon },
+  extra:     { iconBg: "#FEF0E7", iconColor: "#C2460A", tagBg: "#FDE8D0", tagColor: "#C2460A", tagLabel: "Extra Support Recommended", Icon: AlertIcon },
+  immediate: { iconBg: "#FEECEC", iconColor: "#B91C1C", tagBg: "#FEE2E2", tagColor: "#B91C1C", tagLabel: "Immediate Support", Icon: AlertIcon },
 };
 
-export default function RiskIndicator({ entries = [] }) {
-  const summary = getMoodRiskSummary(entries);
-  const cfg = configs[summary.level] ?? configs.none;
+export default function SupportIndicator({ entries = [] }) {
+  const summary = getMoodSupportSummary(entries);
+  const cfg = supportConfigs[summary.level] ?? supportConfigs.steady;
   const { Icon } = cfg;
 
   return (
@@ -103,3 +101,6 @@ export default function RiskIndicator({ entries = [] }) {
     </div>
   );
 }
+
+
+

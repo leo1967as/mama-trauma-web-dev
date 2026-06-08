@@ -314,7 +314,7 @@ export default function SafetySection() {
                     <Heart className="w-4 h-4" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold">I need help right now</p>
+                    <p className="text-sm font-bold">I Need Help</p>
                     <p className="text-xs text-white/70">Breathing & grounding exercises</p>
                   </div>
                 </motion.button>

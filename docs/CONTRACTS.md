@@ -14,10 +14,10 @@
 ```
 
 ## Storage Keys
-- `moji_mood_history`
-- `moji_project_input`
-- `calmmama_reminder`
-- `calmmama_reminder_dismissed`
+- `afterbloom_mood_history`
+- `afterbloom_project_input`
+- `afterbloom_reminder`
+- `afterbloom_reminder_dismissed`
 
 ## Source Of Truth
 - Daily check-in history: `src/lib/mood-data.js`

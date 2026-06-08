@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, SlidersHorizontal } from "lucide-react";
-import { getMoodHistory, getMoodSummary, getMoodRiskSummary, subscribeToMoodHistory } from "../../lib/mood-data";
+import { SlidersHorizontal } from "lucide-react";
+import { getMoodHistory, getMoodSummary, getMoodSupportSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding } from "../../lib/user-data";
-import DatePicker from "../../components/calmmama/DatePicker";
-import CareTimeline from "../../components/calmmama/CareTimeline";
-import DailyGoal from "../../components/calmmama/DailyGoal";
-import CheckInBtn from "../../components/calmmama/CheckInBtn";
+import DatePicker from "../../components/afterbloom/DatePicker";
+import CareTimeline from "../../components/afterbloom/CareTimeline";
+import DailyGoal from "../../components/afterbloom/DailyGoal";
+import CheckInBtn from "../../components/afterbloom/CheckInBtn";
 
 const FONT_BODY = "'Plus Jakarta Sans', system-ui, sans-serif";
 const FONT_SERIF = "'Newsreader', serif";
@@ -42,8 +42,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
 
   const moodSummary = getMoodSummary(moodEntries);
   const todayMood = moodSummary.todayEntry?.moodScore ?? null;
-  const riskLevel = getMoodRiskSummary(moodEntries).level;
-  const showSupport = ["orange", "red"].includes(riskLevel);
+  const supportSummary = getMoodSupportSummary(moodEntries);
 
   // blob params from sliders
   const blur   = size;                        // size slider reused as blur (40–100px)
@@ -149,7 +148,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
                   whileTap={{ scale: 0.96 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   onClick={() => {
-                    saveOnboarding({ displayName: settingsName || "Mama", birthDate: settingsBirthDate || null });
+                    saveOnboarding({ displayName: settingsName || "", birthDate: settingsBirthDate || null });
                     setSettingsSaved(true);
                     setSettingsShowDate(false);
                     setTimeout(() => { setSettingsSaved(false); setShowSettings(false); }, 1200);
@@ -292,8 +291,9 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
             </svg>
           </span>
           <span style={{ flex: 1 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>Support is here</span>
-            <span style={{ display: "block", fontSize: 12, color: "#9C8E83", marginTop: 2 }}>Chat, resources & your care team</span>
+            <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 4 }}>Support level</span>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>{supportSummary.label}</span>
+            <span style={{ display: "block", fontSize: 12, color: "#9C8E83", marginTop: 2 }}>{supportSummary.message}</span>
           </span>
           <svg viewBox="0 0 24 24" width="15" fill="none" stroke="#C8BEB8" strokeWidth="2">
             <path d="M9 6l6 6-6 6"/>
@@ -311,3 +311,8 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
     </div>
   );
 }
+
+
+
+
+

@@ -88,3 +88,4 @@ export default function CheckInBtn({ label = "Complete today's check-in", onChec
     </button>
   );
 }
+

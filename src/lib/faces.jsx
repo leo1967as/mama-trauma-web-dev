@@ -176,3 +176,4 @@ export function FlowerSvg({ size = 14, color = "#C77E83" }) {
 export function getFaceByScore(score) {
   return MOOD_FACES.find(f => f.score === score) ?? MOOD_FACES[2];
 }
+

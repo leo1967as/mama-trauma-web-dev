@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import BottomNav from "../components/calmmama/BottomNav";
-import CheckInFlow from "../components/calmmama/CheckInFlow";
+import BottomNav from "../components/afterbloom/BottomNav";
+import CheckInFlow from "../components/afterbloom/CheckInFlow";
+import EpdsFlow from "../components/afterbloom/EpdsFlow";
+import SafetySection from "../components/afterbloom/SafetySection";
 import HomeTab from "./tabs/HomeTab";
 import MoodTab from "./tabs/MoodTab";
 import LegacyTab from "./tabs/LegacyTab";
@@ -25,6 +27,8 @@ const TAP_WINDOW_MS = 2000;
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("home");
   const [checkInOpen, setCheckInOpen] = useState(false);
+  const [epdsOpen, setEpdsOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [legacyUnlocked, setLegacyUnlocked] = useState(false);
   const [toast, setToast] = useState(null);
   const bufferRef = useRef("");
@@ -33,7 +37,7 @@ export default function Dashboard() {
   const TabContent = tabComponents[activeTab];
 
   const triggerUnlock = () => {
-    setLegacyUnlocked(prev => {
+    setLegacyUnlocked((prev) => {
       const next = !prev;
       setToast(next ? "Legacy unlocked" : "Legacy hidden");
       setTimeout(() => setToast(null), 2000);
@@ -42,7 +46,6 @@ export default function Dashboard() {
     });
   };
 
-  // desktop: keyboard "ADMIN"
   useEffect(() => {
     const handleKey = (e) => {
       bufferRef.current = (bufferRef.current + e.key).slice(-SECRET.length);
@@ -55,7 +58,6 @@ export default function Dashboard() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeTab]);
 
-  // mobile: 5 rapid taps on date label
   const handleSecretTap = () => {
     tapCountRef.current += 1;
     clearTimeout(tapTimerRef.current);
@@ -79,29 +81,54 @@ export default function Dashboard() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "home"
-              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onSecretTap={handleSecretTap} />
+              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => setEpdsOpen(true)} onSecretTap={handleSecretTap} />
               : activeTab === "mood"
-                ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} />
+                ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => setEpdsOpen(true)} />
                 : activeTab === "legacy"
                   ? <LegacyTab onNavigate={setActiveTab} />
-                  : <TabContent />
-            }
+                  : <TabContent />}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        legacyUnlocked={legacyUnlocked}
-      />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} legacyUnlocked={legacyUnlocked} />
 
-      {checkInOpen && (
-        <CheckInFlow onClose={() => setCheckInOpen(false)} />
-      )}
+      {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => setHelpOpen(true)} />}
+      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => setHelpOpen(true)} />}
 
-      {/* Admin unlock toast */}
       <AnimatePresence>
+        {helpOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[90] bg-black/35 px-4 pt-16"
+            onClick={() => setHelpOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 24, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 24, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="mx-auto max-w-md rounded-[28px] bg-background p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-3 flex items-center justify-between px-1">
+                <div className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
+                  I Need Help
+                </div>
+                <button
+                  onClick={() => setHelpOpen(false)}
+                  className="rounded-full border border-border/60 bg-white px-3 py-1 text-xs font-bold text-foreground"
+                >
+                  Close
+                </button>
+              </div>
+              <SafetySection />
+            </motion.div>
+          </motion.div>
+        )}
+
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -118,3 +145,9 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
+
+
+
+

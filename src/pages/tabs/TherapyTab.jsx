@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CalendarHeart, Clock, Shield, CheckCircle2 } from "lucide-react";
 import TherapistCard from "../../components/booking/TherapistCard";
 import BookingFlow from "../../components/booking/BookingFlow";
-import SafetySection from "../../components/calmmama/SafetySection";
+import SafetySection from "../../components/afterbloom/SafetySection";
 
 const therapists = [
   {
@@ -176,3 +176,4 @@ export default function TherapyTab() {
     </>
   );
 }
+

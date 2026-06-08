@@ -9,10 +9,10 @@ const S = "'Newsreader', serif";
 
 // ── shared ────────────────────────────────────────────────────────────────────
 
-function ProgressDots({ current }) {
+function ProgressDots({ current, total = 4 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
-      {[1, 2, 3].map(i => (
+      {Array.from({ length: total }, (_, i) => i + 1).map(i => (
         <motion.div
           key={i}
           animate={{ width: i === current ? 22 : 6, background: i === current ? "#C77E83" : i < current ? "#E8C4C4" : "#E6DBCF" }}
@@ -24,7 +24,7 @@ function ProgressDots({ current }) {
   );
 }
 
-function StepHeader({ onBack, onSkip, step, skipLabel = "Skip" }) {
+function StepHeader({ onBack, onSkip, step, total = 4, skipLabel = "Skip" }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px 8px" }}>
       <motion.button
@@ -39,7 +39,7 @@ function StepHeader({ onBack, onSkip, step, skipLabel = "Skip" }) {
         }}
       >←</motion.button>
 
-      <ProgressDots current={step} />
+      <ProgressDots current={step} total={total} />
 
       {onSkip ? (
         <span onClick={onSkip} style={{ fontSize: 13, fontWeight: 700, color: "#AF636A", cursor: "pointer", fontFamily: F, padding: "4px 2px" }}>
@@ -90,7 +90,7 @@ function WelcomeBtn({ onReady }) {
       </div>
       <div className="ci-btn__done">
         <svg ref={ckRef} className="ci-checkmark" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Ready, Mama
+        Ready to go
       </div>
     </button>
   );
@@ -123,7 +123,7 @@ function StepWelcome({ onNext, onSkipAll }) {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "0 30px", position: "relative", zIndex: 10 }}>
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C8706A", marginBottom: 20 }}>
-            CalmMama
+            Afterbloom
           </div>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }}>
@@ -133,7 +133,7 @@ function StepWelcome({ onNext, onSkipAll }) {
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95 }}>
           <div style={{ fontFamily: S, fontStyle: "italic", fontWeight: 500, fontSize: 38, color: "#C8706A", lineHeight: 1.1, letterSpacing: "-0.015em", marginBottom: 18 }}>
-            CalmMama.
+            Afterbloom.
           </div>
         </motion.div>
         <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}
@@ -174,17 +174,14 @@ function StepWelcome({ onNext, onSkipAll }) {
               alignItems: "center", justifyContent: "center", gap: 12,
             }}
           >
-            {/* CalmMama. */}
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               style={{ fontFamily: S, fontStyle: "italic", fontWeight: 500, fontSize: 28, color: "#C8706A", letterSpacing: "-0.3px" }}
             >
-              CalmMama.
+              Afterbloom.
             </motion.div>
-
-            {/* subtitle */}
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -193,8 +190,6 @@ function StepWelcome({ onNext, onSkipAll }) {
             >
               Preparing your space…
             </motion.div>
-
-            {/* pulsing dot */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: [0, 1, 1], scale: [1, 1.5, 1], background: ["#EAD8D2", "#C8706A", "#EAD8D2"] }}
@@ -258,7 +253,7 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
       <div style={{ flex: 1, padding: "24px 26px 0", display: "flex", flexDirection: "column", overflowY: "auto" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
-          Step 1 of 3
+          Step 1 of 4
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
           When did your
@@ -270,7 +265,6 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
         <DatePicker value={value} onChange={v => { onChange(v); setConfirming(false); }} />
 
-        {/* soft skip warning */}
         <AnimatePresence>
           {warnSkip && (
             <motion.div
@@ -303,13 +297,11 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
       <AnimatePresence>
         {confirming && (
           <>
-            {/* backdrop */}
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setConfirming(false)}
               style={{ position: "absolute", inset: 0, background: "rgba(62,52,44,.35)", zIndex: 10 }}
             />
-            {/* sheet */}
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -322,14 +314,10 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
                 boxShadow: "0 -8px 32px rgba(80,56,42,.12)",
               }}
             >
-              {/* handle */}
               <div style={{ width: 36, height: 4, borderRadius: 30, background: "#E6DBCF", margin: "0 auto 24px" }} />
-
               <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 14 }}>
                 Is this right?
               </div>
-
-              {/* date display */}
               <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 18, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
                 <div style={{ fontFamily: S, fontSize: 26, fontWeight: 500, color: "#3E342C", marginBottom: 6 }}>
                   {formatDate(value)}
@@ -341,7 +329,6 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
                   </span>
                 </div>
               </div>
-
               <motion.button
                 className="ci-btn"
                 onClick={countdown === 0 ? onNext : undefined}
@@ -398,7 +385,7 @@ function StepName({ value, onChange, onNext, onBack }) {
 
       <div style={{ flex: 1, padding: "28px 26px 0", display: "flex", flexDirection: "column" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
-          Step 2 of 3
+          Step 2 of 4
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
           What should we
@@ -421,7 +408,7 @@ function StepName({ value, onChange, onNext, onBack }) {
         />
 
         <div style={{ marginTop: 12, fontSize: 11.5, color: "#C8BEB8", lineHeight: 1.5 }}>
-          Leave blank to use "Mama" — you can change this later.
+          Leave blank to use "there" — you can change this later.
         </div>
       </div>
 
@@ -432,16 +419,150 @@ function StepName({ value, onChange, onNext, onBack }) {
   );
 }
 
-// ── step 3: reminder ──────────────────────────────────────────────────────────
+// ── step 3: child number ──────────────────────────────────────────────────────
+
+const CHILD_OPTIONS = [
+  {
+    val: "first",
+    title: "My first baby",
+    sub: "Everything is new — and that's okay.",
+    svg: (
+      <svg viewBox="0 0 36 36" fill="none" width="24" height="24">
+        <circle cx="18" cy="12" r="5.5" fill="#C77E83" opacity=".9"/>
+        <path d="M8 30c0-5.52 4.48-10 10-10s10 4.48 10 10" stroke="#C77E83" strokeWidth="2.2" strokeLinecap="round" opacity=".6"/>
+        <circle cx="26" cy="10" r="3" fill="#F4A8A8" opacity=".7"/>
+      </svg>
+    ),
+  },
+  {
+    val: "subsequent",
+    title: "I've been here before",
+    sub: "Each baby brings a new journey.",
+    svg: (
+      <svg viewBox="0 0 36 36" fill="none" width="24" height="24">
+        <circle cx="13" cy="13" r="5" fill="#C77E83" opacity=".9"/>
+        <circle cx="24" cy="11" r="3.5" fill="#C77E83" opacity=".5"/>
+        <path d="M4 30c0-4.97 4.03-9 9-9s9 4.03 9 9" stroke="#C77E83" strokeWidth="2.2" strokeLinecap="round" opacity=".6"/>
+        <path d="M22 28c0-3.31 2.69-6 6-6" stroke="#C77E83" strokeWidth="2" strokeLinecap="round" opacity=".4"/>
+      </svg>
+    ),
+  },
+];
+
+function StepChildNumber({ value, onChange, onNext, onBack }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
+      <StepHeader onBack={onBack} step={3} />
+
+      <div style={{ flex: 1, padding: "28px 26px 0", display: "flex", flexDirection: "column" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
+          Step 3 of 4
+        </div>
+        <div style={{ fontFamily: S, fontWeight: 500, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
+          Is this your
+          <em style={{ display: "block", fontStyle: "italic", color: "#AF636A" }}>first baby?</em>
+        </div>
+        <div style={{ fontSize: 13.5, color: "#9C8E83", marginBottom: 32, lineHeight: 1.6 }}>
+          This helps us tailor your experience just for you.
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {CHILD_OPTIONS.map(opt => {
+            const on = value === opt.val;
+            return (
+              <motion.button
+                key={opt.val}
+                onClick={() => onChange(opt.val)}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 18,
+                  padding: "20px 20px",
+                  background: on ? "#FBEDEC" : "#fff",
+                  border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`,
+                  borderRadius: 22, cursor: "pointer", textAlign: "left",
+                  fontFamily: F, width: "100%",
+                  boxShadow: on ? "0 4px 16px rgba(199,126,131,.14)" : "0 2px 8px rgba(80,56,42,.04)",
+                  transition: "border-color 0.15s, background 0.15s, box-shadow 0.15s",
+                }}
+              >
+                <motion.div
+                  animate={{ scale: on ? 1.08 : 1, background: on ? "#F6E2E1" : "#F4EEE8" }}
+                  transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                  style={{
+                    width: 48, height: 48, borderRadius: "50%",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  {opt.svg}
+                </motion.div>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15.5, fontWeight: 700, color: on ? "#AF636A" : "#3E342C", marginBottom: 4, transition: "color 0.15s" }}>
+                    {opt.title}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "#9C8E83", lineHeight: 1.45 }}>
+                    {opt.sub}
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {on && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                      style={{
+                        width: 24, height: 24, borderRadius: "50%",
+                        background: "#C77E83",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="13" fill="none" stroke="white" strokeWidth="2.8">
+                        <path d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ padding: "20px 26px 44px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <motion.button
+          className="ci-btn"
+          onClick={value ? onNext : undefined}
+          animate={{ opacity: value ? 1 : 0.45 }}
+          style={{ cursor: value ? "pointer" : "default", pointerEvents: value ? "auto" : "none" }}
+        >
+          Continue
+        </motion.button>
+        <button
+          onClick={onNext}
+          style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", fontFamily: F, padding: "2px 0" }}
+        >
+          Skip for now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── step 4: reminder ──────────────────────────────────────────────────────────
 
 function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <StepHeader onBack={onBack} onSkip={onSkip} step={3} skipLabel="Skip" />
+      <StepHeader onBack={onBack} onSkip={onSkip} step={4} skipLabel="Skip" />
 
       <div style={{ flex: 1, padding: "28px 26px 0", display: "flex", flexDirection: "column", overflowY: "auto" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
-          Step 3 of 3 · Optional
+          Step 4 of 4 · Optional
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
           A gentle nudge
@@ -467,7 +588,7 @@ function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
   );
 }
 
-// ── step 4: ready ─────────────────────────────────────────────────────────────
+// ── step 5: ready ─────────────────────────────────────────────────────────────
 
 function StepReady({ name, hasBirthDate, onDone }) {
   return (
@@ -487,7 +608,6 @@ function StepReady({ name, hasBirthDate, onDone }) {
       </div>
 
       <div style={{ flex: 1, background: "#FBF6F0", borderRadius: "28px 28px 0 0", marginTop: -16, padding: "28px 24px 40px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
-        {/* journey start card */}
         <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 20, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#C77E83", flexShrink: 0, marginTop: 4, boxShadow: "0 0 0 4px #F6E2E1" }} />
@@ -504,7 +624,6 @@ function StepReady({ name, hasBirthDate, onDone }) {
           </div>
         </div>
 
-        {/* affirmation */}
         <div style={{ background: "linear-gradient(150deg,#E7EFE8,#fff)", border: "1px solid #D8E6DB", borderRadius: 20, padding: "18px 20px" }}>
           <div style={{ fontFamily: S, fontStyle: "italic", fontSize: 16, color: "#577A62", lineHeight: 1.55, marginBottom: 8 }}>
             "Showing up for yourself — even on a hard day — matters more than you know."
@@ -535,6 +654,7 @@ export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
   const [birthDate, setBirthDate] = useState("");
   const [name, setName] = useState("");
+  const [childNumber, setChildNumber] = useState("");
   const [reminderTime, setReminderTime] = useState("08:00");
   const [dir, setDir] = useState(1);
 
@@ -543,7 +663,8 @@ export default function Onboarding({ onComplete }) {
   const finish = () => {
     saveOnboarding({
       birthDate: birthDate || null,
-      displayName: name.trim() || "Mama",
+      displayName: name.trim() || "there",
+      childNumber: childNumber || null,
       reminderTime: reminderTime || null,
     });
     setJustOnboarded();
@@ -551,7 +672,7 @@ export default function Onboarding({ onComplete }) {
   };
 
   const skipAll = () => {
-    saveOnboarding({ birthDate: null, displayName: "Mama", reminderTime: null });
+    saveOnboarding({ birthDate: null, displayName: "there", childNumber: null, reminderTime: null });
     setJustOnboarded();
     onComplete();
   };
@@ -577,10 +698,13 @@ export default function Onboarding({ onComplete }) {
           {step === 0 && <StepWelcome onNext={() => go(1)} onSkipAll={skipAll} />}
           {step === 1 && <StepBirthDate value={birthDate} onChange={setBirthDate} onNext={() => go(2)} onBack={() => go(0)} onSkip={() => go(2)} />}
           {step === 2 && <StepName value={name} onChange={setName} onNext={() => go(3)} onBack={() => go(1)} />}
-          {step === 3 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(4)} onBack={() => go(2)} onSkip={() => { setReminderTime(""); go(4); }} />}
-          {step === 4 && <StepReady name={name.trim() || "Mama"} hasBirthDate={!!birthDate} onDone={finish} />}
+          {step === 3 && <StepChildNumber value={childNumber} onChange={setChildNumber} onNext={() => go(4)} onBack={() => go(2)} />}
+          {step === 4 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(5)} onBack={() => go(3)} onSkip={() => { setReminderTime(""); go(5); }} />}
+          {step === 5 && <StepReady name={name.trim() || "there"} hasBirthDate={!!birthDate} onDone={finish} />}
         </motion.div>
       </AnimatePresence>
     </div>
   );
 }
+
+

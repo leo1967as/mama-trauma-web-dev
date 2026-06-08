@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Archive } from "lucide-react";
-import JournalSection from "../../components/calmmama/JournalSection";
-import MilestonesSection from "../../components/calmmama/MilestonesSection";
-import SelfCareTools from "../../components/calmmama/SelfCareTools";
-import DailyReminder from "../../components/calmmama/DailyReminder";
-import MoodInsights from "../../components/calmmama/MoodInsights";
+import JournalSection from "../../components/afterbloom/JournalSection";
+import MilestonesSection from "../../components/afterbloom/MilestonesSection";
+import SelfCareTools from "../../components/afterbloom/SelfCareTools";
+import DailyReminder from "../../components/afterbloom/DailyReminder";
+import MoodInsights from "../../components/afterbloom/MoodInsights";
 import { getMoodHistory, subscribeToMoodHistory } from "../../lib/mood-data";
 
 export default function LegacyTab({ onNavigate }) {
@@ -50,3 +50,4 @@ export default function LegacyTab({ onNavigate }) {
     </motion.div>
   );
 }
+

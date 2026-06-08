@@ -4,7 +4,7 @@ import { UserPlus, ChevronRight, Heart } from "lucide-react";
 const supporters = [
   { name: "David", role: "Partner", emoji: "👨", task: "Night feeding shift" },
   { name: "Mom", role: "Family", emoji: "👩", task: "Grocery run" },
-  { name: "Sarah", role: "Friend", emoji: "👩🦰", task: "Just check in" },
+  { name: "Sarah", role: "Trusted person", emoji: "👩🦰", task: "Just check in" },
 ];
 
 export default function SupportCircle() {
@@ -58,3 +58,4 @@ export default function SupportCircle() {
     </motion.div>
   );
 }
+

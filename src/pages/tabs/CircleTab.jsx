@@ -25,7 +25,7 @@ const supporters = [
   },
   {
     name: "Sarah",
-    role: "Friend",
+    role: "Trusted person",
     emoji: "👩🦰",
     bg: "bg-amber-100",
     task: "Just check in with me",
@@ -180,3 +180,5 @@ export default function CircleTab() {
     </motion.div>
   );
 }
+
+
