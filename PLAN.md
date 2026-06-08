@@ -271,14 +271,14 @@ Done when:
 
 เป้าหมาย: check-in ต้องสั้น, ทีละหน้า, จบได้ใน < 60 วินาที
 
-- [ ] 1) `mood_score` 1-5
-- [ ] 2) `sleep_score` 1-5 พร้อมคำถามที่ชัดเจนว่าแม้นอนไม่ต่อเนื่องก็ให้ตอบตามจริง
-- [ ] 3) `energy_score` 1-5
-- [ ] 4) `worry_score` 1-5 แบบ reversed แต่เก็บ raw value
-- [ ] ทำ one question per screen
-- [ ] ออกแบบ tap target ให้กดง่ายบนมือถือ
-- [ ] คำนวณ `composite` เมื่อครบ 4 ข้อเท่านั้น
-- [ ] ถ้าออกก่อนครบ 4 ข้อ ให้เก็บ draft และ resume ต่อได้ภายในวันเดียวกัน
+- [x] 1) `mood_score` 1-5 (labels ตรง spec: Very low…Very good)
+- [x] 2) `sleep_score` 1-5 + subtitle "even if you woke up often"
+- [x] 3) `energy_score` 1-5 (Drained…Energized)
+- [x] 4) `worry_score` 1-5 reversed เก็บ raw (Not at all…Overwhelmed); ลบ subtitle ที่เผย internal
+- [x] ทำ one question per screen
+- [x] ออกแบบ tap target ให้กดง่ายบนมือถือ
+- [x] คำนวณ `composite` เมื่อครบ 4 ข้อเท่านั้น
+- [x] ถ้าออกก่อนครบ 4 ข้อ ให้เก็บ draft และ resume ต่อได้ภายในวันเดียวกัน (key `afterbloom_checkin_draft`)
 
 งานที่ต้องทำ:
 - [ ] แยก state ของคำตอบแต่ละข้อให้ชัด
@@ -294,9 +294,9 @@ Done when:
 - `src/components/afterbloom/CTAButtons.jsx`
 
 Done when:
-- [ ] flow 4 ข้อทำงานครบ
-- [ ] draft/resume ใช้งานได้
-- [ ] composite คำนวณถูกจาก raw scores
+- [x] flow 4 ข้อทำงานครบ
+- [x] draft/resume ใช้งานได้ (verified headless: ตอบ Q1→reload→เปิดใหม่ resume ที่ Q2)
+- [x] composite คำนวณถูกจาก raw scores
 
 ---
 
@@ -517,6 +517,7 @@ Done when:
 - `2026-06-09 | Check-in UX pass: persistent header/footer (no per-answer replay), fade-up question body, options rise as one group, hid per-option Score. Phase 2 done: "Today's Support Level" heading + removed duplicate level label.`
 - `2026-06-09 | Phase 3 done: onboarding stored keys aligned to spec (mother_name/baby_birth_date/is_first_time_mother/preferred_checkin_time). Verified writer+reader via headless Chrome (greeting "Good morning, Mali.").`
 - `2026-06-09 | Phase 4 done: 7-day mood trend on Home (recharts + getMoodChartData, empty state) + mock reminder copy from preferred_checkin_time. Verified headless. (Tiny goal→P8, Help button→P7.)`
+- `2026-06-09 | Phase 5 done: check-in 4-question labels/wording aligned to spec, removed worry-internal subtitle, added same-day draft resume (afterbloom_checkin_draft). Verified headless (labels + resume at Q2).`
 
 ---
 

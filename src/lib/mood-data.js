@@ -27,8 +27,32 @@ const SUPPORT_LEVELS = {
   },
 };
 
+const CHECKIN_DRAFT_KEY = "afterbloom_checkin_draft";
+
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+}
+
+// --- Daily check-in draft (resume an in-progress check-in within the same day) ---
+export function saveCheckinDraft(draft) {
+  if (!canUseStorage()) return;
+  window.localStorage.setItem(CHECKIN_DRAFT_KEY, JSON.stringify({ ...draft, dateKey: toDateKey() }));
+}
+
+export function getCheckinDraft() {
+  if (!canUseStorage()) return null;
+  try {
+    const draft = JSON.parse(window.localStorage.getItem(CHECKIN_DRAFT_KEY) || "null");
+    if (!draft || draft.dateKey !== toDateKey()) return null; // only resume today's draft
+    return draft;
+  } catch {
+    return null;
+  }
+}
+
+export function clearCheckinDraft() {
+  if (!canUseStorage()) return;
+  window.localStorage.removeItem(CHECKIN_DRAFT_KEY);
 }
 
 function toDateKey(date = new Date()) {

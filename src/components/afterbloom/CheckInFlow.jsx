@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { getMoodEntryByDateKey, getMoodSupportSummary, getSupportLevelMeta, upsertMoodEntry } from "../../lib/mood-data";
+import { getMoodEntryByDateKey, getMoodSupportSummary, getSupportLevelMeta, upsertMoodEntry, saveCheckinDraft, getCheckinDraft, clearCheckinDraft } from "../../lib/mood-data";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -10,37 +10,37 @@ const CORE_QUESTIONS = [
     key: "moodScore",
     step: 1,
     total: 4,
-    title: "How are you feeling right now?",
-    subtitle: "Choose the option that fits today best.",
-    labels: ["Overwhelmed", "Heavy", "Okay", "Steady", "Good"],
-    help: "Your mood is the first signal we use to understand today.",
+    title: "How are you feeling today?",
+    subtitle: "Choose the one that fits today best.",
+    labels: ["Very low", "Low", "Neutral", "Good", "Very good"],
+    help: "There's no wrong answer — just how today feels.",
   },
   {
     key: "sleepScore",
     step: 2,
     total: 4,
-    title: "How did sleep feel last night?",
-    subtitle: "Even broken sleep counts as a valid answer.",
-    labels: ["Barely slept", "Broken", "Some rest", "Mostly rested", "Rested well"],
-    help: "We are not asking for perfect sleep, only how it really felt.",
+    title: "How did you sleep last night?",
+    subtitle: "Even if you woke up often — answer for how it really felt.",
+    labels: ["Almost none", "Very little", "Some", "Enough", "Slept well"],
+    help: "Broken sleep is normal right now. No need for perfect sleep.",
   },
   {
     key: "energyScore",
     step: 3,
     total: 4,
-    title: "How is your energy today?",
-    subtitle: "Use your own pace, not what others expect.",
-    labels: ["Empty", "Low", "Okay", "Decent", "Strong"],
-    help: "Energy helps us see whether the day needs extra support.",
+    title: "How much energy do you have today?",
+    subtitle: "At your own pace, not anyone else's.",
+    labels: ["Drained", "Tired", "Managing", "Okay", "Energized"],
+    help: "",
   },
   {
     key: "worryScore",
     step: 4,
     total: 4,
-    title: "How worried are you today?",
-    subtitle: "This is stored as your raw worry score and inverted later.",
-    labels: ["Not worried", "A little", "Some", "A lot", "Very high"],
-    help: "A higher worry score means more concern today.",
+    title: "How much is on your mind today?",
+    subtitle: "Whatever is there is okay to name.",
+    labels: ["Not at all", "A little", "Somewhat", "A lot", "Overwhelmed"],
+    help: "",
   },
 ];
 
@@ -129,12 +129,14 @@ function QuestionBody({ question, value, onSelect }) {
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 28, lineHeight: 1.15, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
           {question.title}
         </div>
-        <div style={{ fontSize: 13.5, color: "#6C5F56", marginBottom: 10, lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13.5, color: "#6C5F56", marginBottom: question.help ? 10 : 22, lineHeight: 1.6 }}>
           {question.subtitle}
         </div>
-        <div style={{ fontSize: 12, color: "#9C8E83", marginBottom: 22, lineHeight: 1.5 }}>
-          {question.help}
-        </div>
+        {question.help && (
+          <div style={{ fontSize: 12, color: "#9C8E83", marginBottom: 22, lineHeight: 1.5 }}>
+            {question.help}
+          </div>
+        )}
       </motion.div>
 
       <motion.div
@@ -368,11 +370,17 @@ function ResultScreen({ entry, onClose, onNeedHelp }) {
 }
 
 export default function CheckInFlow({ onClose, onNeedHelp }) {
-  const [step, setStep] = useState(1);
-  const [answers, setAnswers] = useState({ moodScore: null, sleepScore: null, energyScore: null, worryScore: null });
+  const draft = useMemo(() => getCheckinDraft(), []);
+  const [step, setStep] = useState(() => (draft?.step && draft.step >= 1 && draft.step <= 4 ? draft.step : 1));
+  const [answers, setAnswers] = useState(() => draft?.answers ?? { moodScore: null, sleepScore: null, energyScore: null, worryScore: null });
   const [followUpTags, setFollowUpTags] = useState([]);
   const [followUpNote, setFollowUpNote] = useState("");
   const [resultEntry, setResultEntry] = useState(null);
+
+  // Persist an in-progress draft (core steps only) so the day's check-in can resume after closing.
+  useEffect(() => {
+    if (step >= 1 && step <= 4) saveCheckinDraft({ step, answers });
+  }, [step, answers]);
 
   const currentQuestion = useMemo(() => CORE_QUESTIONS.find((item) => item.step === step), [step]);
   const composite = getComposite(answers);
@@ -411,6 +419,7 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
 
     const nextHistory = upsertMoodEntry(patch);
     const saved = nextHistory.find((entry) => entry.dateKey === patch.dateKey) || getMoodEntryByDateKey(patch.dateKey);
+    clearCheckinDraft();
     setResultEntry(saved || null);
     setStep(6);
   };
