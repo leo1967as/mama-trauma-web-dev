@@ -361,7 +361,7 @@ export default function MoodTab({ onCheckIn }) {
           boxShadow: "0 2px 12px rgba(80,56,42,.05)", fontFamily: F,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>{supportSummary.label}</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>Today's Support Level</span>
             <span style={{
               fontSize: 9.5, fontWeight: 800, letterSpacing: "0.09em", textTransform: "uppercase",
               color: ss.text, background: ss.tag, padding: "4px 10px", borderRadius: 30,

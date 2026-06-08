@@ -291,7 +291,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
             </svg>
           </span>
           <span style={{ flex: 1 }}>
-            <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 4 }}>Support level</span>
+            <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 4 }}>Today's Support Level</span>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>{supportSummary.label}</span>
             <span style={{ display: "block", fontSize: 12, color: "#9C8E83", marginTop: 2 }}>{supportSummary.message}</span>
           </span>

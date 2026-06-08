@@ -72,7 +72,7 @@ export default function SupportIndicator({ entries = [] }) {
         <div style={{ flex: 1 }}>
           {/* .t */}
           <div style={{ fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", gap: 7, color: "#3E342C" }}>
-            {summary.label}
+            Today's Support Level
             {/* .rtag */}
             <span
               style={{

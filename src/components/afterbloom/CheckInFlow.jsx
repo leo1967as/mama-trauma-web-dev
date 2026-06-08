@@ -108,14 +108,24 @@ function Header({ step, total, onBack, onHelp, showBack = true, title = "Daily C
   );
 }
 
-function QuestionScreen({ question, value, onSelect, onBack, onHelp, onNext, onSkip, allowSkip = false }) {
+/* Body only — title/subtitle/help fade up, then options rise together as one group.
+   Keyed by step in the parent so it replays per question, never on each answer tap. */
+function QuestionBody({ question, value, onSelect }) {
   const selectedLabel = value ? question.labels[value - 1] : null;
+  const ease = [0.22, 1, 0.36, 1];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <Header step={question.step} total={question.total} onBack={onBack} onHelp={onHelp} />
-
-      <div style={{ flex: 1, padding: "22px 24px 0", overflowY: "auto" }}>
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.22, ease }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.42, ease }}
+      >
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 28, lineHeight: 1.15, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 10 }}>
           {question.title}
         </div>
@@ -125,73 +135,58 @@ function QuestionScreen({ question, value, onSelect, onBack, onHelp, onNext, onS
         <div style={{ fontSize: 12, color: "#9C8E83", marginBottom: 22, lineHeight: 1.5 }}>
           {question.help}
         </div>
+      </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {question.labels.map((label, idx) => {
-            const optionValue = idx + 1;
-            const on = value === optionValue;
-            return (
-              <motion.button
-                key={label}
-                onClick={() => onSelect(optionValue)}
-                whileTap={{ scale: 0.98 }}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.42, delay: 0.16, ease }}
+        style={{ display: "flex", flexDirection: "column", gap: 10 }}
+      >
+        {question.labels.map((label, idx) => {
+          const optionValue = idx + 1;
+          const on = value === optionValue;
+          return (
+            <motion.button
+              key={label}
+              onClick={() => onSelect(optionValue)}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 420, damping: 22 }}
+              style={{
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "16px 18px",
+                background: on ? "#FBEDEC" : "#fff",
+                border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`,
+                borderRadius: 18, cursor: "pointer", textAlign: "left",
+                fontFamily: F, width: "100%",
+                boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)",
+              }}
+            >
+              <motion.div
+                animate={{ width: on ? 22 : 20, height: on ? 22 : 20, background: on ? "#C77E83" : "#fff", border: on ? "none" : "1.5px solid #D6CEC8" }}
                 transition={{ type: "spring", stiffness: 420, damping: 22 }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 14,
-                  padding: "16px 18px",
-                  background: on ? "#FBEDEC" : "#fff",
-                  border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`,
-                  borderRadius: 18, cursor: "pointer", textAlign: "left",
-                  fontFamily: F, width: "100%",
-                  boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)",
-                }}
+                style={{ borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
-                <motion.div
-                  animate={{ width: on ? 22 : 20, height: on ? 22 : 20, background: on ? "#C77E83" : "#fff", border: on ? "none" : "1.5px solid #D6CEC8" }}
-                  transition={{ type: "spring", stiffness: 420, damping: 22 }}
-                  style={{ borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-                >
-                  {on && (
-                    <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8">
-                      <path d="M5 13l4 4L19 7"/>
-                    </svg>
-                  )}
-                </motion.div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? "#AF636A" : "#3E342C" }}>{label}</div>
-                  <div style={{ fontSize: 11.5, color: "#9C8E83", marginTop: 2 }}>Score {optionValue} / 5</div>
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-        {selectedLabel && (
-          <div style={{ marginTop: 16, fontSize: 12.5, color: "#6C5F56" }}>
-            Selected: <strong>{selectedLabel}</strong>
-          </div>
-        )}
-      </div>
+                {on && (
+                  <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8">
+                    <path d="M5 13l4 4L19 7"/>
+                  </svg>
+                )}
+              </motion.div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? "#AF636A" : "#3E342C" }}>{label}</div>
+              </div>
+            </motion.button>
+          );
+        })}
+      </motion.div>
 
-      <div style={{ padding: "16px 24px 40px" }}>
-        <motion.button
-          className="ci-btn"
-          onClick={value ? onNext : undefined}
-          animate={{ opacity: value ? 1 : 0.45 }}
-          transition={{ duration: 0.15 }}
-          style={{ cursor: value ? "pointer" : "default", pointerEvents: value ? "auto" : "none" }}
-        >
-          {question.step < question.total ? "Continue" : "See results"}
-        </motion.button>
-        {allowSkip && (
-          <button
-            onClick={onSkip}
-            style={{ display: "block", margin: "12px auto 0", background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", fontFamily: F, padding: "2px 0" }}
-          >
-            Skip for now
-          </button>
-        )}
-      </div>
-    </div>
+      {selectedLabel && (
+        <div style={{ marginTop: 16, fontSize: 12.5, color: "#6C5F56" }}>
+          Selected: <strong>{selectedLabel}</strong>
+        </div>
+      )}
+    </motion.div>
   );
 }
 
@@ -440,15 +435,34 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "#FBF6F0", display: "flex", flexDirection: "column", maxWidth: 448, margin: "0 auto", fontFamily: F }}>
       <AnimatePresence mode="wait">
         {step >= 1 && step <= 4 && currentQuestion && (
-          <motion.div key={step} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1 }}>
-            <QuestionScreen
-              question={currentQuestion}
-              value={answers[currentQuestion.key]}
-              onSelect={(value) => setAnswer(currentQuestion.key, value)}
-              onBack={handleBack}
-              onHelp={onNeedHelp}
-              onNext={handleNext}
-            />
+          <motion.div key="core" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0" }}>
+            {/* Persistent chrome — header (back / Daily Check-in / Help) stays mounted across questions */}
+            <Header step={currentQuestion.step} total={currentQuestion.total} onBack={handleBack} onHelp={onNeedHelp} />
+
+            {/* Only the question body animates per step */}
+            <div style={{ flex: 1, padding: "22px 24px 0", overflowY: "auto" }}>
+              <AnimatePresence mode="wait">
+                <QuestionBody
+                  key={step}
+                  question={currentQuestion}
+                  value={answers[currentQuestion.key]}
+                  onSelect={(value) => setAnswer(currentQuestion.key, value)}
+                />
+              </AnimatePresence>
+            </div>
+
+            {/* Persistent footer — Continue stays mounted, only its enabled state changes */}
+            <div style={{ padding: "16px 24px 40px" }}>
+              <motion.button
+                className="ci-btn"
+                onClick={answers[currentQuestion.key] ? handleNext : undefined}
+                animate={{ opacity: answers[currentQuestion.key] ? 1 : 0.45 }}
+                transition={{ duration: 0.15 }}
+                style={{ cursor: answers[currentQuestion.key] ? "pointer" : "default", pointerEvents: answers[currentQuestion.key] ? "auto" : "none" }}
+              >
+                {currentQuestion.step < currentQuestion.total ? "Continue" : "See results"}
+              </motion.button>
+            </div>
           </motion.div>
         )}
 

@@ -168,7 +168,7 @@ Done when:
 
 เป้าหมาย: เปลี่ยน `Support Level` เป็น `Today's Support Level` และทำ 4 ระดับให้ทำงานจริง
 
-- [ ] เปลี่ยนชื่อแสดงผลทุกที่จาก `Support Level` เป็น `Today's Support Level`
+- [x] เปลี่ยนชื่อแสดงผลทุกที่เป็น `Today's Support Level` (HomeTab, MoodTab, SupportIndicator) — ตัดสินใจใช้คำตาม PLAN §2 ทับ spec ที่เขียน "Support Level"; ลบ label ที่โชว์ชื่อระดับซ้ำ 2 ที่ใน MoodTab
 - [ ] ย้าย logic การจัดระดับให้อ่านจาก score เดิม และคำนวณระดับใหม่ตามสเปค
 - [ ] ทำ 4 ระดับ:
   - [ ] `Steady`
@@ -511,6 +511,7 @@ Done when:
 
 - `2026-06-08 | Plan aligned to real app structure; next step is phase-by-phase execution with review gate after each phase.`
 - `2026-06-08 | Phase 0 audit complete. Bulk rebrand verified spec-compliant; only 1 over-replacement fixed (AuthContext name). Deviations logged as backlog below.`
+- `2026-06-09 | Check-in UX pass: persistent header/footer (no per-answer replay), fade-up question body, options rise as one group, hid per-option Score. Phase 2 done: "Today's Support Level" heading + removed duplicate level label.`
 
 ---
 
@@ -537,7 +538,7 @@ Done when:
 - Home greeting อ่าน `displayName` จาก onboarding, fallback `"there"` — `user-data.js:15-16` ✅ (ไม่หลุดเป็นชื่อแบรนด์)
 
 ### Backlog — deviation จาก spec (ไม่แก้ใน Phase 0, ส่งต่อ phase ระบุ)
-- **[Phase 2]** Support Level label: `SupportIndicator.jsx` แสดง `summary.label` (= ชื่อระดับ "Steady"…) ซ้ำกับ `cfg.tagLabel` และ **ไม่มี heading** "Support Level"/"Today's Support Level" เลย → ต้องเพิ่ม heading + ลบ label ซ้ำ (หมายเหตุ: spec Home table เรียก "Support Level", PLAN §2 เขียน "Today's Support Level" — ต้อง reconcile คำให้ตรงก่อนแก้)
+- **[Phase 2 — DONE 2026-06-09]** Support Level label: เพิ่ม heading "Today's Support Level" + ลบ label ชื่อระดับที่ซ้ำ ทำใน HomeTab:294, MoodTab:364, SupportIndicator (dead comp). หมายเหตุ: `SupportIndicator.jsx` ยังเป็น dead code (ไม่ถูก render) → ลบทิ้งใน Phase 11 cleanup
 - **[Phase 3]** Onboarding field names เป็น internal (`displayName`, `birthDate`, `childNumber`, `reminderTime`) ต่างจาก spec (`mother_name`, `baby_birth_date`, `is_first_time_mother`, `preferred_checkin_time`) — internally consistent อยู่ ไม่ใช่ bug แต่ควร align ตอนทำ Phase 3
 - **[Phase 5]** worry field internal เป็น `worryScore`/`worryScoreRaw` ต่างจาก spec `worry_score` — internal เท่านั้น
 - **[Phase 9/EPDS]** ยังไม่ได้ verify EPDS data fields (`epds_answers[]`, `screening_trigger`, ฯลฯ) ครบตาม spec ในรอบนี้
