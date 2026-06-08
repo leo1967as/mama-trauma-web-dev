@@ -3,10 +3,10 @@
 ## Confidence: high
 
 ## Priority:
-Phase 0 audit + Phase 2 (Support Level label) complete, plus a check-in UX pass. Next coding phase is Phase 3 (onboarding field-name alignment to spec). Browser smoke check of the check-in animation + greeting still pending.
+Phases 0, 2, 3 complete + a check-in UX pass, all verified in headless Chrome and committed. Onboarding stored keys now match spec field names. Next coding phase is Phase 4 (Home screen — wire stage/reminder from onboarding data) or Phase 5 (daily check-in core), per PLAN.
 
 ## Next Action:
-Browser smoke-check: (1) Home greeting shows the onboarding name or "there" (never "Afterbloom"), (2) daily check-in — header/footer stay put while only the question body fades up per step, options rise together, no per-option Score, (3) "Today's Support Level" heading on Home + Mood. Then begin Phase 3.
+Begin Phase 4: use `getPreferredCheckinTime()` / `getIsFirstTimeMother()` where relevant on Home, and confirm every Home card reads from a single onboarding/history source (no hardcoded stage).
 
 ## Risks:
 - Browser-level QA is still recommended for the new global help sheet and CTA behavior.

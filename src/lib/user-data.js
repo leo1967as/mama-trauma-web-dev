@@ -13,11 +13,19 @@ export function isOnboarded() {
 }
 
 export function getDisplayName() {
-  return getOnboardingData()?.displayName || "there";
+  return getOnboardingData()?.mother_name || "there";
+}
+
+export function getIsFirstTimeMother() {
+  return getOnboardingData()?.is_first_time_mother ?? null;
+}
+
+export function getPreferredCheckinTime() {
+  return getOnboardingData()?.preferred_checkin_time || null;
 }
 
 export function getDaysSinceBirth() {
-  const bd = getOnboardingData()?.birthDate;
+  const bd = getOnboardingData()?.baby_birth_date;
   if (!bd) return null;
   const diff = Math.floor((Date.now() - new Date(bd)) / 86400000);
   return Math.max(0, diff);

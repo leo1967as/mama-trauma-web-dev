@@ -200,11 +200,11 @@ Done when:
 
 เป้าหมาย: เก็บ input ขั้นต่ำที่ใช้ขับ UX ทั้งแอป
 
-ต้องมีจริง:
-- [ ] `baby_birth_date` - สำคัญสุด ใช้คำนวณ stage
-- [ ] `mother_name` - ใช้ greeting
-- [ ] `preferred_checkin_time` - ใช้ reminder / CTA
-- [ ] `is_first_time_mother` - ถ้าไม่ด่วนให้เป็น optional แต่ต้องรองรับใน flow
+ต้องมีจริง: (field-name alignment เสร็จ 2026-06-09 — stored keys ตรง spec)
+- [x] `baby_birth_date` - สำคัญสุด ใช้คำนวณ stage (getDaysSinceBirth อ่านแล้ว)
+- [x] `mother_name` - ใช้ greeting (getDisplayName อ่านแล้ว)
+- [x] `preferred_checkin_time` - เก็บแล้ว + accessor `getPreferredCheckinTime()` (ยังไม่ wire reminder — Phase 4)
+- [x] `is_first_time_mother` - map "first"/"subsequent" -> true/false/null + accessor `getIsFirstTimeMother()`
 
 ขั้นรอง / mock ได้:
 - [ ] `hospital_name`
@@ -225,9 +225,11 @@ Done when:
 - `src/App.jsx`
 
 Done when:
-- [ ] onboarding เก็บข้อมูลขั้นต่ำได้ครบ
-- [ ] ข้อมูลถูกใช้ต่อใน home และ daily check-in
-- [ ] ไม่มี copy ที่ทำให้ผู้ใช้รู้สึกถูกตัดสิน
+- [x] onboarding เก็บข้อมูลขั้นต่ำได้ครบ (verified: save keys = baby_birth_date/mother_name/is_first_time_mother/preferred_checkin_time)
+- [x] ข้อมูลถูกใช้ต่อใน home (greeting "Good morning, Mali." + stage badge จาก baby_birth_date — verified headless)
+- [x] ไม่มี copy ที่ทำให้ผู้ใช้รู้สึกถูกตัดสิน (คง copy เดิมที่ไม่ตัดสิน)
+
+> หมายเหตุ: รอบนี้ทำแค่ field-name alignment (rename stored keys). `hospital_name` / `sharing_preference` (ขั้นรอง) ยังไม่เพิ่ม; reminder wiring จาก `preferred_checkin_time` รอ Phase 4. ไม่ได้แตะ local state var ใน Onboarding (เปลี่ยนเฉพาะ key ตอน save).
 
 ---
 
@@ -512,6 +514,7 @@ Done when:
 - `2026-06-08 | Plan aligned to real app structure; next step is phase-by-phase execution with review gate after each phase.`
 - `2026-06-08 | Phase 0 audit complete. Bulk rebrand verified spec-compliant; only 1 over-replacement fixed (AuthContext name). Deviations logged as backlog below.`
 - `2026-06-09 | Check-in UX pass: persistent header/footer (no per-answer replay), fade-up question body, options rise as one group, hid per-option Score. Phase 2 done: "Today's Support Level" heading + removed duplicate level label.`
+- `2026-06-09 | Phase 3 done: onboarding stored keys aligned to spec (mother_name/baby_birth_date/is_first_time_mother/preferred_checkin_time). Verified writer+reader via headless Chrome (greeting "Good morning, Mali.").`
 
 ---
 
@@ -539,7 +542,7 @@ Done when:
 
 ### Backlog — deviation จาก spec (ไม่แก้ใน Phase 0, ส่งต่อ phase ระบุ)
 - **[Phase 2 — DONE 2026-06-09]** Support Level label: เพิ่ม heading "Today's Support Level" + ลบ label ชื่อระดับที่ซ้ำ ทำใน HomeTab:294, MoodTab:364, SupportIndicator (dead comp). หมายเหตุ: `SupportIndicator.jsx` ยังเป็น dead code (ไม่ถูก render) → ลบทิ้งใน Phase 11 cleanup
-- **[Phase 3]** Onboarding field names เป็น internal (`displayName`, `birthDate`, `childNumber`, `reminderTime`) ต่างจาก spec (`mother_name`, `baby_birth_date`, `is_first_time_mother`, `preferred_checkin_time`) — internally consistent อยู่ ไม่ใช่ bug แต่ควร align ตอนทำ Phase 3
+- **[Phase 3 — DONE 2026-06-09]** Onboarding stored keys aligned to spec (`mother_name`, `baby_birth_date`, `is_first_time_mother`, `preferred_checkin_time`). อัปเดต readers: user-data.js (getDisplayName, getDaysSinceBirth) + accessors ใหม่ 2 ตัว, HomeTab settings. Verified writer+reader ใน headless Chrome
 - **[Phase 5]** worry field internal เป็น `worryScore`/`worryScoreRaw` ต่างจาก spec `worry_score` — internal เท่านั้น
 - **[Phase 9/EPDS]** ยังไม่ได้ verify EPDS data fields (`epds_answers[]`, `screening_trigger`, ฯลฯ) ครบตาม spec ในรอบนี้
 

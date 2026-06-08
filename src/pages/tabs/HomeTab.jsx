@@ -29,8 +29,8 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
   const [size, setSize]     = useState(60);
   // settings panel
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsName, setSettingsName] = useState(() => getOnboardingData().displayName || "");
-  const [settingsBirthDate, setSettingsBirthDate] = useState(() => getOnboardingData().birthDate || "");
+  const [settingsName, setSettingsName] = useState(() => getOnboardingData().mother_name || "");
+  const [settingsBirthDate, setSettingsBirthDate] = useState(() => getOnboardingData().baby_birth_date || "");
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [settingsShowDate, setSettingsShowDate] = useState(false);
 
@@ -148,7 +148,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
                   whileTap={{ scale: 0.96 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                   onClick={() => {
-                    saveOnboarding({ displayName: settingsName || "", birthDate: settingsBirthDate || null });
+                    saveOnboarding({ mother_name: settingsName || "", baby_birth_date: settingsBirthDate || null });
                     setSettingsSaved(true);
                     setSettingsShowDate(false);
                     setTimeout(() => { setSettingsSaved(false); setShowSettings(false); }, 1200);

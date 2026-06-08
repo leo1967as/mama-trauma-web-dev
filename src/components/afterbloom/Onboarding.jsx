@@ -660,19 +660,22 @@ export default function Onboarding({ onComplete }) {
 
   const go = (n) => { setDir(n > step ? 1 : -1); setStep(n); };
 
+  // Map onboarding answers to the spec developer fields (Afterbloom_DailyCheckin_Spec §1).
+  const toFirstTimeMother = (v) => (v === "first" ? true : v === "subsequent" ? false : null);
+
   const finish = () => {
     saveOnboarding({
-      birthDate: birthDate || null,
-      displayName: name.trim() || "there",
-      childNumber: childNumber || null,
-      reminderTime: reminderTime || null,
+      baby_birth_date: birthDate || null,
+      mother_name: name.trim() || "",
+      is_first_time_mother: toFirstTimeMother(childNumber),
+      preferred_checkin_time: reminderTime || null,
     });
     setJustOnboarded();
     onComplete();
   };
 
   const skipAll = () => {
-    saveOnboarding({ birthDate: null, displayName: "there", childNumber: null, reminderTime: null });
+    saveOnboarding({ baby_birth_date: null, mother_name: "", is_first_time_mother: null, preferred_checkin_time: null });
     setJustOnboarded();
     onComplete();
   };
