@@ -4,6 +4,7 @@ import BottomNav from "../components/afterbloom/BottomNav";
 import CheckInFlow from "../components/afterbloom/CheckInFlow";
 import EpdsFlow from "../components/afterbloom/EpdsFlow";
 import SafetySection from "../components/afterbloom/SafetySection";
+import { logSafetyAccess } from "../lib/mood-data";
 import HomeTab from "./tabs/HomeTab";
 import MoodTab from "./tabs/MoodTab";
 import LegacyTab from "./tabs/LegacyTab";
@@ -35,6 +36,12 @@ export default function Dashboard() {
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef(null);
   const TabContent = tabComponents[activeTab];
+
+  // Spec: I Need Help is reachable from every state and each access is logged.
+  const openHelp = (source) => {
+    logSafetyAccess({ source: source || activeTab });
+    setHelpOpen(true);
+  };
 
   const triggerUnlock = () => {
     setLegacyUnlocked((prev) => {
@@ -93,8 +100,22 @@ export default function Dashboard() {
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} legacyUnlocked={legacyUnlocked} />
 
-      {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => setHelpOpen(true)} />}
-      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => setHelpOpen(true)} />}
+      {/* Persistent I Need Help — visible on every tab when no overlay is open */}
+      {!checkInOpen && !epdsOpen && !helpOpen && (
+        <motion.button
+          onClick={() => openHelp("global")}
+          whileTap={{ scale: 0.94 }}
+          className="fixed z-[70] right-4 bottom-24 flex items-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-white shadow-lg shadow-red-300/50"
+          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+          aria-label="I Need Help"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>
+          <span className="text-[13px] font-extrabold">I Need Help</span>
+        </motion.button>
+      )}
+
+      {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
+      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} />}
 
       <AnimatePresence>
         {helpOpen && (
@@ -124,7 +145,7 @@ export default function Dashboard() {
                   Close
                 </button>
               </div>
-              <SafetySection />
+              <SafetySection onLog={(action) => logSafetyAccess({ action })} />
             </motion.div>
           </motion.div>
         )}

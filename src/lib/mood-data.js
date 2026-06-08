@@ -55,6 +55,30 @@ export function clearCheckinDraft() {
   window.localStorage.removeItem(CHECKIN_DRAFT_KEY);
 }
 
+// --- I Need Help access log (spec: safety_access_used, timestamp, every use) ---
+const SAFETY_LOG_KEY = "afterbloom_safety_log";
+
+export function logSafetyAccess(meta = {}) {
+  if (!canUseStorage()) return;
+  try {
+    const log = JSON.parse(window.localStorage.getItem(SAFETY_LOG_KEY) || "[]");
+    log.push({ ts: new Date().toISOString(), dateKey: toDateKey(), ...meta });
+    window.localStorage.setItem(SAFETY_LOG_KEY, JSON.stringify(log));
+  } catch {
+    /* noop */
+  }
+}
+
+export function getSafetyLog() {
+  if (!canUseStorage()) return [];
+  try {
+    const log = JSON.parse(window.localStorage.getItem(SAFETY_LOG_KEY) || "[]");
+    return Array.isArray(log) ? log : [];
+  } catch {
+    return [];
+  }
+}
+
 function toDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");

@@ -2,36 +2,28 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldAlert, Phone, Wind, Eye, Hand, Ear, Heart, X, ChevronRight } from "lucide-react";
 
+// Prototype: placeholder numbers (TH/EN), not live integrations.
 const helplines = [
   {
-    name: "Postpartum Support International",
-    number: "1-800-944-4773",
-    desc: "24/7 PPD & anxiety support",
+    name: "Your hospital care line",
+    number: "Tap to call (mock)",
+    desc: "Your maternity care team",
     color: "bg-rose-100",
     textColor: "text-rose-700",
     dotColor: "bg-rose-400",
   },
   {
-    name: "National Crisis Lifeline",
-    number: "988",
-    desc: "Call or text anytime",
+    name: "Mental health helpline",
+    number: "1323 (placeholder)",
+    desc: "24/7 emotional support",
     color: "bg-violet-100",
     textColor: "text-violet-700",
     dotColor: "bg-violet-400",
   },
   {
-    name: "Crisis Text Line",
-    number: "Text HOME to 741741",
-    desc: "Free, confidential text support",
-    color: "bg-blue-100",
-    textColor: "text-blue-700",
-    dotColor: "bg-blue-400",
-    isText: true,
-  },
-  {
-    name: "Local Emergency Services",
-    number: "911",
-    desc: "Immediate emergency help",
+    name: "Emergency services",
+    number: "1669 (placeholder)",
+    desc: "Immediate medical emergency",
     color: "bg-red-100",
     textColor: "text-red-700",
     dotColor: "bg-red-400",
@@ -270,78 +262,126 @@ function PanicModal({ onClose }) {
   );
 }
 
-export default function SafetySection() {
+function HelplineList() {
+  return (
+    <div className="space-y-2">
+      {helplines.map((line) => (
+        <a
+          key={line.name}
+          href={undefined}
+          className={`flex items-center gap-3 ${line.color} rounded-2xl p-3.5 active:opacity-80 transition-opacity`}
+        >
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs font-bold ${line.textColor}`}>{line.name}</p>
+            <p className={`text-xs ${line.textColor} opacity-70`}>{line.desc}</p>
+          </div>
+          <div className={`flex items-center gap-1.5 ${line.color} rounded-xl px-3 py-1.5 border border-black/5`}>
+            <Phone className={`w-3 h-3 ${line.textColor}`} />
+            <span className={`text-xs font-bold ${line.textColor}`}>{line.number}</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+const TRIAGE = [
+  { key: "trusted", title: "Reach someone I trust", desc: "A partner, family member, or friend", emoji: "💗" },
+  { key: "hospital", title: "Contact my hospital", desc: "Your maternity care team", emoji: "🏥" },
+  { key: "safe", title: "I'm with someone safe", desc: "I just need to steady myself", emoji: "🌿" },
+];
+
+export default function SafetySection({ onLog }) {
   const [panicOpen, setPanicOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [path, setPath] = useState(null); // null | trusted | hospital | safe | urgent
+
+  const choose = (p) => { setPath(p); onLog?.(p); };
 
   return (
     <>
-      <div className="bg-red-50 border border-red-200/60 rounded-3xl overflow-hidden">
-        {/* Header — always visible */}
-        <button
-          onClick={() => setExpanded((e) => !e)}
-          className="w-full flex items-center gap-3 p-4 text-left"
+      <div className="space-y-3">
+        <div className="px-1">
+          <p className="text-sm font-bold text-foreground">How can we help right now?</p>
+          <p className="text-xs text-muted-foreground">Choose what feels right — you can change your mind anytime.</p>
+        </div>
+
+        {/* Triage options */}
+        <div className="space-y-2">
+          {TRIAGE.map((opt) => {
+            const on = path === opt.key;
+            return (
+              <motion.button
+                key={opt.key}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => choose(opt.key)}
+                className={`w-full flex items-center gap-3 rounded-2xl p-3.5 text-left border ${on ? "border-primary/40 bg-primary/8" : "border-border/50 bg-white"}`}
+              >
+                <span className="text-xl">{opt.emoji}</span>
+                <span className="flex-1">
+                  <span className="block text-sm font-bold text-foreground">{opt.title}</span>
+                  <span className="block text-xs text-muted-foreground">{opt.desc}</span>
+                </span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* Urgent path — always visible, one tap, separate from the rest */}
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => choose("urgent")}
+          className="w-full flex items-center gap-3 rounded-2xl p-3.5 bg-red-500 text-white shadow-lg shadow-red-200"
         >
-          <div className="w-10 h-10 bg-red-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <ShieldAlert className="w-5 h-5 text-red-600" />
+          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <ShieldAlert className="w-5 h-5" />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-red-700">Safety First</p>
-            <p className="text-xs text-red-500/80">Crisis lines · Panic button · Grounding</p>
+          <div className="text-left flex-1">
+            <p className="text-sm font-bold">I don't feel safe right now</p>
+            <p className="text-xs text-white/80">Get urgent support immediately</p>
           </div>
-          <motion.div animate={{ rotate: expanded ? 90 : 0 }} transition={{ duration: 0.2 }}>
-            <ChevronRight className="w-4 h-4 text-red-400" />
-          </motion.div>
-        </button>
+        </motion.button>
 
-        <AnimatePresence initial={false}>
-          {expanded && (
+        {/* Path content */}
+        <AnimatePresence mode="wait">
+          {path && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="overflow-hidden"
+              key={path}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="pt-1"
             >
-              <div className="px-4 pb-4 space-y-3">
-                {/* Panic Button */}
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setPanicOpen(true)}
-                  className="w-full bg-red-500 text-white rounded-2xl py-4 flex items-center justify-center gap-3 shadow-lg shadow-red-200"
-                >
-                  <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                    <Heart className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold">I Need Help</p>
-                    <p className="text-xs text-white/70">Breathing & grounding exercises</p>
-                  </div>
-                </motion.button>
-
-                {/* Helplines */}
-                <p className="text-xs font-bold text-red-700 pt-1">Emergency & Crisis Helplines</p>
-                <div className="space-y-2">
-                  {helplines.map((line) => (
-                    <a
-                      key={line.name}
-                      href={line.isText ? undefined : `tel:${line.number.replace(/\D/g, "")}`}
-                      className={`flex items-center gap-3 ${line.color} rounded-2xl p-3.5 active:opacity-80 transition-opacity`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-xs font-bold ${line.textColor}`}>{line.name}</p>
-                        <p className={`text-xs ${line.textColor} opacity-70`}>{line.desc}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className={`flex items-center gap-1.5 ${line.color} rounded-xl px-3 py-1.5 border border-black/5`}>
-                          <Phone className={`w-3 h-3 ${line.textColor}`} />
-                          <span className={`text-xs font-bold ${line.textColor}`}>{line.number}</span>
-                        </div>
-                      </div>
-                    </a>
-                  ))}
+              {path === "trusted" && (
+                <div className="rounded-2xl border border-border/50 bg-white p-4 space-y-2">
+                  <p className="text-sm font-bold text-foreground">Reach out to someone you trust</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">You don't have to explain everything — even "I'm having a hard day" is enough. (Contact picker is a prototype placeholder.)</p>
+                  <button className="w-full mt-1 py-3 rounded-xl bg-primary/10 text-primary text-sm font-bold">Message a trusted contact (mock)</button>
                 </div>
-              </div>
+              )}
+              {path === "hospital" && (
+                <div className="rounded-2xl border border-border/50 bg-white p-4 space-y-2">
+                  <p className="text-sm font-bold text-foreground">Your hospital care team</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">They can help with both your recovery and how you're feeling. (Placeholder number for the prototype.)</p>
+                  <HelplineList />
+                </div>
+              )}
+              {path === "safe" && (
+                <div className="rounded-2xl border border-border/50 bg-white p-4 space-y-3">
+                  <p className="text-sm font-bold text-foreground">Let's steady this moment together 💛</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">You're safe right now. A short breathing or grounding exercise can help.</p>
+                  <button onClick={() => setPanicOpen(true)} className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold">Open breathing & grounding</button>
+                </div>
+              )}
+              {path === "urgent" && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 space-y-3">
+                  <p className="text-sm font-bold text-red-700">You should not be alone with this</p>
+                  <p className="text-xs text-red-600/80 leading-relaxed">If you feel you might hurt yourself, please reach a person now. These lines are placeholders in the prototype.</p>
+                  <HelplineList />
+                  <button onClick={() => setPanicOpen(true)} className="w-full py-3 rounded-xl bg-red-500 text-white text-sm font-bold">Calm down with me first</button>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

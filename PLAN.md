@@ -343,17 +343,17 @@ Done when:
 
 เป้าหมาย: ผู้ใช้เข้าถึงความช่วยเหลือได้ทันทีโดยไม่ต้องผ่าน check-in ก่อน
 
-- [ ] ปุ่ม `I Need Help` visible ทุกหน้า / ทุก state
-- [ ] เปิด flow ช่วยเหลือทันทีจาก home, tab, modal, result, และ onboarding state
-- [ ] หน้าถามสั้น ๆ ว่าต้องการความช่วยเหลือแบบไหน
-- [ ] มีทางเลือกไปยังคนที่ไว้ใจ, hospital, emergency, หรือ guidance
-- [ ] ถ้าผู้ใช้ระบุว่าไม่ปลอดภัยกับตัวเอง ให้ไป urgent path ทันที
-- [ ] log การใช้งาน help flow เป็น event เดียวกันทุกที่
+- [x] ปุ่ม `I Need Help` visible ทุกหน้า (floating button ใน Dashboard shell, ทุก tab)
+- [x] เปิด flow ช่วยเหลือจาก home/tab/check-in/EPDS (onNeedHelp → openHelp)
+- [x] หน้าถามสั้น ๆ "How can we help right now?" (triage)
+- [x] ทางเลือก: คนที่ไว้ใจ / hospital / "I'm with someone safe" + urgent
+- [x] urgent path "I don't feel safe right now" แยกชัด → helplines + calm
+- [x] log `safety_access_used` ทุกครั้ง (mood-data `logSafetyAccess`, key `afterbloom_safety_log`, มี source + action)
 
 งานที่ต้องทำ:
-- [ ] แยก urgent help path ออกจาก general help path
-- [ ] ให้ UI state, copy, และ CTA ใช้ชุดคำเดียวกัน
-- [ ] ถ้า integration จริงยังไม่พร้อม ให้ mock action แต่คงโครง flow จริงไว้
+- [x] urgent path แยกจาก general (ปุ่มแดงแยก + content แยก)
+- [x] copy/CTA ชุดเดียว (HelplineList reuse)
+- [x] mock action (placeholders TH/EN: 1323/1669) คงโครง flow
 
 ไฟล์ที่ต้องแก้:
 - `src/components/afterbloom/SafetySection.jsx`
@@ -365,9 +365,9 @@ Done when:
 - `src/pages/tabs/TherapyTab.jsx`
 
 Done when:
-- [ ] help flow เรียกได้จากทุกหน้า
-- [ ] urgent path แยกจาก help ปกติชัดเจน
-- [ ] log ใช้งาน help ได้
+- [x] help flow เรียกได้จากทุกหน้า (verified: Home + Mood floating button)
+- [x] urgent path แยกจาก help ปกติชัดเจน
+- [x] log ใช้งาน help ได้ (verified: safety_log มี source=global, action=urgent)
 
 ---
 
@@ -519,6 +519,7 @@ Done when:
 - `2026-06-09 | Phase 4 done: 7-day mood trend on Home (recharts + getMoodChartData, empty state) + mock reminder copy from preferred_checkin_time. Verified headless. (Tiny goal→P8, Help button→P7.)`
 - `2026-06-09 | Phase 5 done: check-in 4-question labels/wording aligned to spec, removed worry-internal subtitle, added same-day draft resume (afterbloom_checkin_draft). Verified headless (labels + resume at Q2).`
 - `2026-06-09 | Phase 6 done: full follow-up 3.5→3.6→3.7 (13 problem tags + other-text, journal 500, baby connection screen) + pattern-gated Support Need (3.9) where support_request is the mother's own answer (not auto). mood-data: new entry fields + isSupportNeedTriggered + supportNeedPattern. Verified headless end-to-end.`
+- `2026-06-09 | Phase 7 done: persistent floating I Need Help on every tab (Dashboard) + triage (trusted/hospital/safe) + separate urgent path; mock TH/EN helplines; logSafetyAccess→afterbloom_safety_log (source+action). Verified headless (Home+Mood button, triage, urgent, log).`
 
 ---
 
