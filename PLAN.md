@@ -433,16 +433,16 @@ Done when:
 
 เป้าหมาย: เตรียม alert path สำหรับ integration โดยคงข้อมูลขั้นต่ำตาม PDPA
 
-- [ ] Alert A: `support_request = true` -> notify dashboard
-- [ ] Alert B: `composite < 2.5` 3 วันต่อเนื่อง -> flag
-- [ ] Alert C: `safety_access_used = true` -> log + flag
-- [ ] payload ต้องมีข้อมูลขั้นต่ำที่จำเป็น
-- [ ] resolution flow ต้องทำให้ staff mark resolved ได้
+- [x] Alert A: `support_request = true` -> "support_request"
+- [x] Alert B: `composite < 2.5` 3 วันต่อเนื่อง -> "low_trend_3day"
+- [x] Alert C: `safety_access_used = true` -> "safety_access" (+ "epds_immediate" เพิ่ม)
+- [x] payload ขั้นต่ำ (PDPA): id/type/severity/dateKey/payload, ไม่มี PII เกินจำเป็น
+- [x] resolution stub: `resolveAlert(id)` mark resolved (+ getOpenAlerts)
 
 งานที่ต้องทำ:
-- [ ] ทำ mock/stub integration ก่อน ถ้า HIS scope ยังไม่พร้อม
-- [ ] ใช้ payload schema เดียวกันทั้ง alert path
-- [ ] ตรวจว่า resolution ของ staff เปิด flow support request ใหม่ได้
+- [x] mock/stub: `src/lib/alert-service.js` (`buildAlerts`/`syncAlerts`→`afterbloom_alerts`/`getAlerts`/`resolveAlert`)
+- [x] payload schema เดียวกันทุก alert (makeAlert, id เสถียรต่อ type+dateKey)
+- [x] resolution: resolve แล้ว pattern ใหม่รายวันยัง raise alert ใหม่ได้ตามธรรมชาติ
 
 ไฟล์ที่ต้องแก้:
 - `src/lib/epds-data.js`
@@ -453,9 +453,11 @@ Done when:
 - `src/pages/Dashboard.jsx`
 
 Done when:
-- [ ] alert path มี schema ชัด
-- [ ] mock integration ทำงานตาม flow
-- [ ] resolution เปิด support request ใหม่ได้
+- [x] alert path มี schema ชัด (verified node test: A/B/C/epds + schema)
+- [x] mock integration ทำงานตาม flow (syncAlerts persist + preserve resolved)
+- [x] resolution เปิด support request ใหม่ได้ (resolveAlert + pattern re-trigger รายวัน)
+
+> หมายเหตุ: เป็น mock lib (ยังไม่ต่อ UI/backend จริง — ตั้งใจ); wire เข้า dashboard จริงเมื่อมี HIS
 
 ---
 
@@ -522,6 +524,7 @@ Done when:
 - `2026-06-09 | Phase 7 done: persistent floating I Need Help on every tab (Dashboard) + triage (trusted/hospital/safe) + separate urgent path; mock TH/EN helplines; logSafetyAccess→afterbloom_safety_log (source+action). Verified headless (Home+Mood button, triage, urgent, log).`
 - `2026-06-09 | Phase 8 done: goals-data.js pool + getSuggestedGoals (daily rotation), TinyGoalSection on result (pick/skip), DailyGoal now dynamic (reads afterbloom_daily_goal + event sync). Bugfix: follow-up "core=1" now uses worry adjusted (6-raw). Verified visually + persisted.`
 - `2026-06-09 | Phase 9 done: EPDS saveEpdsEntry takes trigger origin + stores recommendedNextStep(+text)/screeningDate/scoreBand; getRecommendedNextStep; result shows Next step; Home "Emotional Check" entry card (isEpdsDue) + Dashboard openEpds(source)→trigger. Verified headless (entry trigger=home, next step, 10 answers).`
+- `2026-06-09 | Phase 10 done: mock alert-service.js (buildAlerts A/B/C + epds_immediate, minimal PDPA payload; syncAlerts→afterbloom_alerts preserving resolved; resolveAlert/getOpenAlerts). Pure buildAlerts verified via node test (all types + no false 3-day). Not wired to UI (mock for future HIS).`
 
 ---
 
