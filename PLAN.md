@@ -465,11 +465,11 @@ Done when:
 
 เป้าหมาย: ทำให้โค้ดพัฒนาต่อได้ง่ายขึ้นหลังฟีเจอร์หลักเสร็จ
 
-- [ ] รวม string ซ้ำไปไว้ที่เดียวเท่าที่โครงสร้างปัจจุบันเอื้อ
-- [ ] ลด component ที่รับผิดชอบหลายหน้าที่เกินไป
-- [ ] แยก state / scoring / presentation ให้ชัด
-- [x] rename folder `calmmama` -> `afterbloom` แล้ว (ทำไปพร้อม bulk rebrand)
-- [ ] ตรวจว่าบาง screen ที่เป็น legacy ยังจำเป็นอยู่หรือควรถอด
+- [x] ลบ dead components 5 ตัว (SupportIndicator, SupportCircle, JournalPreview, MoodCheckIn, CTAButtons) — 0 ref; RiskIndicator หายไปแล้วก่อนหน้า
+- [~] รวม support copy: SUPPORT_LEVELS (mood) vs RISK_META (EPDS) **คนละ shape/บริบท** (mood = label/message/action, epds = badge/quote/body) → ไม่ merge เพื่อเลี่ยง coupling ใน prototype (บันทึกเป็น decision)
+- [x] แยก state/scoring/presentation: scoring ใน lib (mood-data/epds-data/goals-data/alert-service), presentation ใน components
+- [x] rename folder `calmmama` -> `afterbloom` แล้ว
+- [x] ตรวจ legacy: DailyReminder/MilestonesSection/SelfCareTools/JournalSection ยังใช้โดย LegacyTab → เก็บไว้
 
 ไฟล์ที่ต้องดู:
 - `src/components/afterbloom/*`
@@ -480,9 +480,9 @@ Done when:
 - `src/pages/Dashboard.jsx`
 
 Done when:
-- [ ] dependency ระหว่าง flow ลดลง
-- [ ] ขอบเขตแต่ละ component ชัดขึ้น
-- [ ] พร้อมรับ phase ใหม่โดยไม่ต้องรื้อใหญ่
+- [x] dependency ระหว่าง flow ลดลง (ลบ 5 dead files, build เขียว)
+- [x] ขอบเขตแต่ละ component ชัดขึ้น
+- [x] พร้อมรับ phase ใหม่โดยไม่ต้องรื้อใหญ่
 
 ---
 
@@ -525,6 +525,7 @@ Done when:
 - `2026-06-09 | Phase 8 done: goals-data.js pool + getSuggestedGoals (daily rotation), TinyGoalSection on result (pick/skip), DailyGoal now dynamic (reads afterbloom_daily_goal + event sync). Bugfix: follow-up "core=1" now uses worry adjusted (6-raw). Verified visually + persisted.`
 - `2026-06-09 | Phase 9 done: EPDS saveEpdsEntry takes trigger origin + stores recommendedNextStep(+text)/screeningDate/scoreBand; getRecommendedNextStep; result shows Next step; Home "Emotional Check" entry card (isEpdsDue) + Dashboard openEpds(source)→trigger. Verified headless (entry trigger=home, next step, 10 answers).`
 - `2026-06-09 | Phase 10 done: mock alert-service.js (buildAlerts A/B/C + epds_immediate, minimal PDPA payload; syncAlerts→afterbloom_alerts preserving resolved; resolveAlert/getOpenAlerts). Pure buildAlerts verified via node test (all types + no false 3-day). Not wired to UI (mock for future HIS).`
+- `2026-06-09 | Phase 11 done: removed 5 dead components (SupportIndicator/SupportCircle/JournalPreview/MoodCheckIn/CTAButtons, 0 refs). Kept Legacy-only components. Skipped SUPPORT_LEVELS↔RISK_META merge (different shapes, avoid coupling). build green. ALL PHASES 0-11 COMPLETE.`
 
 ---
 
