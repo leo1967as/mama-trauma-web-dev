@@ -1,16 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "../components/afterbloom/BottomNav";
-import CheckInFlow from "../components/afterbloom/CheckInFlow";
-import EpdsFlow from "../components/afterbloom/EpdsFlow";
-import SafetySection from "../components/afterbloom/SafetySection";
 import { logSafetyAccess } from "../lib/mood-data";
 import HomeTab from "./tabs/HomeTab";
-import MoodTab from "./tabs/MoodTab";
-import LegacyTab from "./tabs/LegacyTab";
-import TherapyTab from "./tabs/TherapyTab";
-import CircleTab from "./tabs/CircleTab";
-import CarePlansTab from "./tabs/CarePlansTab";
+
+// Lazy: heavy modals + secondary tabs -> out of initial chunk.
+const MoodTab = lazy(() => import("./tabs/MoodTab"));
+const CheckInFlow = lazy(() => import("../components/afterbloom/CheckInFlow"));
+const EpdsFlow = lazy(() => import("../components/afterbloom/EpdsFlow"));
+const SafetySection = lazy(() => import("../components/afterbloom/SafetySection"));
+const LegacyTab = lazy(() => import("./tabs/LegacyTab"));
+const TherapyTab = lazy(() => import("./tabs/TherapyTab"));
+const CircleTab = lazy(() => import("./tabs/CircleTab"));
+const CarePlansTab = lazy(() => import("./tabs/CarePlansTab"));
 
 const tabComponents = {
   home: HomeTab,
@@ -93,13 +95,15 @@ export default function Dashboard() {
             exit={{ opacity: 0, x: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === "home"
-              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
-              : activeTab === "mood"
-                ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} />
-                : activeTab === "legacy"
-                  ? <LegacyTab onNavigate={setActiveTab} />
-                  : <TabContent />}
+            <Suspense fallback={null}>
+              {activeTab === "home"
+                ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
+                : activeTab === "mood"
+                  ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} />
+                  : activeTab === "legacy"
+                    ? <LegacyTab onNavigate={setActiveTab} />
+                    : <TabContent />}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>
@@ -120,8 +124,10 @@ export default function Dashboard() {
         </motion.button>
       )}
 
-      {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
-      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} trigger={epdsTrigger} />}
+      <Suspense fallback={null}>
+        {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
+        {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} trigger={epdsTrigger} />}
+      </Suspense>
 
       <AnimatePresence>
         {helpOpen && (
@@ -151,7 +157,9 @@ export default function Dashboard() {
                   Close
                 </button>
               </div>
-              <SafetySection onLog={(action) => logSafetyAccess({ action })} />
+              <Suspense fallback={null}>
+                <SafetySection onLog={(action) => logSafetyAccess({ action })} />
+              </Suspense>
             </motion.div>
           </motion.div>
         )}

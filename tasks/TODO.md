@@ -1,3 +1,5 @@
 - Run a browser smoke check on the Afterbloom shell and verify the global I Need Help sheet.
 - Tune the support-level thresholds and CTA copy after browser QA if the results feel too aggressive or too soft.
 - Consider removing the `riskLevel` compatibility alias once all old consumers are gone.
+- Decide whether `.agents/skills/` and `skills-lock.json` from the caveman install should be committed, ignored, or removed from this app repo.
+- If caveman or other newly installed skills do not appear, restart/open a fresh Codex session and re-check the skill inventory before changing the install layout.

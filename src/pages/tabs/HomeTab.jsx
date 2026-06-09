@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
+const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
 import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory } from "../../lib/mood-data";
 import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime } from "../../lib/user-data";
 import { isEpdsDue, getDaysUntilNextEpds } from "../../lib/epds-data";
@@ -324,24 +325,9 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
         <div style={{ marginTop: 13, background: "#fff", border: "1px solid #EFE6DC", borderRadius: 22, padding: "18px 18px 12px", boxShadow: "0 2px 10px rgba(80,56,42,.05)", fontFamily: FONT_BODY }}>
           <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 10 }}>7-day mood trend</span>
           {showTrend ? (
-            <div style={{ position: "relative", height: 96, margin: "0 -6px" }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="moodGradHome" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#C77E83" stopOpacity={0.26} />
-                      <stop offset="100%" stopColor="#C77E83" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9C8E83", fontFamily: FONT_BODY }} dy={6} />
-                  <YAxis hide domain={[0, 5]} />
-                  <Tooltip contentStyle={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 12, fontSize: 12, fontFamily: FONT_BODY }} formatter={(v) => [`${v}/5`, "Mood"]} />
-                  <Area type="monotone" dataKey="mood" stroke="#C77E83" strokeWidth={2.5} fill="url(#moodGradHome)"
-                    dot={({ cx, cy, payload }) => payload?.mood != null ? <circle cx={cx} cy={cy} r={3} fill="#C77E83" stroke="white" strokeWidth={1.5} /> : null}
-                    connectNulls activeDot={{ r: 5, fill: "#C77E83", stroke: "white", strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <Suspense fallback={<div style={{ height: 96 }} />}>
+              <MoodTrendChart data={trendData} height={96} />
+            </Suspense>
           ) : (
             <p style={{ fontSize: 12.5, color: "#9C8E83", lineHeight: 1.55, padding: "8px 2px 12px" }}>
               Your trend will appear here once you check in a few times.
