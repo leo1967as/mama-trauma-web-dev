@@ -32,28 +32,46 @@ export function getEpdsRiskLevel(score, q10Flag = false) {
   return getEpdsSupportLevel(score, q10Flag);
 }
 
+const NEXT_STEPS = {
+  steady: { key: "self_care", text: "Keep checking in and keep up your small daily routines." },
+  gentle: { key: "monitor", text: "Notice how the next week feels, and lean on someone you trust." },
+  extra: { key: "talk_provider", text: "Consider talking to your care provider this week." },
+  immediate: { key: "contact_care_now", text: "Please reach out for support now — open I Need Help or contact your care team." },
+};
+
+export function getRecommendedNextStep(level) {
+  return NEXT_STEPS[level] || NEXT_STEPS.steady;
+}
+
 function saveHistory(entries) {
   if (!canUseStorage()) return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
   window.dispatchEvent(new CustomEvent(EPDS_EVENT, { detail: entries }));
 }
 
-export function saveEpdsEntry(answers, dateKey = toDateKey()) {
+export function saveEpdsEntry(answers, dateKey = toDateKey(), trigger = "manual") {
   if (!canUseStorage()) return;
   const totalScore = computeEpdsScore(answers);
   const q10Flag = answers[9] > 0;
   const supportLevel = getEpdsSupportLevel(totalScore, q10Flag);
+  const nextStep = getRecommendedNextStep(supportLevel);
   const completedAt = new Date().toISOString();
   const entry = {
     id: completedAt,
     dateKey,
+    screeningDate: dateKey,
     answers: [...answers],
     totalScore,
     q10Flag,
     supportLevel,
     riskLevel: supportLevel,
     screeningResultLevel: supportLevel,
-    screeningTrigger: q10Flag ? "q10_flag" : totalScore >= 13 ? "score_threshold" : totalScore >= 10 ? "score_moderate" : "routine",
+    // origin of this screening (home / mood / manual / stage), not the score band
+    screeningTrigger: trigger,
+    // score-band classification kept separately for analytics
+    scoreBand: q10Flag ? "q10_flag" : totalScore >= 13 ? "score_threshold" : totalScore >= 10 ? "score_moderate" : "routine",
+    recommendedNextStep: nextStep.key,
+    recommendedNextStepText: nextStep.text,
     completedAt,
   };
   const history = getEpdsHistory();

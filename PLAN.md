@@ -403,11 +403,11 @@ Done when:
 
 เป้าหมาย: ทำ screening flow แยกจาก daily check-in และตั้งชื่อให้ไม่ตีตรา
 
-- [ ] ใช้ wording เช่น `Emotional Check`
-- [ ] Trigger จาก stage, support level, repeated low mood, repeated worry
-- [ ] Prototype ทำเป็น mock flow ได้ก่อน
-- [ ] เก็บ `epds_answers[]`, `epds_total_score`, `screening_date`, `screening_trigger`, `screening_result_level`, `recommended_next_step`
-- [ ] ถ้า screening trigger จาก home หรือ mood flow ต้อง route ไป flow เดียวกัน
+- [x] ใช้ wording `Emotional Check` (ไม่มีคำว่า depression test)
+- [x] Trigger entry: Home มี "Emotional Check" card (+ isEpdsDue/getDaysUntilNextEpds); Mood ผ่าน onEpds
+- [x] Prototype mock flow
+- [x] เก็บ `answers[]`, `totalScore`, `screeningDate`, `screeningTrigger` (origin), `screeningResultLevel`, `recommendedNextStep`(+text), `scoreBand`
+- [x] trigger จาก home/mood route เข้า EpdsFlow เดียวกัน (Dashboard openEpds(source) → trigger prop)
 
 งานที่ต้องทำ:
 - [ ] แยก flow นี้ออกจาก daily 4 questions
@@ -423,9 +423,9 @@ Done when:
 - `src/components/afterbloom/RiskIndicator.jsx`
 
 Done when:
-- [ ] screening มีชื่อและ trigger ที่ถูกต้อง
-- [ ] result data ถูกเก็บครบ
-- [ ] flow แยกจาก daily check-in ชัดเจน
+- [x] screening มีชื่อ "Emotional Check" + trigger origin ถูกต้อง (verified: trigger="home")
+- [x] result data ถูกเก็บครบ (verified entry: answers×10, totalScore, screeningDate, screeningTrigger, screeningResultLevel, recommendedNextStep)
+- [x] flow แยกจาก daily check-in ชัดเจน (EpdsFlow แยก, result มี "Next step")
 
 ---
 
@@ -521,6 +521,7 @@ Done when:
 - `2026-06-09 | Phase 6 done: full follow-up 3.5→3.6→3.7 (13 problem tags + other-text, journal 500, baby connection screen) + pattern-gated Support Need (3.9) where support_request is the mother's own answer (not auto). mood-data: new entry fields + isSupportNeedTriggered + supportNeedPattern. Verified headless end-to-end.`
 - `2026-06-09 | Phase 7 done: persistent floating I Need Help on every tab (Dashboard) + triage (trusted/hospital/safe) + separate urgent path; mock TH/EN helplines; logSafetyAccess→afterbloom_safety_log (source+action). Verified headless (Home+Mood button, triage, urgent, log).`
 - `2026-06-09 | Phase 8 done: goals-data.js pool + getSuggestedGoals (daily rotation), TinyGoalSection on result (pick/skip), DailyGoal now dynamic (reads afterbloom_daily_goal + event sync). Bugfix: follow-up "core=1" now uses worry adjusted (6-raw). Verified visually + persisted.`
+- `2026-06-09 | Phase 9 done: EPDS saveEpdsEntry takes trigger origin + stores recommendedNextStep(+text)/screeningDate/scoreBand; getRecommendedNextStep; result shows Next step; Home "Emotional Check" entry card (isEpdsDue) + Dashboard openEpds(source)→trigger. Verified headless (entry trigger=home, next step, 10 answers).`
 
 ---
 

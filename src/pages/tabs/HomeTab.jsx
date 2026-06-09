@@ -4,6 +4,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory } from "../../lib/mood-data";
 import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime } from "../../lib/user-data";
+import { isEpdsDue, getDaysUntilNextEpds } from "../../lib/epds-data";
 import DatePicker from "../../components/afterbloom/DatePicker";
 import CareTimeline from "../../components/afterbloom/CareTimeline";
 import DailyGoal from "../../components/afterbloom/DailyGoal";
@@ -30,7 +31,7 @@ function formatReminderTime(t) {
 }
 
 
-export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
+export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) {
   const [moodEntries, setMoodEntries] = useState([]);
   const [showSliders, setShowSliders] = useState(false);
   const [justOnboarded] = useState(() => consumeJustOnboarded());
@@ -347,6 +348,24 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
             </p>
           )}
         </div>
+
+        {/* Emotional Check (EPDS) entry */}
+        <motion.button
+          onClick={() => onEpds?.()}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+          style={{ marginTop: 13, display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "16px 18px", background: "#fff", border: "1px solid #EFE6DC", borderRadius: 22, cursor: "pointer", textAlign: "left", fontFamily: FONT_BODY, boxShadow: "0 2px 10px rgba(80,56,42,.05)" }}
+        >
+          <span style={{ width: 42, height: 42, borderRadius: 14, background: "#EAF1EC", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg viewBox="0 0 24 24" width="18" fill="none" stroke="#5E8169" strokeWidth="1.9"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>
+          </span>
+          <span style={{ flex: 1 }}>
+            <span style={{ display: "block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 4 }}>Emotional Check</span>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>{isEpdsDue() ? "A gentle 10-question check-in" : "You're up to date 💛"}</span>
+            <span style={{ display: "block", fontSize: 12, color: "#9C8E83", marginTop: 2 }}>{isEpdsDue() ? "Takes about 2 minutes, just for you." : `Next suggested in ${getDaysUntilNextEpds()} days.`}</span>
+          </span>
+          <svg viewBox="0 0 24 24" width="15" fill="none" stroke="#C8BEB8" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
+        </motion.button>
 
         {/* Daily goal — main warm element */}
         <div style={{ marginTop: 13 }}>

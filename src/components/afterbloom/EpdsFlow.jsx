@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { saveEpdsEntry, computeEpdsScore, getEpdsSupportLevel, toDateKey } from "../../lib/epds-data";
+import { saveEpdsEntry, computeEpdsScore, getEpdsSupportLevel, getRecommendedNextStep, toDateKey } from "../../lib/epds-data";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -144,7 +144,8 @@ function Result({ answers, onClose, onNeedHelp }) {
             <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 12px", borderRadius: 30, background: meta.badgeBg, color: meta.badgeColor }}>{meta.badge}</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#9C8E83" }}>{totalScore} / 30</span>
           </div>
-          <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.6 }}>{meta.body}</p>
+          <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.6, marginBottom: 10 }}>{meta.body}</p>
+          <p style={{ fontSize: 12.5, color: "#3E342C", fontWeight: 700 }}>Next step: {getRecommendedNextStep(supportLevel).text}</p>
           {supportLevel === "immediate" && (
             <div style={{ marginTop: 16 }}>
               <CrisisCard title="We recommend support" body="Please open help right now and reach out to a doctor, midwife, or crisis line." />
@@ -177,7 +178,7 @@ function Result({ answers, onClose, onNeedHelp }) {
   );
 }
 
-export default function EpdsFlow({ onClose, onNeedHelp }) {
+export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState(new Array(10).fill(null));
   const dateKeyRef = useRef(toDateKey());
@@ -195,7 +196,7 @@ export default function EpdsFlow({ onClose, onNeedHelp }) {
       setStep(step + 1);
       return;
     }
-    saveEpdsEntry(answers, dateKeyRef.current);
+    saveEpdsEntry(answers, dateKeyRef.current, trigger);
     setStep("result");
   };
 

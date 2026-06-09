@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("home");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [epdsOpen, setEpdsOpen] = useState(false);
+  const [epdsTrigger, setEpdsTrigger] = useState("manual");
   const [helpOpen, setHelpOpen] = useState(false);
   const [legacyUnlocked, setLegacyUnlocked] = useState(false);
   const [toast, setToast] = useState(null);
@@ -41,6 +42,11 @@ export default function Dashboard() {
   const openHelp = (source) => {
     logSafetyAccess({ source: source || activeTab });
     setHelpOpen(true);
+  };
+
+  const openEpds = (source) => {
+    setEpdsTrigger(source || activeTab);
+    setEpdsOpen(true);
   };
 
   const triggerUnlock = () => {
@@ -88,9 +94,9 @@ export default function Dashboard() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === "home"
-              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => setEpdsOpen(true)} onSecretTap={handleSecretTap} />
+              ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
               : activeTab === "mood"
-                ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => setEpdsOpen(true)} />
+                ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} />
                 : activeTab === "legacy"
                   ? <LegacyTab onNavigate={setActiveTab} />
                   : <TabContent />}
@@ -115,7 +121,7 @@ export default function Dashboard() {
       )}
 
       {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
-      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} />}
+      {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} trigger={epdsTrigger} />}
 
       <AnimatePresence>
         {helpOpen && (
