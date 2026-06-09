@@ -350,7 +350,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onSecretTap }) {
 
         {/* Daily goal — main warm element */}
         <div style={{ marginTop: 13 }}>
-          <DailyGoal />
+          <DailyGoal level={supportSummary.level} />
         </div>
 
         {/* vspace */}

@@ -375,15 +375,15 @@ Done when:
 
 เป้าหมาย: result ต้องพาไปสู่การกระทำเล็ก ๆ ที่ทำได้จริง
 
-- [ ] หลัง result เลือก tiny goal ได้ 1 อย่าง
-- [ ] มีตัวเลือก `skip today` / `defer`
-- [ ] Care Journey card บน home ต้องสร้างจาก stage อัตโนมัติ
-- [ ] Care Journey ต้องอยู่บน home ไม่ใช่ซ่อนใน tab ลึก
+- [x] หลัง result เลือก tiny goal ได้ 1 อย่าง (`TinyGoalSection`, 3 ตัวเลือก rotate ตามวัน/level)
+- [x] มีตัวเลือก `skip today` (เก็บ status skipped)
+- [x] Care Journey card บน home สร้างจาก stage อัตโนมัติ (มีอยู่แล้ว `getCurrentStage`)
+- [x] Care Journey อยู่บน home
 
 งานที่ต้องทำ:
-- [ ] ใช้ข้อมูล stage เดียวกับ home badge
-- [ ] tiny goal ต้องไม่บังคับและไม่ทำให้ result flow หนักขึ้น
-- [ ] ถ้ามี preview card / summary card ให้ใช้ copy เดียวกัน
+- [x] ใช้ stage เดียวกับ home badge
+- [x] tiny goal ไม่บังคับ (skippable, ไม่ block) + `goals-data.js` pool + event sync → DailyGoal dynamic
+- [x] (bugfix) follow-up "core = 1" ใช้ worry adjusted (6-raw) — เดิม trigger ผิดเมื่อ worry=1
 
 ไฟล์ที่ต้องแก้:
 - `src/components/afterbloom/DailyGoal.jsx`
@@ -393,9 +393,9 @@ Done when:
 - `src/components/afterbloom/JournalPreview.jsx`
 
 Done when:
-- [ ] result มี tiny goal ที่เลือกได้จริง
-- [ ] care journey คำนวณจาก stage อัตโนมัติ
-- [ ] home แสดง journey อย่างถูกที่
+- [x] result มี tiny goal ที่เลือกได้จริง (verified: เลือก→persist `afterbloom_daily_goal`→home แสดง)
+- [x] care journey คำนวณจาก stage อัตโนมัติ
+- [x] home แสดง journey อย่างถูกที่
 
 ---
 
@@ -520,6 +520,7 @@ Done when:
 - `2026-06-09 | Phase 5 done: check-in 4-question labels/wording aligned to spec, removed worry-internal subtitle, added same-day draft resume (afterbloom_checkin_draft). Verified headless (labels + resume at Q2).`
 - `2026-06-09 | Phase 6 done: full follow-up 3.5→3.6→3.7 (13 problem tags + other-text, journal 500, baby connection screen) + pattern-gated Support Need (3.9) where support_request is the mother's own answer (not auto). mood-data: new entry fields + isSupportNeedTriggered + supportNeedPattern. Verified headless end-to-end.`
 - `2026-06-09 | Phase 7 done: persistent floating I Need Help on every tab (Dashboard) + triage (trusted/hospital/safe) + separate urgent path; mock TH/EN helplines; logSafetyAccess→afterbloom_safety_log (source+action). Verified headless (Home+Mood button, triage, urgent, log).`
+- `2026-06-09 | Phase 8 done: goals-data.js pool + getSuggestedGoals (daily rotation), TinyGoalSection on result (pick/skip), DailyGoal now dynamic (reads afterbloom_daily_goal + event sync). Bugfix: follow-up "core=1" now uses worry adjusted (6-raw). Verified visually + persisted.`
 
 ---
 

@@ -322,7 +322,7 @@ export function upsertMoodEntry(patch) {
     const followUpTriggered = Boolean(
       nextHistory[nextEntryIndex].composite !== null &&
       (nextHistory[nextEntryIndex].composite < 2.5 ||
-        [nextHistory[nextEntryIndex].moodScore, nextHistory[nextEntryIndex].sleepScore, nextHistory[nextEntryIndex].energyScore, nextHistory[nextEntryIndex].worryScore].includes(1))
+        [nextHistory[nextEntryIndex].moodScore, nextHistory[nextEntryIndex].sleepScore, nextHistory[nextEntryIndex].energyScore, nextHistory[nextEntryIndex].worryAdjustedScore].includes(1))
     );
     const supportLevel = getMoodSupportLevelFromComposite(nextHistory[nextEntryIndex].composite);
     const supportMeta = getSupportLevelMeta(supportLevel);

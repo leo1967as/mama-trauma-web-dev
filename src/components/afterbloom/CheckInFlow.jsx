@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getMoodEntryByDateKey, getMoodSupportSummary, getSupportLevelMeta, upsertMoodEntry, saveCheckinDraft, getCheckinDraft, clearCheckinDraft, isSupportNeedTriggered } from "../../lib/mood-data";
+import { getSuggestedGoals, setDailyGoal } from "../../lib/goals-data";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -317,6 +318,48 @@ function SupportNeedScreen({ onAnswer, onBack, onHelp }) {
   );
 }
 
+/* Phase 8 — offer one tiny goal after the result; selectable + skippable */
+function TinyGoalSection({ level }) {
+  const [options] = useState(() => getSuggestedGoals(level, 3));
+  const [chosen, setChosen] = useState(null);
+  const [skipped, setSkipped] = useState(false);
+
+  if (skipped) {
+    return (
+      <div style={{ background: "#F6FAF7", border: "1px solid #E8F0EA", borderRadius: 22, padding: "18px 20px" }}>
+        <div style={{ fontSize: 13.5, color: "#5A7A64", lineHeight: 1.55 }}>That's okay — rest is a goal too. We'll suggest another tomorrow. 💛</div>
+      </div>
+    );
+  }
+  if (chosen) {
+    return (
+      <div style={{ background: "#F6FAF7", border: "1px solid #E8F0EA", borderRadius: 22, padding: "18px 20px" }}>
+        <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#9ABBA3", marginBottom: 6 }}>Today's tiny goal</div>
+        <div style={{ fontSize: 14.5, fontWeight: 600, color: "#5A7A64" }}>{chosen}</div>
+        <div style={{ fontSize: 11.5, color: "#A8C0AD", marginTop: 4 }}>No pressure — it'll be waiting on your home screen.</div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 22, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 4 }}>One tiny goal?</div>
+      <div style={{ fontSize: 12.5, color: "#6C5F56", lineHeight: 1.5, marginBottom: 12 }}>Pick one small thing for today — or skip, no pressure.</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {options.map((g) => (
+          <motion.button key={g} whileTap={{ scale: 0.98 }} onClick={() => { setDailyGoal(g); setChosen(g); }}
+            style={{ textAlign: "left", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #EFE6DC", background: "#FBF6F0", color: "#3E342C", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: F }}>
+            {g}
+          </motion.button>
+        ))}
+      </div>
+      <button onClick={() => { setDailyGoal("", "skipped"); setSkipped(true); }}
+        style={{ display: "block", margin: "12px auto 0", background: "none", border: 0, fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", cursor: "pointer", fontFamily: F }}>
+        Skip today
+      </button>
+    </div>
+  );
+}
+
 function ResultScreen({ entry, onClose, onNeedHelp }) {
   const support = getMoodSupportSummary([entry]);
   const meta = getSupportLevelMeta(support.level);
@@ -391,6 +434,8 @@ function ResultScreen({ entry, onClose, onNeedHelp }) {
           </div>
         )}
 
+        <TinyGoalSection level={support.level} />
+
         <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 24 }}>
           <button
             onClick={onClose}
@@ -429,7 +474,8 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
 
   const currentQuestion = useMemo(() => CORE_QUESTIONS.find((item) => item.step === step), [step]);
   const composite = getComposite(answers);
-  const shouldFollowUp = Boolean(composite !== null && (composite < 2.5 || [answers.moodScore, answers.sleepScore, answers.energyScore, answers.worryScore].includes(1)));
+  // "any core indicator = 1" uses worry's adjusted value (6 - raw), since worry is reversed.
+  const shouldFollowUp = Boolean(composite !== null && (composite < 2.5 || [answers.moodScore, answers.sleepScore, answers.energyScore, 6 - answers.worryScore].includes(1)));
 
   const localDateKey = () => {
     const d = new Date();
