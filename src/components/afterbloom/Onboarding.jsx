@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveOnboarding, setJustOnboarded } from "../../lib/user-data";
-import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
@@ -443,6 +442,17 @@ const CHILD_OPTIONS = [
       </svg>
     ),
   },
+  {
+    val: "unsure",
+    title: "I'd rather not say",
+    sub: "That's okay too.",
+    svg: (
+      <svg viewBox="0 0 36 36" fill="none" width="24" height="24">
+        <circle cx="18" cy="18" r="14" stroke="#C77E83" strokeWidth="2.2" opacity=".5"/>
+        <path d="M18 13v6M18 24h.01" stroke="#C77E83" strokeWidth="2.4" strokeLinecap="round" opacity=".7"/>
+      </svg>
+    ),
+  },
 ];
 
 function StepChildNumber({ value, onChange, onNext, onBack }) {
@@ -551,6 +561,14 @@ function StepChildNumber({ value, onChange, onNext, onBack }) {
 
 // ── step 4: reminder ──────────────────────────────────────────────────────────
 
+const REMINDER_OPTIONS = [
+  { val: "morning", label: "Morning" },
+  { val: "afternoon", label: "Afternoon" },
+  { val: "evening", label: "Evening" },
+  { val: "before_bed", label: "Before bed" },
+  { val: "self", label: "I'll check in myself" },
+];
+
 function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
@@ -565,14 +583,38 @@ function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
           <em style={{ display: "block", fontStyle: "italic", color: "#AF636A" }}>each day?</em>
         </div>
         <div style={{ fontSize: 13.5, color: "#9C8E83", marginBottom: 28, lineHeight: 1.6 }}>
-          Daily check-ins take under 30 seconds. You can change this anytime.
+          When would you like to check in? You're always in control of this.
         </div>
 
-        <TimePicker value={value} onChange={onChange} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {REMINDER_OPTIONS.map((opt) => {
+            const on = value === opt.val;
+            return (
+              <motion.button
+                key={opt.val}
+                onClick={() => onChange(opt.val)}
+                whileTap={{ scale: 0.98 }}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", background: on ? "#FBEDEC" : "#fff", border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`, borderRadius: 18, cursor: "pointer", textAlign: "left", fontFamily: F, width: "100%", boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)" }}
+              >
+                <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, background: on ? "#C77E83" : "#fff", border: on ? "none" : "1.5px solid #D6CEC8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {on && <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8"><path d="M5 13l4 4L19 7"/></svg>}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? "#AF636A" : "#3E342C" }}>{opt.label}</div>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       <div style={{ padding: "20px 26px 44px", display: "flex", flexDirection: "column", gap: 12 }}>
-        <button className="ci-btn" onClick={onSave}>Set reminder</button>
+        <motion.button
+          className="ci-btn"
+          onClick={value ? onSave : undefined}
+          animate={{ opacity: value ? 1 : 0.45 }}
+          style={{ cursor: value ? "pointer" : "default", pointerEvents: value ? "auto" : "none" }}
+        >
+          Set reminder
+        </motion.button>
         <button
           onClick={onSkip}
           style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", fontFamily: F, padding: "2px 0" }}
@@ -651,7 +693,7 @@ export default function Onboarding({ onComplete }) {
   const [birthDate, setBirthDate] = useState("");
   const [name, setName] = useState("");
   const [childNumber, setChildNumber] = useState("");
-  const [reminderTime, setReminderTime] = useState("08:00");
+  const [reminderTime, setReminderTime] = useState(null);
   const [dir, setDir] = useState(1);
 
   const go = (n) => { setDir(n > step ? 1 : -1); setStep(n); };
@@ -698,7 +740,7 @@ export default function Onboarding({ onComplete }) {
           {step === 1 && <StepBirthDate value={birthDate} onChange={setBirthDate} onNext={() => go(2)} onBack={() => go(0)} onSkip={() => go(2)} />}
           {step === 2 && <StepName value={name} onChange={setName} onNext={() => go(3)} onBack={() => go(1)} />}
           {step === 3 && <StepChildNumber value={childNumber} onChange={setChildNumber} onNext={() => go(4)} onBack={() => go(2)} />}
-          {step === 4 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(5)} onBack={() => go(3)} onSkip={() => { setReminderTime(""); go(5); }} />}
+          {step === 4 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(5)} onBack={() => go(3)} onSkip={() => { setReminderTime(null); go(5); }} />}
           {step === 5 && <StepReady name={name.trim() || "there"} hasBirthDate={!!birthDate} onDone={finish} />}
         </motion.div>
       </AnimatePresence>

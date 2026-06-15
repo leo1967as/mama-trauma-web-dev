@@ -4,7 +4,7 @@ import { SlidersHorizontal } from "lucide-react";
 
 const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
 import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory, getSafetyLog } from "../../lib/mood-data";
-import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime } from "../../lib/user-data";
+import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime, getCurrentStage } from "../../lib/user-data";
 import { isEpdsDue, getDaysUntilNextEpds, getEpdsHistory } from "../../lib/epds-data";
 import { syncAlerts, getOpenAlerts, resolveAlert } from "../../lib/alert-service";
 import DatePicker from "../../components/afterbloom/DatePicker";
@@ -30,14 +30,14 @@ const ALERT_LABELS = {
   epds_immediate: "EPDS immediate-risk flag",
 };
 
-// "08:00" -> "8:00 AM" (mock reminder copy only; no real notification)
-function formatReminderTime(t) {
-  if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null;
-  const [h, m] = t.split(":").map(Number);
-  const period = h < 12 ? "AM" : "PM";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${String(m).padStart(2, "0")} ${period}`;
-}
+// preferred_checkin_time slug -> nudge copy (mock reminder copy only; no real notification)
+const CHECKIN_TIME_COPY = {
+  morning: "in the morning",
+  afternoon: "in the afternoon",
+  evening: "in the evening",
+  before_bed: "before bed",
+  self: null, // mother checks in on her own — no nudge copy
+};
 
 
 export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) {
@@ -71,7 +71,8 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
   const supportSummary = getMoodSupportSummary(moodEntries);
   const trendData = getMoodChartData(moodEntries, 7);
   const showTrend = hasMoodChartData(trendData);
-  const reminderTime = formatReminderTime(getPreferredCheckinTime());
+  const reminderCopy = CHECKIN_TIME_COPY[getPreferredCheckinTime()] || null;
+  const stage = getCurrentStage();
 
   // blob params from sliders
   const blur   = size;                        // size slider reused as blur (40–100px)
@@ -235,6 +236,9 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
             Good morning,
             <em className="block" style={{ fontStyle: "italic" }}>{getDisplayName()}.</em>
           </h1>
+          <p className="mt-3 text-[12px] font-extrabold uppercase tracking-[0.12em]" style={{ color: "#AF636A" }}>
+            You're in {stage.weekLabel} after birth
+          </p>
           <p className="mt-3.5 text-[15px] font-semibold max-w-[78%]" style={{ color: "#7A453F" }}>
             You're finding your rhythm — one gentle day at a time.
           </p>
@@ -289,7 +293,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-[7px] text-[10.5px] font-black uppercase tracking-[0.1em] rounded-full" style={{ padding: "7px 13px", background: "#F6E2E1", color: "#AF636A" }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}><circle cx="12" cy="12" r="8"/><path d="M9 14s1 1.5 3 1.5 3-1.5 3-1.5M9 9h.01M15 9h.01"/></svg>
                     Check in now
                   </span>
                 )}
@@ -307,33 +311,24 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
                 label={moodSummary.hasTodayCheckIn ? "Edit today's check-in" : "Complete today's check-in"}
                 onCheckIn={onCheckIn}
               />
-              {!moodSummary.hasTodayCheckIn && reminderTime && (
+              {!moodSummary.hasTodayCheckIn && reminderCopy && (
                 <p className="relative text-[12px] mt-3 flex items-center gap-1.5" style={{ color: "#9C8E83" }}>
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                  We'll gently nudge you around {reminderTime}.
+                  We'll gently check in with you {reminderCopy}.
                 </p>
               )}
             </>
           )}
         </div>
 
-        {/* slabel: Care journey */}
-        <div
-          className="flex items-center justify-between mx-1"
-          style={{ marginTop: 24, marginBottom: 11 }}
-        >
+        {/* label: Today's care journey */}
+        <div className="mx-1" style={{ marginTop: 24, marginBottom: 11 }}>
           <span
             className="text-[11px] font-black uppercase tracking-[0.15em]"
             style={{ color: "#9C8E83" }}
           >
-            Care journey
+            Today's care journey
           </span>
-          <a
-            className="inline-flex items-center gap-1 text-[12px] font-bold cursor-pointer"
-            style={{ color: "#AF636A" }}
-          >
-            View full →
-          </a>
         </div>
 
         {/* ribbon */}

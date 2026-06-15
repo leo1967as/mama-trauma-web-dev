@@ -232,7 +232,7 @@ function ProblemTagScreen({ selected, setSelected, otherText, setOtherText, onBa
   const showOther = selected.includes("Something else");
   return (
     <FollowUpShell title="Follow-up · 1 of 3" onBack={onBack} onHelp={onHelp}
-      footer={<ContinueBtn onClick={onContinue} />}>
+      footer={<ContinueBtn onClick={onContinue} disabled={showOther && !otherText.trim()} />}>
       <FollowH>What feels hardest today?</FollowH>
       <FollowSub>Pick up to 2. This only appears when your answers suggest extra care would help.</FollowSub>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
