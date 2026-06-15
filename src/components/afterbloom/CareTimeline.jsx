@@ -1,9 +1,7 @@
-import { getCurrentStage } from "../../lib/user-data";
+import { getCurrentStage, STAGES } from "../../lib/user-data";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
-
-const NODE_LABELS = ["Day 1", "Day 3", "Day 7", "Week 2", "Week 3", "Month 1"];
 
 function segBg(i, activeIndex) {
   if (i < activeIndex - 1) return "#F6E2E1";
@@ -13,14 +11,20 @@ function segBg(i, activeIndex) {
 
 export default function CareTimeline() {
   const stage = getCurrentStage();
-  const { weekLabel, phase, desc, pct, nodeIndex } = stage;
+  const { weekLabel, phase, desc, pct, stageIndex } = stage;
 
-  // Build 5-node timeline (condense to 5 visible nodes)
-  const nodes = NODE_LABELS.slice(0, 5).map((label, i) => ({
-    label,
-    done:    i < nodeIndex,
-    current: i === nodeIndex,
+  // Sliding window: prev (done) -> current -> next (upcoming), so the
+  // timeline scales to any number of stages without a fixed node list.
+  const prev = STAGES[stageIndex - 1] || null;
+  const current = STAGES[stageIndex];
+  const next = STAGES[stageIndex + 1] || null;
+
+  const nodes = [prev, current, next].filter(Boolean).map((s) => ({
+    label: s.label,
+    done: s === prev,
+    current: s === current,
   }));
+  const activeIndex = nodes.findIndex((node) => node.current);
 
   return (
     <div style={{
@@ -67,7 +71,7 @@ export default function CareTimeline() {
             </div>,
           ];
           if (i < nodes.length - 1) {
-            items.push(<div key={`seg-${i}`} style={{ flex: 1, height: 2.5, borderRadius: 30, background: segBg(i, nodeIndex) }} />);
+            items.push(<div key={`seg-${i}`} style={{ flex: 1, height: 2.5, borderRadius: 30, background: segBg(i, activeIndex) }} />);
           }
           return items;
         })}

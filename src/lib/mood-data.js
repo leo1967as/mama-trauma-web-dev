@@ -1,3 +1,5 @@
+import { isSupportEpisodeSuppressed } from "./support-episode";
+
 const STORAGE_KEY = "afterbloom_mood_history";
 const DIFFICULT_TAGS = new Set(["overwhelmed", "tired", "anxious", "lonely", "sad", "panic"]);
 const MOOD_HISTORY_EVENT = "afterbloom:mood-history-updated";
@@ -251,6 +253,27 @@ function countConsecutiveLowMood(entries) {
   return streak;
 }
 
+// Trigger A (spec 3.9): composite < 2.5 on 3 consecutive calendar days.
+function hasThreeConsecutiveLowComposite(entries) {
+  const lowDateKeys = new Set(
+    entries.filter((entry) => entry.composite !== null && entry.composite < 2.5).map((entry) => entry.dateKey)
+  );
+
+  for (const dateKey of lowDateKeys) {
+    const day = new Date(`${dateKey}T00:00:00`);
+    const dayBefore = new Date(day);
+    dayBefore.setDate(day.getDate() - 1);
+    const twoDaysBefore = new Date(day);
+    twoDaysBefore.setDate(day.getDate() - 2);
+
+    if (lowDateKeys.has(toDateKey(dayBefore)) && lowDateKeys.has(toDateKey(twoDaysBefore))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function shouldFlagSupportRequest(entries, currentEntry) {
   if (!currentEntry) {
     return false;
@@ -260,8 +283,7 @@ function shouldFlagSupportRequest(entries, currentEntry) {
     return true;
   }
 
-  const recent = getRecentEntries(entries, 3).filter((entry) => entry.composite !== null);
-  return recent.length === 3 && recent.every((entry) => entry.composite < 2.5);
+  return hasThreeConsecutiveLowComposite(entries);
 }
 
 export function getMoodHistory() {
@@ -346,6 +368,9 @@ export function upsertMoodEntry(patch) {
 // (spec 3.9 Trigger A/B). Used to decide if the Support Need question is shown.
 export function isSupportNeedTriggered(currentAnswers) {
   const preview = normalizeEntry({ dateKey: toDateKey(), ...currentAnswers });
+  if (isSupportEpisodeSuppressed(preview.dateKey)) {
+    return false;
+  }
   const history = getMoodHistory().filter((entry) => entry.dateKey !== preview.dateKey);
   return shouldFlagSupportRequest([preview, ...history], preview);
 }

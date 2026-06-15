@@ -213,11 +213,9 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
 
   const dir = 1;
   const isQuestion = typeof step === "number";
-  const currentAnswer = isQuestion ? answers[step - 1] : null;
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "#FBF6F0", display: "flex", flexDirection: "column", maxWidth: 448, margin: "0 auto", fontFamily: F }}>
-      {isQuestion && <Top step={step} onBack={handleBack} onClose={onClose} onHelp={onNeedHelp} />}
       <AnimatePresence mode="wait" custom={dir}>
         <motion.div key={step} custom={dir} variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           {isQuestion && (
@@ -234,13 +232,6 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
           {step === "result" && <Result answers={answers} onClose={onClose} onNeedHelp={onNeedHelp} />}
         </motion.div>
       </AnimatePresence>
-      {isQuestion && (
-        <div style={{ padding: "16px 24px 40px", flexShrink: 0 }}>
-          <motion.button className="ci-btn" onClick={currentAnswer !== null ? handleNext : undefined} animate={{ opacity: currentAnswer !== null ? 1 : 0.4 }} transition={{ duration: 0.15 }} style={{ cursor: currentAnswer !== null ? "pointer" : "default", pointerEvents: currentAnswer !== null ? "auto" : "none" }}>
-            {step < 10 ? "Continue" : "See results"}
-          </motion.button>
-        </div>
-      )}
     </div>
   );
 }

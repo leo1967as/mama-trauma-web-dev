@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getMoodEntryByDateKey, getMoodSupportSummary, getSupportLevelMeta, upsertMoodEntry, saveCheckinDraft, getCheckinDraft, clearCheckinDraft, isSupportNeedTriggered } from "../../lib/mood-data";
 import { getSuggestedGoals, setDailyGoal } from "../../lib/goals-data";
+import { recordSupportAnswer } from "../../lib/support-episode";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -526,6 +527,8 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
 
   const handleSupportAnswer = (value) => {
     setSupportRequest(value);
+    const dateKey = localDateKey();
+    recordSupportAnswer(value, dateKey, `support_request:${dateKey}`);
     finish(value);
   };
 

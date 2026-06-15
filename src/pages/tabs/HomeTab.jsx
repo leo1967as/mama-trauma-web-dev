@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal } from "lucide-react";
 
 const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
-import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory } from "../../lib/mood-data";
+import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory, getSafetyLog } from "../../lib/mood-data";
 import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime } from "../../lib/user-data";
-import { isEpdsDue, getDaysUntilNextEpds } from "../../lib/epds-data";
+import { isEpdsDue, getDaysUntilNextEpds, getEpdsHistory } from "../../lib/epds-data";
+import { syncAlerts, getOpenAlerts, resolveAlert } from "../../lib/alert-service";
 import DatePicker from "../../components/afterbloom/DatePicker";
 import CareTimeline from "../../components/afterbloom/CareTimeline";
 import DailyGoal from "../../components/afterbloom/DailyGoal";
@@ -21,6 +22,13 @@ function heroHeading(hasTodayCheckIn, todayMood) {
   if (todayMood === 3) return "Today felt like an okay day.";
   return "Today felt like a lighter day.";
 }
+
+const ALERT_LABELS = {
+  support_request: "Support Need request",
+  low_trend_3day: "3-day low mood trend",
+  safety_access: "Safety resources accessed",
+  epds_immediate: "EPDS immediate-risk flag",
+};
 
 // "08:00" -> "8:00 AM" (mock reminder copy only; no real notification)
 function formatReminderTime(t) {
@@ -45,12 +53,18 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
   const [settingsBirthDate, setSettingsBirthDate] = useState(() => getOnboardingData().baby_birth_date || "");
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [settingsShowDate, setSettingsShowDate] = useState(false);
+  const [openAlerts, setOpenAlerts] = useState([]);
 
   useEffect(() => {
     setMoodEntries(getMoodHistory());
     const unsub = subscribeToMoodHistory(setMoodEntries);
     return unsub;
   }, []);
+
+  const handleResolveAlert = (id) => {
+    resolveAlert(id);
+    setOpenAlerts(getOpenAlerts());
+  };
 
   const moodSummary = getMoodSummary(moodEntries);
   const todayMood = moodSummary.todayEntry?.moodScore ?? null;
@@ -106,7 +120,18 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
               </svg>
             </button>
             <button
-              onClick={() => { setShowSettings(s => !s); setSettingsShowDate(false); setSettingsSaved(false); }}
+              onClick={() => {
+                setShowSettings(s => {
+                  const next = !s;
+                  if (next) {
+                    syncAlerts(getMoodHistory(), getEpdsHistory(), getSafetyLog());
+                    setOpenAlerts(getOpenAlerts());
+                  }
+                  return next;
+                });
+                setSettingsShowDate(false);
+                setSettingsSaved(false);
+              }}
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ background: showSettings ? "rgba(255,255,255,.7)" : "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
             >
@@ -172,6 +197,33 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
                 >
                   {settingsSaved ? "Saved ✓" : "Save changes"}
                 </motion.button>
+
+                {/* Care Team (Demo) — mock hospital dashboard, resolves alerts so suppressed Support Need prompts can re-show */}
+                <div style={{ borderTop: "1px solid rgba(239,230,220,.8)", paddingTop: 12, marginTop: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8A4F4C", marginBottom: 8 }}>
+                    Care Team (Demo)
+                  </div>
+                  {openAlerts.length === 0 ? (
+                    <p style={{ fontSize: 12, color: "#9C8E83" }}>No open alerts.</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {openAlerts.map((alert) => (
+                        <div key={alert.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 12px", background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 12 }}>
+                          <div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3E342C" }}>{ALERT_LABELS[alert.type] || alert.type}</div>
+                            <div style={{ fontSize: 11, color: "#9C8E83" }}>{alert.dateKey}</div>
+                          </div>
+                          <button
+                            onClick={() => handleResolveAlert(alert.id)}
+                            style={{ fontSize: 11.5, fontWeight: 700, color: "#5E8169", background: "#EAF1EC", border: 0, borderRadius: 10, padding: "7px 12px", cursor: "pointer" }}
+                          >
+                            Mark resolved
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}

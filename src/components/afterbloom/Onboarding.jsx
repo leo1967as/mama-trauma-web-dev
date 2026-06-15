@@ -24,7 +24,7 @@ function ProgressDots({ current, total = 4 }) {
   );
 }
 
-function StepHeader({ onBack, onSkip, step, total = 4, skipLabel = "Skip" }) {
+function StepHeader({ onBack, step, total = 4 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px 8px" }}>
       <motion.button
@@ -41,11 +41,7 @@ function StepHeader({ onBack, onSkip, step, total = 4, skipLabel = "Skip" }) {
 
       <ProgressDots current={step} total={total} />
 
-      {onSkip ? (
-        <span onClick={onSkip} style={{ fontSize: 13, fontWeight: 700, color: "#AF636A", cursor: "pointer", fontFamily: F, padding: "4px 2px" }}>
-          {skipLabel}
-        </span>
-      ) : <div style={{ width: 38 }} />}
+      <div style={{ width: 38 }} />
     </div>
   );
 }
@@ -249,7 +245,7 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <StepHeader onBack={onBack} onSkip={handleSkip} step={1} />
+      <StepHeader onBack={onBack} step={1} />
 
       <div style={{ flex: 1, padding: "24px 26px 0", display: "flex", flexDirection: "column", overflowY: "auto" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
@@ -558,7 +554,7 @@ function StepChildNumber({ value, onChange, onNext, onBack }) {
 function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <StepHeader onBack={onBack} onSkip={onSkip} step={4} skipLabel="Skip" />
+      <StepHeader onBack={onBack} step={4} />
 
       <div style={{ flex: 1, padding: "28px 26px 0", display: "flex", flexDirection: "column", overflowY: "auto" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
