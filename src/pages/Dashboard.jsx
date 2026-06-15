@@ -108,21 +108,13 @@ export default function Dashboard() {
         </AnimatePresence>
       </div>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} legacyUnlocked={legacyUnlocked} />
-
-      {/* Persistent I Need Help — visible on every tab when no overlay is open */}
-      {!checkInOpen && !epdsOpen && !helpOpen && (
-        <motion.button
-          onClick={() => openHelp("global")}
-          whileTap={{ scale: 0.94 }}
-          className="fixed z-[70] right-4 bottom-24 flex items-center gap-2 rounded-full bg-red-500 px-4 py-2.5 text-white shadow-lg shadow-red-300/50"
-          style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
-          aria-label="I Need Help"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>
-          <span className="text-[13px] font-extrabold">I Need Help</span>
-        </motion.button>
-      )}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        legacyUnlocked={legacyUnlocked}
+        onHelp={() => openHelp("global")}
+        showHelp={!checkInOpen && !epdsOpen && !helpOpen}
+      />
 
       <Suspense fallback={null}>
         {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
