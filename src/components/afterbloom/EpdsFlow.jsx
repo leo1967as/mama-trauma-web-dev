@@ -1,64 +1,70 @@
 import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { saveEpdsEntry, computeEpdsScore, getEpdsSupportLevel, getRecommendedNextStep, toDateKey } from "../../lib/epds-data";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { saveEpdsEntry, computeEpdsScore, getEpdsSupportLevel, toDateKey } from "../../lib/epds-data";
+import { LAYERS, LAYOUT, EASE_OUT_QUINT } from "../../lib/theme.jsx";
+import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
+import { useLang } from "../../lib/i18n";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
 
 const QUESTIONS = [
-  { prompt: "Have you been able to find moments of joy or something to smile about?", options: ["Yes, often", "Not quite as often as usual", "Rarely lately", "Hardly at all"] },
-  { prompt: "Have you been able to look forward to things you usually enjoy?", options: ["As much as ever", "A little less than usual", "Quite a bit less", "Hardly at all"] },
-  { prompt: "Have you been blaming yourself for things that weren't really your fault?", options: ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a lot"] },
-  { prompt: "Have you felt anxious or worried without a clear reason?", options: ["No, not at all", "Hardly ever", "Yes, sometimes", "Yes, a lot"] },
-  { prompt: "Have you felt scared or panicky for no clear reason?", options: ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a bit"] },
-  { prompt: "Has everything felt too much and hard to cope with?", options: ["No, I've been coping well", "Mostly okay, just a little effort", "Sometimes not coping as well", "No - I haven't been coping at all"] },
-  { prompt: "Have you felt so unhappy that it's made sleeping harder?", options: ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a lot"] },
-  { prompt: "Have you felt sad or teary?", options: ["No, not at all", "Not very often", "Yes, quite a lot", "Yes, most of the time"] },
-  { prompt: "Have you been crying more than usual?", options: ["No, never", "Only occasionally", "Yes, quite often", "Yes, almost all the time"] },
-  { prompt: "Have thoughts of hurting yourself crossed your mind?", options: ["Never", "Hardly ever", "Sometimes", "Yes, quite often"], isSensitive: true },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: false },
+  { isSensitive: true },
 ];
 
-function Top({ step, onBack, onClose, onHelp }) {
+function Top({ step, onBack, onClose, onHelp, epdsTitle }) {
+  const { t } = useLang();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px 8px" }}>
       <motion.button
         onClick={step === 1 ? onClose : onBack}
         whileTap={{ scale: 0.9 }}
-        style={{ width: 38, height: 38, borderRadius: "50%", background: "#fff", border: "1px solid #EFE6DC", display: "flex", alignItems: "center", justifyContent: "center", color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F }}
+        aria-label={step === 1 ? "Close emotional check" : "Go back"}
+        style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", border: "1px solid #EFE6DC", display: "flex", alignItems: "center", justifyContent: "center", color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F }}
       >
         {step === 1 ? "✕" : "←"}
       </motion.button>
       <div style={{ flex: 1, padding: "0 12px", textAlign: "center" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 6 }}>Emotional Check</div>
-        <div style={{ height: 5, background: "#EFE6DC", borderRadius: 30, overflow: "hidden" }}>
-          <motion.div animate={{ width: `${(step / 10) * 100}%` }} transition={{ duration: 0.35 }} style={{ height: "100%", background: "linear-gradient(90deg,#C77E83,#DBA0A2)", borderRadius: 30 }} />
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#786A5C", marginBottom: 6 }}>{epdsTitle}</div>
+        <div style={{ height: 5, background: "#EFE6DC", borderRadius: 18, overflow: "hidden" }}>
+          <motion.div animate={{ width: `${(step / 10) * 100}%` }} transition={{ duration: 0.35 }} style={{ height: "100%", background: "linear-gradient(90deg,#C77E83,#DBA0A2)", borderRadius: 18 }} />
         </div>
       </div>
-      <button onClick={onHelp} style={{ width: 38, height: 38, borderRadius: "50%", background: "#F6E2E1", border: 0, color: "#AF636A", fontSize: 11, fontWeight: 800, cursor: "pointer", lineHeight: 1, padding: 0 }}>Help</button>
+      <button onClick={onHelp} style={{ width: 44, height: 44, borderRadius: "50%", background: "#F6E2E1", border: 0, color: "#9A4C53", fontSize: 11, fontWeight: 800, cursor: "pointer", lineHeight: 1, padding: 0 }}>{t.checkin.help}</button>
     </div>
   );
 }
 
 function Question({ questionIndex, answer, onSelect, onNext, onBack, onClose, onHelp }) {
-  const q = QUESTIONS[questionIndex];
+  const { t } = useLang();
+  const q = { ...QUESTIONS[questionIndex], ...t.epds.questions[questionIndex] };
   const step = questionIndex + 1;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <Top step={step} onBack={onBack} onClose={onClose} onHelp={onHelp} />
-      <div style={{ flex: 1, padding: "22px 24px 0", overflowY: "auto" }}>
+      <Top step={step} onBack={onBack} onClose={onClose} onHelp={onHelp} epdsTitle={t.epds.title} />
+      <div style={{ flex: 1, padding: `22px 24px ${LAYOUT.flowScrollPadding}`, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
-          Question {step} of 10
+          {t.epds.questionOf.replace("{{n}}", step)}
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 24, lineHeight: 1.3, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 24 }}>
           {q.prompt}
         </div>
         {q.isSensitive && (
-          <div style={{ background: "#E7EFE8", border: "1px solid #C8DFC9", borderRadius: 16, padding: "13px 16px", marginBottom: 18, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ background: "#E7EFE8", border: "1px solid #C8DFC9", borderRadius: 10, padding: "13px 16px", marginBottom: 18, display: "flex", gap: 12, alignItems: "flex-start" }}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#577A62" strokeWidth="2" style={{ flexShrink: 0, marginTop: 1 }}>
               <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
             </svg>
-            <span style={{ fontSize: 12.5, color: "#577A62", lineHeight: 1.55 }}>If this feels urgent, use I Need Help right away. Answer honestly and keep going at your pace.</span>
+            <span style={{ fontSize: 12.5, color: "#577A62", lineHeight: 1.55 }}>{t.epds.sensitiveNote}</span>
           </div>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -66,10 +72,10 @@ function Question({ questionIndex, answer, onSelect, onNext, onBack, onClose, on
             const on = answer === idx;
             return (
               <motion.button
-                key={opt}
+                key={idx}
                 onClick={() => onSelect(idx)}
                 whileTap={{ scale: 0.97 }}
-                style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", background: on ? "#FBEDEC" : "#fff", border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`, borderRadius: 18, cursor: "pointer", textAlign: "left", width: "100%", boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)" }}
+                style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", background: on ? "#FBEDEC" : "#fff", border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`, borderRadius: 12, cursor: "pointer", textAlign: "left", width: "100%", boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)" }}
               >
                 <motion.div animate={{ width: on ? 22 : 20, height: on ? 22 : 20, background: on ? "#C77E83" : "#fff", border: on ? "none" : "1.5px solid #D6CEC8" }} transition={{ type: "spring", stiffness: 420, damping: 22 }} style={{ borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {on && <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8"><path d="M5 13l4 4L19 7"/></svg>}
@@ -80,7 +86,7 @@ function Question({ questionIndex, answer, onSelect, onNext, onBack, onClose, on
           })}
         </div>
       </div>
-      <div style={{ padding: "16px 24px 40px" }}>
+      <div style={{ padding: `16px 24px ${LAYOUT.flowFooterPadding}` }}>
         <motion.button
           className="ci-btn"
           onClick={answer !== null ? onNext : undefined}
@@ -88,97 +94,136 @@ function Question({ questionIndex, answer, onSelect, onNext, onBack, onClose, on
           transition={{ duration: 0.15 }}
           style={{ cursor: answer !== null ? "pointer" : "default", pointerEvents: answer !== null ? "auto" : "none" }}
         >
-          {step < 10 ? "Continue" : "See results"}
+          {step < 10 ? t.epds.continue : t.epds.seeResults}
         </motion.button>
       </div>
     </div>
   );
 }
 
-const RISK_META = {
-  steady: { badge: "Steady", badgeBg: "#E7EFE8", badgeColor: "#577A62", body: "Your answers suggest you are steady right now. Keep the daily rhythm going so changes stay easier to spot.", quote: "Small, steady steps can carry a lot of weight." },
-  gentle: { badge: "Gentle Support", badgeBg: "#F7EDD8", badgeColor: "#9A7322", body: "Your answers point to early strain. Gentle support and simple next steps can help keep this from building.", quote: "Noticing the pattern early is a strength." },
-  extra: { badge: "Extra Support Recommended", badgeBg: "#FEF0E7", badgeColor: "#C2460A", body: "Your answers suggest you may benefit from extra support right now. Reaching out soon would be a good next step.", quote: "You do not have to carry this stretch alone." },
-  immediate: { badge: "Immediate Support", badgeBg: "#FEECEC", badgeColor: "#B91C1C", body: "Your answers point to a high-need moment. Please open help right now and contact support immediately.", quote: "Your safety matters first." },
+const RISK_META_STYLES = {
+  steady: { badgeBg: "#E7EFE8", badgeColor: "#577A62" },
+  gentle: { badgeBg: "#F7EDD8", badgeColor: "#9A7322" },
+  extra: { badgeBg: "#FEF0E7", badgeColor: "#C2460A" },
+  immediate: { badgeBg: "#FEECEC", badgeColor: "#B91C1C" },
 };
 
 function CrisisCard({ title, body }) {
   return (
-    <div style={{ background: "#F6E2E1", border: "1px solid #E8C4C0", borderRadius: 20, padding: "18px 20px" }}>
-      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#AF636A", marginBottom: 10 }}>{title}</div>
+    <div style={{ background: "#F6E2E1", border: "1px solid #E8C4C0", borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A4C53", marginBottom: 10 }}>{title}</div>
       <p style={{ fontSize: 13, color: "#7A3A3A", lineHeight: 1.55 }}>{body}</p>
     </div>
   );
 }
 
 function Result({ answers, onClose, onNeedHelp }) {
+  const { t } = useLang();
+  const [scoreOpen, setScoreOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
   const totalScore = computeEpdsScore(answers);
   const supportLevel = getEpdsSupportLevel(totalScore, answers[9] > 0);
-  const meta = RISK_META[supportLevel];
+  const meta = t.epds.riskMeta[supportLevel];
+  const styles = RISK_META_STYLES[supportLevel];
   const q10Flag = answers[9] > 0;
   const showTalkBtn = supportLevel !== "steady" || q10Flag;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: F }}>
-      <div style={{ background: "linear-gradient(160deg,#F4C9A8,#E2A0A4 50%,#D7A0AB)", padding: "0 28px 44px", position: "relative", overflow: "hidden", flexShrink: 0 }}>
-        <div style={{ position: "absolute", width: 220, height: 220, borderRadius: "50%", right: -50, top: -70, background: "radial-gradient(circle,rgba(255,240,214,.8),transparent 70%)" }} />
+      <div style={{ background: "#F2E4DE", padding: "0 28px 44px", position: "relative", overflow: "hidden", flexShrink: 0 }}>
         <div style={{ position: "relative", display: "inline-flex", margin: "24px 0 20px" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 9, fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", background: "rgba(255,255,255,.25)", padding: "8px 16px", borderRadius: 30 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 9, fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", background: "rgba(255,255,255,.25)", padding: "8px 16px", borderRadius: 18 }}>
             <svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" strokeWidth="2.8"><path d="M5 13l4 4L19 7"/></svg>
-            Emotional Check complete
+            {t.epds.completeBadge}
           </span>
         </div>
-        <div style={{ fontFamily: S, fontWeight: 500, fontSize: 36, lineHeight: 1.05, letterSpacing: "-0.015em", color: "#4A2F2C", position: "relative", marginBottom: 12 }}>
-          You showed up
-          <em style={{ display: "block", fontStyle: "italic" }}>for yourself.</em>
-        </div>
-        <div style={{ position: "relative", display: "inline-flex", alignItems: "baseline", gap: 6 }}>
-          <span style={{ fontFamily: S, fontSize: 44, fontWeight: 500, color: "#4A2F2C", letterSpacing: "-0.02em" }}>{totalScore}</span>
-          <span style={{ fontSize: 16, fontWeight: 500, color: "rgba(74,47,44,.5)" }}>/ 30</span>
+        <div style={{ fontFamily: S, fontWeight: 500, fontSize: 36, lineHeight: 1.05, letterSpacing: "-0.015em", color: "#4A2F2C", position: "relative", marginBottom: 4 }}>
+          {t.epds.heroTitle}
+          <em style={{ display: "block", fontStyle: "italic" }}>{t.epds.heroTitleItalic}</em>
         </div>
       </div>
 
-      <div style={{ flex: 1, background: "#FBF6F0", borderRadius: "26px 26px 0 0", marginTop: -16, padding: "24px 22px 40px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 13 }}>
-        <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 22, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 12px", borderRadius: 30, background: meta.badgeBg, color: meta.badgeColor }}>{meta.badge}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#9C8E83" }}>{totalScore} / 30</span>
-          </div>
+      <div style={{ flex: 1, background: "#FBF6F0", borderRadius: "18px 18px 0 0", marginTop: -16, padding: `24px 22px ${LAYOUT.flowScrollPadding}`, overflowY: "auto", overscrollBehavior: "contain", display: "flex", flexDirection: "column", gap: 13 }}>
+        <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
+          <span style={{ display: "inline-block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 12px", borderRadius: 18, background: styles.badgeBg, color: styles.badgeColor, marginBottom: 10 }}>{meta.badge}</span>
           <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.6, marginBottom: 10 }}>{meta.body}</p>
-          <p style={{ fontSize: 12.5, color: "#3E342C", fontWeight: 700 }}>Next step: {getRecommendedNextStep(supportLevel).text}</p>
+          <p style={{ fontSize: 12.5, color: "#3E342C", fontWeight: 700 }}>{t.epds.nextStepPrefix}{t.epdsNextSteps[supportLevel]}</p>
           {supportLevel === "immediate" && (
             <div style={{ marginTop: 16 }}>
-              <CrisisCard title="We recommend support" body="Please open help right now and reach out to a doctor, midwife, or crisis line." />
+              <CrisisCard title={t.epds.crisisCards.recommendSupport} body={t.epds.crisisCards.recommendSupportBody} />
             </div>
           )}
         </div>
 
         {q10Flag && supportLevel !== "immediate" && (
-          <CrisisCard title="We noticed your last answer" body="If those thoughts ever feel urgent, open help immediately. You matter deeply and support is available now." />
+          <CrisisCard title={t.epds.crisisCards.noticedLastAnswer} body={t.epds.crisisCards.noticedLastAnswerBody} />
         )}
 
-        <div style={{ background: "linear-gradient(150deg,#E7EFE8,#fff)", border: "1px solid #D8E6DB", borderRadius: 22, padding: "18px 20px" }}>
+        <div style={{ background: "linear-gradient(150deg,#E7EFE8,#fff)", border: "1px solid #D8E6DB", borderRadius: 14, padding: "18px 20px" }}>
           <div style={{ fontFamily: S, fontStyle: "italic", fontSize: 17, color: "#577A62", lineHeight: 1.5, marginBottom: 8 }}>
             "{meta.quote}"
           </div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#7A9E84" }}>— Your care team</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#7A9E84" }}>{t.epds.careTeam}</div>
         </div>
 
-        <motion.button className="ci-btn" onClick={onClose} whileTap={{ scale: 0.96 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
-          Save & close
-        </motion.button>
+        <button
+          type="button"
+          onClick={() => setScoreOpen((open) => !open)}
+          aria-expanded={scoreOpen}
+          aria-controls="epds-score-details"
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%", minHeight: 44, padding: "13px 16px", borderRadius: 12, border: "1px solid #EFE6DC", background: "#fff", color: "#7A453F", fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: F }}
+        >
+          {scoreOpen ? t.epds.hideScore : t.epds.seeScore}
+          <svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" strokeWidth="2.4" style={{ transform: scoreOpen ? "rotate(180deg)" : "none", transition: "transform 180ms ease" }}>
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+
+        <AnimatePresence initial={false}>
+          {scoreOpen && (
+            <motion.div
+              id="epds-score-details"
+              initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}
+            >
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontFamily: S, fontSize: 30, fontWeight: 500, color: "#4A2F2C", letterSpacing: "-0.02em" }}>{totalScore}</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: "#786A5C" }}>/ 30</span>
+              </div>
+              <p style={{ fontSize: 12.5, color: "#786A5C", lineHeight: 1.55 }}>
+                {t.epds.scoreExplain}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {showTalkBtn && (
-          <button onClick={onNeedHelp} style={{ width: "100%", padding: 15, borderRadius: 18, background: "#fff", border: "1px solid #EFE6DC", fontSize: 14, fontWeight: 700, color: "#6C5F56", cursor: "pointer", fontFamily: F }}>
-            I Need Help
+          <button onClick={onNeedHelp} style={{ width: "100%", padding: 16, borderRadius: 12, background: supportLevel === "immediate" ? "#B91C1C" : "#C77E83", border: 0, fontSize: 15, fontWeight: 800, color: "#fff", cursor: "pointer", fontFamily: F, boxShadow: supportLevel === "immediate" ? "0 10px 18px rgba(185,28,28,.18)" : "0 12px 22px rgba(175,99,106,.22)" }}>
+            {t.epds.iNeedHelp}
           </button>
         )}
+
+        <motion.button
+          className={showTalkBtn ? "" : "ci-btn"}
+          onClick={onClose}
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          style={showTalkBtn ? { width: "100%", padding: 15, borderRadius: 12, background: "#fff", border: "1px solid #EFE6DC", fontSize: 14, fontWeight: 700, color: "#6C5F56", cursor: "pointer", fontFamily: F } : undefined}
+        >
+          {t.epds.saveClose}
+        </motion.button>
       </div>
     </div>
   );
 }
 
 export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
+  useBodyScrollLock();
+  const reduceMotion = useReducedMotion();
+
   const [step, setStep] = useState(1);
   const [answers, setAnswers] = useState(new Array(10).fill(null));
   const dateKeyRef = useRef(toDateKey());
@@ -215,7 +260,14 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
   const isQuestion = typeof step === "number";
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "#FBF6F0", display: "flex", flexDirection: "column", maxWidth: 448, margin: "0 auto", fontFamily: F }}>
+    <motion.div
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: "100%" }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.32, ease: EASE_OUT_QUINT } }}
+      exit={reduceMotion ? { opacity: 0, transition: { duration: 0.15 } } : { opacity: 0, y: "100%", transition: { duration: 0.24, ease: EASE_OUT_QUINT } }}
+      role="dialog"
+      aria-modal="true"
+      style={{ position: "fixed", inset: 0, zIndex: LAYERS.flowOverlay, background: "#FBF6F0", display: "flex", flexDirection: "column", maxWidth: 448, margin: "0 auto", fontFamily: F }}
+    >
       <AnimatePresence mode="wait" custom={dir}>
         <motion.div key={step} custom={dir} variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           {isQuestion && (
@@ -232,7 +284,6 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
           {step === "result" && <Result answers={answers} onClose={onClose} onNeedHelp={onNeedHelp} />}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
-

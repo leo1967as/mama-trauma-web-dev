@@ -1,4 +1,5 @@
 import { isSupportEpisodeSuppressed } from "./support-episode";
+import { syncCheckin, syncSafetyAccess } from './firebase-sync';
 
 const STORAGE_KEY = "afterbloom_mood_history";
 const DIFFICULT_TAGS = new Set(["overwhelmed", "tired", "anxious", "lonely", "sad", "panic"]);
@@ -7,25 +8,30 @@ const DEMO_HISTORY_DAYS = 14;
 const DEMO_TAG_POOL = ["calm", "hopeful", "grateful", "tired", "anxious", "lonely", "proud", "overwhelmed"];
 
 const SUPPORT_LEVELS = {
+  unassessed: {
+    label: "Not yet assessed",
+    message: "Start your first daily check-in to see today's support guidance.",
+    action: "Take your first check-in",
+  },
   steady: {
     label: "Steady",
-    message: "Your recent check-ins look stable. Keep the rhythm going so changes stay easy to spot.",
-    action: "Keep one tiny routine going today.",
+    message: "You seem steady today. Keep going at your own pace.",
+    action: "Keep today's care rhythm",
   },
   gentle: {
     label: "Gentle Support",
-    message: "There are early signs worth watching. Gentle support and a simple plan can help.",
-    action: "Reach out to one trusted person and keep today's check-in simple.",
+    message: "Today might feel a little heavy. You don't have to push through everything at once.",
+    action: "Choose one small goal",
   },
   extra: {
-    label: "Extra Support Recommended",
-    message: "Your recent check-ins suggest this is a harder stretch. Extra support would be a good next step.",
-    action: "Ask for support today and consider talking to a care provider.",
+    label: "Extra Support",
+    message: "Today looks heavier than usual. A little more support around you could help right now.",
+    action: "Open support options",
   },
   immediate: {
     label: "Immediate Support",
-    message: "Your recent check-ins point to a high-need moment. Please reach out for immediate support now.",
-    action: "Open I Need Help and contact support right now.",
+    message: "You don't have to go through this alone. We'll connect you with support right away.",
+    action: "Open urgent support",
   },
 };
 
@@ -66,6 +72,7 @@ export function logSafetyAccess(meta = {}) {
     const log = JSON.parse(window.localStorage.getItem(SAFETY_LOG_KEY) || "[]");
     log.push({ ts: new Date().toISOString(), dateKey: toDateKey(), ...meta });
     window.localStorage.setItem(SAFETY_LOG_KEY, JSON.stringify(log));
+    syncSafetyAccess(meta);
   } catch {
     /* noop */
   }
@@ -127,14 +134,27 @@ export function getSupportLevelMeta(level) {
   return SUPPORT_LEVELS[level] || SUPPORT_LEVELS.steady;
 }
 
-function getMoodSupportLevelFromComposite(composite) {
+function getMoodSupportLevel(entry, composite) {
+  if (entry.supportRequest === true) return "immediate";
+
   if (composite === null || composite === undefined) {
-    return "steady";
+    return "steady"; // Default when incomplete
   }
-  if (composite >= 4.25) return "steady";
-  if (composite >= 3.5) return "gentle";
-  if (composite >= 2.5) return "extra";
-  return "immediate";
+
+  // Spec Override rule: If support_request was triggered (supportNeedPattern)
+  // and baby_connection_score = 1: escalate to Level 3 regardless of composite
+  if (entry.supportNeedPattern && entry.babyConnectionScore === 1) {
+    return "extra";
+  }
+
+  // Spec Level 3 OR condition: mood_score <= 2 AND worry = high (score >= 4 or adjusted <= 2)
+  if (entry.moodScore !== null && entry.moodScore <= 2 && entry.worryScore !== null && entry.worryScore >= 4) {
+    return "extra";
+  }
+
+  if (composite >= 3.5) return "steady"; // Level 1
+  if (composite >= 2.5) return "gentle"; // Level 2
+  return "extra";                        // Level 3 (composite < 2.5)
 }
 
 function createDemoEntry(dateKey, offset) {
@@ -189,7 +209,14 @@ function normalizeEntry(entry) {
   const worryAdjustedScore = worryScore === null ? null : 6 - worryScore;
   const compositeValues = [moodScore, sleepScore, energyScore, worryAdjustedScore].filter((value) => value !== null);
   const composite = compositeValues.length ? average(compositeValues) : null;
-  const supportLevel = entry.supportLevel || getMoodSupportLevelFromComposite(composite);
+  
+  const supportLevel = entry.supportLevel || getMoodSupportLevel({
+    supportRequest: Boolean(entry.supportRequest),
+    supportNeedPattern: Boolean(entry.supportNeedPattern),
+    babyConnectionScore: clampScore(entry.babyConnectionScore),
+    moodScore,
+    worryScore
+  }, composite);
   const supportMeta = getSupportLevelMeta(supportLevel);
 
   return {
@@ -321,8 +348,11 @@ export function upsertMoodEntry(patch) {
   const history = getMoodHistory();
   const index = history.findIndex((entry) => entry.dateKey === dateKey);
   const current = index >= 0 ? history[index] : { id: dateKey, dateKey };
+  // Strip computed alias fields so canonical patch fields (worryScore, sleepScore, energyScore)
+  // always win over the old mirror values (worryScoreRaw, sleepHours, energyLevel) on edit.
+  const { worryScoreRaw: _w, sleepHours: _s, energyLevel: _e, ...currentBase } = current;
   const nextEntry = normalizeEntry({
-    ...current,
+    ...currentBase,
     ...patch,
     id: dateKey,
     dateKey,
@@ -346,7 +376,7 @@ export function upsertMoodEntry(patch) {
       (nextHistory[nextEntryIndex].composite < 2.5 ||
         [nextHistory[nextEntryIndex].moodScore, nextHistory[nextEntryIndex].sleepScore, nextHistory[nextEntryIndex].energyScore, nextHistory[nextEntryIndex].worryAdjustedScore].includes(1))
     );
-    const supportLevel = getMoodSupportLevelFromComposite(nextHistory[nextEntryIndex].composite);
+    const supportLevel = getMoodSupportLevel(nextHistory[nextEntryIndex], nextHistory[nextEntryIndex].composite);
     const supportMeta = getSupportLevelMeta(supportLevel);
     nextHistory[nextEntryIndex] = {
       ...nextHistory[nextEntryIndex],
@@ -361,6 +391,11 @@ export function upsertMoodEntry(patch) {
   }
 
   saveMoodHistory(nextHistory);
+
+  // Sync the updated entry to Firestore (fire-and-forget)
+  const savedEntry = nextHistory.find(e => e.dateKey === dateKey);
+  if (savedEntry) syncCheckin(savedEntry);
+
   return nextHistory;
 }
 
@@ -453,9 +488,9 @@ export function getMoodSupportSummary(entries) {
   const recent = getRecentEntries(entries, 7);
   const latest = recent[0] || null;
   if (!latest) {
-    const meta = getSupportLevelMeta("steady");
+    const meta = getSupportLevelMeta("unassessed");
     return {
-      level: "steady",
+      level: "unassessed",
       label: meta.label,
       message: meta.message,
       action: meta.action,
@@ -464,7 +499,7 @@ export function getMoodSupportSummary(entries) {
     };
   }
 
-  const level = latest.supportLevel || getMoodSupportLevelFromComposite(latest.composite);
+  const level = latest.supportLevel || getMoodSupportLevel(latest, latest.composite);
   const meta = getSupportLevelMeta(level);
   return {
     level,
@@ -579,4 +614,3 @@ export function getMoodSummary(entries) {
     averageMoodLast7: avgMood,
   };
 }
-

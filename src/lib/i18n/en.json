@@ -1,0 +1,503 @@
+{
+  "nav": {
+    "home": "Home",
+    "mood": "Mood",
+    "therapy": "Therapy",
+    "plans": "Plans",
+    "circle": "Circle",
+    "legacy": "Legacy",
+    "needHelp": "I Need Help"
+  },
+
+  "home": {
+    "hero": {
+      "noCheckin": "How are you feeling today?",
+      "checkinNoMood": "Check in with yourself today.",
+      "lowMood": "Today felt like a heavier day.",
+      "neutralMood": "Today felt like an okay day.",
+      "highMood": "Today felt like a lighter day."
+    },
+    "greeting": {
+      "goodMorning": "Good morning,",
+      "inWeekAfterBirth": "You're in {{stage}} after birth",
+      "findingRhythm": "You're finding your rhythm — one gentle day at a time."
+    },
+    "checkinTimeCopy": {
+      "morning": "in the morning",
+      "afternoon": "in the afternoon",
+      "evening": "in the evening",
+      "before_bed": "before bed"
+    },
+    "headerMotion": {
+      "blobs": "Two blooms",
+      "glow": "Breathing glow",
+      "sweep": "Light sweep"
+    },
+    "settings": {
+      "title": "My Profile",
+      "preferredName": "Name in the app",
+      "preferredNamePlaceholder": "Nickname or preferred name",
+      "legalFirstName": "First name",
+      "legalFirstNamePlaceholder": "Your legal first name",
+      "legalLastName": "Last name",
+      "legalLastNamePlaceholder": "Your legal last name",
+      "phone": "Phone number",
+      "phonePlaceholder": "Your phone number",
+      "babyArrivalDate": "Baby's arrival date",
+      "notSet": "Not set",
+      "change": "Change",
+      "close": "Close",
+      "backgroundMotion": "Background motion",
+      "saveChanges": "Save changes",
+      "saved": "Saved ✓"
+    },
+    "badges": {
+      "checkinSaved": "Check-in saved",
+      "checkinNow": "Check in now",
+      "loggedToday": "Logged today",
+      "journeyStarted": "Journey started"
+    },
+    "firstCheckin": {
+      "title": "Your first check-in\nstarts your baseline.",
+      "body": "Just 30 seconds — mood, sleep, and how you feel today. That's all we need.",
+      "cta": "Take your first check-in"
+    },
+    "normalCheckin": {
+      "noCheckinBody": "A quick mood check-in keeps support gentle, early, and easier to understand.",
+      "checkinDoneBody": "Thank you for being honest with yourself. You can update it anytime if something shifts.",
+      "ctaEdit": "Edit today's check-in",
+      "ctaComplete": "Complete today's check-in",
+      "nudge": "We'll gently check in with you {{time}}."
+    },
+    "cards": {
+      "todaysCareJourney": "Today's care journey",
+      "todaysSupportLevel": "Today's support level",
+      "moodTrend": "7-day mood trend",
+      "moodTrendEmpty": "Your trend will appear here once you check in a few times.",
+      "emotionalCheck": "Emotional check",
+      "emotionalCheckDueTitle": "A gentle 10-question check-in",
+      "emotionalCheckDueBody": "Takes about 2 minutes, just for you.",
+      "emotionalCheckDoneTitle": "You're up to date 💛",
+      "emotionalCheckDoneBody": "Next suggested in {{days}} days."
+    }
+  },
+
+  "checkin": {
+    "title": "Daily Check-in",
+    "help": "Help",
+    "continue": "Continue",
+    "seeResults": "See results",
+    "selected": "Selected:",
+    "questions": [
+      {
+        "title": "How are you feeling today?",
+        "subtitle": "Choose the one that fits today best.",
+        "labels": ["Very low", "Low", "Neutral", "Good", "Very good"],
+        "help": "There's no wrong answer — just how today feels."
+      },
+      {
+        "title": "How did you sleep last night?",
+        "subtitle": "Even if you woke up often — answer for how it really felt.",
+        "labels": ["Almost none", "Very little", "Some", "Enough", "Slept well"],
+        "help": "Broken sleep is normal right now. No need for perfect sleep."
+      },
+      {
+        "title": "How much energy do you have today?",
+        "subtitle": "At your own pace, not anyone else's.",
+        "labels": ["Drained", "Tired", "Managing", "Okay", "Energized"],
+        "help": ""
+      },
+      {
+        "title": "How much is on your mind today?",
+        "subtitle": "Whatever is there is okay to name.",
+        "labels": ["Not at all", "A little", "Somewhat", "A lot", "Overwhelmed"],
+        "help": ""
+      }
+    ],
+    "followUp": {
+      "header1": "Follow-up · 1 of 3",
+      "header2": "Follow-up · 2 of 3",
+      "header3": "Follow-up · 3 of 3",
+      "reachingOut": "Reaching out"
+    },
+    "problemTags": {
+      "title": "What feels hardest today?",
+      "subtitle": "Pick up to 2. This only appears when your answers suggest extra care would help.",
+      "tags": [
+        "Exhaustion", "Feeding", "Baby crying", "Body pain", "Sleep deprivation",
+        "Feeling alone", "Family stress", "Partner support", "Recovery after birth",
+        "Household responsibilities", "Feeling overwhelmed", "I'm not sure", "Something else"
+      ],
+      "otherPlaceholder": "Tell us what feels hardest today."
+    },
+    "journal": {
+      "title": "Would you like to write a little more about today?",
+      "subtitle": "This is optional. You can leave it blank.",
+      "placeholder": "Write anything you want to remember, release, or explain about today."
+    },
+    "babyConnection": {
+      "title": "How did moments with your baby feel today?",
+      "subtitle": "However it felt is okay. There's no right answer here.",
+      "labels": ["Hard", "A little distant", "Mixed", "Mostly okay", "Warm"]
+    },
+    "supportNeed": {
+      "title": "Do you need our care team to reach out to you today?",
+      "subtitle": "Your recent check-ins suggest you should not have to carry this alone. It's completely your choice.",
+      "yes": "Yes, please reach out",
+      "no": "Not right now"
+    },
+    "tinyGoal": {
+      "promptTitle": "One tiny goal?",
+      "promptBody": "Pick one small thing for today — or skip, no pressure.",
+      "skip": "Skip today",
+      "todayLabel": "Today's tiny goal",
+      "noPressure": "No pressure — it'll be waiting on your home screen.",
+      "skipMsg": "That's okay — rest is a goal too. We'll suggest another tomorrow. 💛"
+    },
+    "result": {
+      "savedBadge": "Check-in saved",
+      "supportLevelTitle": "Your support level",
+      "supportLevelIs": "is {{level}}.",
+      "numbersNote": "Numbers are tucked away. Start with what support fits next.",
+      "seeNumbers": "See today's numbers",
+      "hideNumbers": "Hide today's numbers",
+      "todayAtAGlance": "Today at a glance",
+      "summaryLabels": {
+        "mood": "Mood",
+        "sleep": "Sleep",
+        "energy": "Energy",
+        "worry": "Worry"
+      },
+      "supportRequestFlagged": "Support request flagged",
+      "supportRequestBody": "Your pattern suggests you should not carry this alone. Open help if you want a guided next step.",
+      "nextStep": "Next step: {{action}}",
+      "backHome": "Back home",
+      "iNeedHelp": "I Need Help"
+    }
+  },
+
+  "epds": {
+    "title": "Emotional Check",
+    "questionOf": "Question {{n}} of 10",
+    "sensitiveNote": "If this feels urgent, use I Need Help right away. Answer honestly and keep going at your pace.",
+    "continue": "Continue",
+    "seeResults": "See results",
+    "completeBadge": "Emotional Check complete",
+    "heroTitle": "You showed up",
+    "heroTitleItalic": "for yourself.",
+    "nextStepPrefix": "Next step: ",
+    "seeScore": "See your score",
+    "hideScore": "Hide your score",
+    "scoreExplain": "This is your Edinburgh Postnatal Depression Scale (EPDS) score. It's a screening tool, not a diagnosis — your care team can help you make sense of it.",
+    "careTeam": "— Your care team",
+    "iNeedHelp": "I Need Help",
+    "saveClose": "Save & close",
+    "crisisCards": {
+      "recommendSupport": "We recommend support",
+      "recommendSupportBody": "Please open help right now and reach out to a doctor, midwife, or crisis line.",
+      "noticedLastAnswer": "We noticed your last answer",
+      "noticedLastAnswerBody": "If those thoughts ever feel urgent, open help immediately. You matter deeply and support is available now."
+    },
+    "questions": [
+      {
+        "prompt": "Have you been able to find moments of joy or something to smile about?",
+        "options": ["Yes, often", "Not quite as often as usual", "Rarely lately", "Hardly at all"]
+      },
+      {
+        "prompt": "Have you been able to look forward to things you usually enjoy?",
+        "options": ["As much as ever", "A little less than usual", "Quite a bit less", "Hardly at all"]
+      },
+      {
+        "prompt": "Have you been blaming yourself for things that weren't really your fault?",
+        "options": ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a lot"]
+      },
+      {
+        "prompt": "Have you felt anxious or worried without a clear reason?",
+        "options": ["No, not at all", "Hardly ever", "Yes, sometimes", "Yes, a lot"]
+      },
+      {
+        "prompt": "Have you felt scared or panicky for no clear reason?",
+        "options": ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a bit"]
+      },
+      {
+        "prompt": "Has everything felt too much and hard to cope with?",
+        "options": ["No, I've been coping well", "Mostly okay, just a little effort", "Sometimes not coping as well", "No - I haven't been coping at all"]
+      },
+      {
+        "prompt": "Have you felt so unhappy that it's made sleeping harder?",
+        "options": ["No, not at all", "Not very often", "Yes, sometimes", "Yes, quite a lot"]
+      },
+      {
+        "prompt": "Have you felt sad or teary?",
+        "options": ["No, not at all", "Not very often", "Yes, quite a lot", "Yes, most of the time"]
+      },
+      {
+        "prompt": "Have you been crying more than usual?",
+        "options": ["No, never", "Only occasionally", "Yes, quite often", "Yes, almost all the time"]
+      },
+      {
+        "prompt": "Have thoughts of hurting yourself crossed your mind?",
+        "options": ["Never", "Hardly ever", "Sometimes", "Yes, quite often"]
+      }
+    ],
+    "riskMeta": {
+      "steady": {
+        "badge": "Steady",
+        "body": "Your answers suggest you are steady right now. Keep the daily rhythm going so changes stay easier to spot.",
+        "quote": "Small, steady steps can carry a lot of weight."
+      },
+      "gentle": {
+        "badge": "Gentle Support",
+        "body": "Your answers point to early strain. Gentle support and simple next steps can help keep this from building.",
+        "quote": "Noticing the pattern early is a strength."
+      },
+      "extra": {
+        "badge": "Extra Support Recommended",
+        "body": "Your answers suggest you may benefit from extra support right now. Reaching out soon would be a good next step.",
+        "quote": "You do not have to carry this stretch alone."
+      },
+      "immediate": {
+        "badge": "Immediate Support",
+        "body": "Your answers point to a high-need moment. Please open help right now and contact support immediately.",
+        "quote": "Your safety matters first."
+      }
+    }
+  },
+
+  "safety": {
+    "title": "How can we help right now?",
+    "subtitle": "Choose what feels right — you can change your mind anytime.",
+    "triage": {
+      "trusted": { "title": "Reach someone I trust", "desc": "A partner, family member, or friend" },
+      "hospital": { "title": "Ask my care team", "desc": "Non-emergency hospital support" },
+      "safe": { "title": "I'm with someone safe", "desc": "I just need to steady myself" }
+    },
+    "urgent": {
+      "title": "I don't feel safe right now",
+      "desc": "Get urgent support immediately"
+    },
+    "paths": {
+      "trusted": {
+        "title": "Reach out to someone you trust",
+        "body": "You do not have to explain everything. Even \"I'm having a hard day and need someone nearby\" is enough.",
+        "cta": "Open messages"
+      },
+      "hospital": {
+        "title": "Ask your maternity care team",
+        "body": "Use this for questions about recovery, feeding, sleep, or how you have been feeling. If you do not feel safe right now, use the urgent option below instead.",
+        "note": "Best for non-emergency recovery, feeding, sleep, or medication questions.",
+        "callNote": "Call using the number on your hospital discharge papers"
+      },
+      "safe": {
+        "title": "Let's steady this moment together",
+        "body": "You're safe right now. A short breathing or grounding exercise can help.",
+        "cta": "Open breathing & grounding"
+      },
+      "urgent": {
+        "title": "You should not be alone with this",
+        "body": "If you feel you might hurt yourself or the baby, reach a person now. Use a local emergency number if these lines are not right for where you are.",
+        "cta": "Stay with me while I call"
+      }
+    },
+    "hotlines": {
+      "mentalHealth": {
+        "name": "Mental health hotline",
+        "desc": "Thailand Department of Mental Health support line."
+      },
+      "emergency": {
+        "name": "Medical emergency",
+        "desc": "Thailand emergency medical service. Outside Thailand, call your local emergency number."
+      }
+    },
+    "breathing": {
+      "title": "4-7-8 Breathing",
+      "desc": "A calming breath technique that activates your nervous system's rest response",
+      "start": "Start breathing exercise",
+      "stop": "Stop",
+      "seconds": "{{n}} seconds",
+      "steps": {
+        "in": "Breathe in",
+        "hold": "Hold",
+        "out": "Breathe out"
+      }
+    },
+    "grounding": {
+      "desc": "This 5-4-3-2-1 technique anchors you to the present moment",
+      "nextSense": "Next sense →",
+      "thingsTo": "{{n}} things to {{sense}}",
+      "senseLabel": "{{sense}} #{{n}}",
+      "steps": [
+        { "sense": "See", "prompt": "Name 5 things you can see around you right now" },
+        { "sense": "Touch", "prompt": "Notice 4 things you can physically touch" },
+        { "sense": "Hear", "prompt": "Listen for 3 sounds in your environment" },
+        { "sense": "Smell", "prompt": "Find 2 things you can smell nearby" },
+        { "sense": "Taste", "prompt": "Notice 1 thing you can taste" }
+      ]
+    },
+    "panicModal": {
+      "title": "Stay with this moment",
+      "subtitle": "Let's slow things down together.",
+      "close": "Close steadying tools",
+      "breathing": "Breathing",
+      "grounding": "Grounding"
+    }
+  },
+
+  "onboarding": {
+    "welcome": {
+      "tagline": "A gentle companion for your postpartum journey.",
+      "cta": "Get started",
+      "alreadySetUp": "Already set up? Continue →",
+      "preparing": "Preparing your space…",
+      "settingUp": "Setting up your journey…",
+      "ready": "Ready to go"
+    },
+    "step1": {
+      "step": "Step 1 of 4",
+      "title": "When did your",
+      "titleItalic": "baby arrive?",
+      "subtitle": "Your Care Journey timeline is built from this date.",
+      "confirm": "Is this right?",
+      "dayToday": "Day 1 · Today",
+      "daysAgo": "Day {{day}} · {{n}} day ago",
+      "daysAgoPlural": "Day {{day}} · {{n}} days ago",
+      "yesCorrect": "Yes, this is correct",
+      "changeDate": "Change date",
+      "skipAnyway": "Skip anyway",
+      "addDate": "Add date",
+      "skipWarn": "Without a birth date, your timeline won't be personalised.",
+      "continue": "Continue"
+    },
+    "step2": {
+      "step": "Step 2 of 5",
+      "title": "Let's save your",
+      "titleItalic": "real details",
+      "subtitle": "These help your hospital team recognise and contact you if needed.",
+      "firstNamePlaceholder": "Legal first name",
+      "lastNamePlaceholder": "Legal last name",
+      "phonePlaceholder": "Phone number",
+      "hint": "These details are shown to the hospital dashboard.",
+      "continue": "Continue"
+    },
+    "step3": {
+      "step": "Step 3 of 5",
+      "title": "What should we",
+      "titleItalic": "call you?",
+      "subtitle": "This name stays inside the app and can feel more personal.",
+      "placeholder": "Your name or nickname",
+      "hint": "Leave blank to use your first name — you can change this later.",
+      "continue": "Continue"
+    },
+    "step4": {
+      "step": "Step 4 of 5",
+      "title": "Is this your",
+      "titleItalic": "first baby?",
+      "subtitle": "This helps us tailor your experience just for you.",
+      "options": [
+        { "title": "My first baby", "sub": "Everything is new — and that's okay." },
+        { "title": "I've been here before", "sub": "Each baby brings a new journey." },
+        { "title": "I'd rather not say", "sub": "That's okay too." }
+      ],
+      "continue": "Continue",
+      "skip": "Skip for now"
+    },
+    "step5": {
+      "step": "Step 5 of 5 · Optional",
+      "title": "A gentle nudge",
+      "titleItalic": "each day?",
+      "subtitle": "When would you like to check in? You're always in control of this.",
+      "options": [
+        { "label": "Morning" },
+        { "label": "Afternoon" },
+        { "label": "Evening" },
+        { "label": "Before bed" },
+        { "label": "I'll check in myself" }
+      ],
+      "setReminder": "Set reminder",
+      "skip": "Skip for now"
+    },
+    "step6": {
+      "badge": "All set",
+      "title": "You're ready,",
+      "personalised": {
+        "label": "Your journey is personalised",
+        "body": "Your Care Timeline and insights are now tailored to where you actually are in your postpartum journey."
+      },
+      "day1": {
+        "label": "Day 1 begins today",
+        "body": "Check-ins will build a picture of how you're truly doing — mood, sleep, and energy — day by day."
+      },
+      "quote": "\"Showing up for yourself — even on a hard day — matters more than you know.\"",
+      "cta": "Go to my dashboard"
+    },
+    "finishing": {
+      "items": ["Care Timeline", "Daily check-in", "Personalised insights"],
+      "gettingReady": "Getting your space ready",
+      "almostHome": "One moment, {{name}} - almost home.",
+      "dashboardReady": "Your dashboard is ready",
+      "finalMoment": "One final moment, {{name}}.",
+      "everythingReady": "Everything is ready",
+      "welcomeTo": "Welcome to"
+    }
+  },
+
+  "supportLevels": {
+    "unassessed": {
+      "label": "Not yet assessed",
+      "message": "Start your first daily check-in to see today's support guidance.",
+      "action": "Take your first check-in"
+    },
+    "steady": {
+      "label": "Steady",
+      "message": "You seem steady today. Keep going at your own pace.",
+      "action": "Keep today's care rhythm"
+    },
+    "gentle": {
+      "label": "Gentle Support",
+      "message": "Today might feel a little heavy. You don't have to push through everything at once.",
+      "action": "Choose one small goal"
+    },
+    "extra": {
+      "label": "Extra Support",
+      "message": "Things feel stretched right now. A little extra support today would help.",
+      "action": "Open care options"
+    },
+    "immediate": {
+      "label": "Immediate Support",
+      "message": "You don't have to go through this alone. We'll connect you with support right away.",
+      "action": "Open urgent support"
+    }
+  },
+
+  "stages": [
+    { "label": "First Days", "weekLabel": "First Days", "desc": "Hormones shifting — tears are normal" },
+    { "label": "Early Adj.", "weekLabel": "Early Adjustment", "desc": "Milk may come in — emotions start to adjust" },
+    { "label": "Week 2", "weekLabel": "Week 2 Checkpoint", "desc": "Many mothers feel emotionally sensitive during this period." },
+    { "label": "First 6 Weeks", "weekLabel": "First 6 Weeks", "desc": "A good time to check in with your doctor" },
+    { "label": "Month 2-3", "weekLabel": "Settling Phase", "desc": "Many mothers feel more like themselves" },
+    { "label": "Month 4-6", "weekLabel": "Returning Rhythm", "desc": "Routines feel more familiar now" },
+    { "label": "Month 7-9", "weekLabel": "Late Emotional Check", "desc": "Keep checking in — you're doing great" },
+    { "label": "Month 10-12", "weekLabel": "First Year Reflection", "desc": "Reflecting on your journey" },
+    { "label": "Year 1+", "weekLabel": "Continuing the Journey", "desc": "Keep checking in — you're doing great" }
+  ],
+
+  "epdsNextSteps": {
+    "steady": "Keep checking in and keep up your small daily routines.",
+    "gentle": "Notice how the next week feels, and lean on someone you trust.",
+    "extra": "Consider talking to your care provider this week.",
+    "immediate": "Open I Need Help now."
+  },
+
+  "moodTags": {
+    "calm": "calm",
+    "hopeful": "hopeful",
+    "grateful": "grateful",
+    "tired": "tired",
+    "anxious": "anxious",
+    "lonely": "lonely",
+    "proud": "proud",
+    "overwhelmed": "overwhelmed",
+    "sad": "sad",
+    "panic": "panic"
+  }
+}
