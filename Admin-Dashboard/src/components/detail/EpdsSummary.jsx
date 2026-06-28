@@ -11,6 +11,22 @@ const getEpdsInterpretation = (score) => {
 };
 
 export default function EpdsSummary({ mother }) {
+  const hasScore = mother.epdsScore !== null && mother.epdsScore !== undefined;
+  const dueForScreening = mother.postpartumDay !== null && mother.postpartumDay >= 14;
+  if (!hasScore) {
+    return (
+      <Card className="border-border/60">
+        <CardContent className="pt-6">
+          <h3 className="text-sm font-semibold text-foreground mb-1">ผลคัดกรอง EPDS</h3>
+          <p className="text-xs text-muted-foreground mb-4">EPDS Screening Summary — ไม่ใช่การวินิจฉัย</p>
+          <div className="rounded-xl border border-dashed border-border bg-secondary/20 px-4 py-5">
+            <p className="text-sm font-medium text-foreground">{dueForScreening ? 'ถึงรอบคัดกรองแล้ว แต่ยังไม่ได้ทำ' : 'ยังไม่ถึงช่วงคัดกรอง EPDS'}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{dueForScreening ? 'รอคุณแม่ทำแบบคัดกรองครั้งแรก' : 'จะแสดงผลคัดกรองเมื่อเข้าสู่ช่วงติดตามที่เหมาะสม'}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const interp = getEpdsInterpretation(mother.epdsScore);
   const scoreDiff = mother.prevEpdsScore !== null ? mother.epdsScore - mother.prevEpdsScore : null;
 
@@ -19,6 +35,13 @@ export default function EpdsSummary({ mother }) {
       <CardContent className="pt-6">
         <h3 className="text-sm font-semibold text-foreground mb-1">ผลคัดกรอง EPDS</h3>
         <p className="text-xs text-muted-foreground mb-4">EPDS Screening Summary — ไม่ใช่การวินิจฉัย</p>
+
+        {mother.q10Flag && (
+          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3" role="alert">
+            <p className="text-sm font-semibold text-red-800">พบคำตอบในข้อ 10 ที่ต้องให้ทีมดูแลตรวจสอบ</p>
+            <p className="mt-1 text-xs text-red-700">เป็นสัญญาณให้ติดตามตามแนวทางของโรงพยาบาล ไม่ใช่การวินิจฉัย</p>
+          </div>
+        )}
 
         <div className="flex items-start gap-6">
           {/* Score Circle */}

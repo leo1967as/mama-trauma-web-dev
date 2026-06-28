@@ -1,3 +1,5 @@
+import { syncEpds } from './firebase-sync';
+
 const STORAGE_KEY = "afterbloom_epds_history";
 const EPDS_EVENT = "afterbloom:epds-history-updated";
 
@@ -36,7 +38,7 @@ const NEXT_STEPS = {
   steady: { key: "self_care", text: "Keep checking in and keep up your small daily routines." },
   gentle: { key: "monitor", text: "Notice how the next week feels, and lean on someone you trust." },
   extra: { key: "talk_provider", text: "Consider talking to your care provider this week." },
-  immediate: { key: "contact_care_now", text: "Please reach out for support now — open I Need Help or contact your care team." },
+  immediate: { key: "open_help_now", text: "Open I Need Help now." },
 };
 
 export function getRecommendedNextStep(level) {
@@ -76,6 +78,7 @@ export function saveEpdsEntry(answers, dateKey = toDateKey(), trigger = "manual"
   };
   const history = getEpdsHistory();
   saveHistory([entry, ...history]);
+  syncEpds(entry);
   return entry;
 }
 
@@ -122,6 +125,5 @@ export function subscribeToEpdsHistory(callback) {
     window.removeEventListener("storage", handleStorage);
   };
 }
-
 
 

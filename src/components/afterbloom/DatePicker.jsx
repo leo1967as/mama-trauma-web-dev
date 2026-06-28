@@ -56,7 +56,7 @@ export default function DatePicker({ value, onChange }) {
 
   return (
     <div style={{
-      background: "#fff", border: "1px solid #EFE6DC", borderRadius: 20,
+      background: "#fff", border: "1px solid #EFE6DC", borderRadius: 14,
       padding: "16px 16px 12px", fontFamily: F,
       boxShadow: "0 2px 12px rgba(80,56,42,.05)", overflow: "hidden",
     }}>
@@ -76,12 +76,12 @@ export default function DatePicker({ value, onChange }) {
               whileTap={!disabled ? { scale: 0.88 } : {}}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
               style={{
-                width: 32, height: 32, borderRadius: 10,
+                width: 32, height: 32, borderRadius: 8,
                 background: disabled ? "#F8F4F0" : "#FBF6F0",
                 border: "1px solid #EFE6DC",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: disabled ? "default" : "pointer",
-                color: disabled ? "#D0C8C2" : "#9C8E83",
+                color: disabled ? "#D0C8C2" : "#786A5C",
                 fontSize: 16, fontWeight: 700,
               }}
             >
@@ -126,7 +126,7 @@ export default function DatePicker({ value, onChange }) {
                 style={{
                   width: "100%", aspectRatio: "1",
                   border: isToday && !isSelected ? "1px solid #EAC8C6" : "1px solid transparent",
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: isSelected ? "#C77E83" : "transparent",
                   color: isSelected ? "#fff" : inactive ? "#D0C8C2" : isToday ? "#AF636A" : "#3E342C",
                   fontSize: 13, fontWeight: isSelected || isToday ? 800 : 500,
@@ -145,7 +145,7 @@ export default function DatePicker({ value, onChange }) {
       {/* selected display */}
       {selectedYMD && (
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #F5EFE8", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, color: "#9C8E83" }}>
+          <span style={{ fontSize: 12, color: "#786A5C" }}>
             {new Date(selectedYMD + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}
           </span>
           <button onClick={() => onChange("")} style={{ background: "none", border: 0, fontSize: 11, fontWeight: 700, color: "#C8BEB8", cursor: "pointer", fontFamily: F }}>

@@ -1,141 +1,184 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { AlertCircle, MessageCircleHeart, Moon, Pencil, TrendingUp } from "lucide-react";
 import {
   formatHistoryDate,
   getMoodChartData, getMoodHistory, getMoodInsights, getMoodSupportSummary,
   getMoodSummary, hasMoodChartData, subscribeToMoodHistory,
 } from "../../lib/mood-data";
+import { COLORS, FONT_BODY, FONT_SERIF, PrimaryButton, TabHero, TabSheet, HeroAccent } from "../../lib/theme.jsx";
 
-const F = "'Plus Jakarta Sans', system-ui, sans-serif";
-const S = "'Newsreader', serif";
+const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
 
-// ── face data ─────────────────────────────────────────────────────────────────
+const F = FONT_BODY;
+const S = FONT_SERIF;
 
 const SCORE_FACE = {
   1: { word: "Rough", bg: "#EDEFF3", color: "#7E8AA0",
     svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#EDEFF3"/><circle cx="14" cy="17" r="1.8" fill="#7E8AA0"/><circle cx="26" cy="17" r="1.8" fill="#7E8AA0"/><path d="M13 27c2-3 12-3 14 0" stroke="#7E8AA0" strokeWidth="2.2" strokeLinecap="round"/></svg> },
   2: { word: "Low",   bg: "#EFE9EF", color: "#8E7E90",
     svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#EFE9EF"/><circle cx="14" cy="18" r="1.8" fill="#8E7E90"/><circle cx="26" cy="18" r="1.8" fill="#8E7E90"/><path d="M14 26c2-1.5 10-1.5 12 0" stroke="#8E7E90" strokeWidth="2.2" strokeLinecap="round"/></svg> },
-  3: { word: "Okay",  bg: "#F6EBD4", color: "#B58B3C",
-    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6EBD4"/><circle cx="14" cy="18" r="1.9" fill="#B58B3C"/><circle cx="26" cy="18" r="1.9" fill="#B58B3C"/><path d="M14 25h12" stroke="#B58B3C" strokeWidth="2.4" strokeLinecap="round"/></svg> },
-  4: { word: "Good",  bg: "#E5EEE6", color: "#5E8169",
-    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#E5EEE6"/><circle cx="14" cy="17" r="1.9" fill="#5E8169"/><circle cx="26" cy="17" r="1.9" fill="#5E8169"/><path d="M13 23c2 3 12 3 14 0" stroke="#5E8169" strokeWidth="2.3" strokeLinecap="round"/></svg> },
-  5: { word: "Light", bg: "#F6E3E2", color: "#B0666D",
-    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6E3E2"/><circle cx="14" cy="16" r="1.9" fill="#B0666D"/><circle cx="26" cy="16" r="1.9" fill="#B0666D"/><path d="M12 22c2.5 4.5 13.5 4.5 16 0" stroke="#B0666D" strokeWidth="2.4" strokeLinecap="round"/></svg> },
+  3: { word: "Okay",  bg: "#F6EBD4", color: "#9A7322",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6EBD4"/><circle cx="14" cy="18" r="1.9" fill="#9A7322"/><circle cx="26" cy="18" r="1.9" fill="#9A7322"/><path d="M14 25h12" stroke="#9A7322" strokeWidth="2.4" strokeLinecap="round"/></svg> },
+  4: { word: "Good",  bg: "#E5EEE6", color: "#577A62",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#E5EEE6"/><circle cx="14" cy="17" r="1.9" fill="#577A62"/><circle cx="26" cy="17" r="1.9" fill="#577A62"/><path d="M13 23c2 3 12 3 14 0" stroke="#577A62" strokeWidth="2.3" strokeLinecap="round"/></svg> },
+  5: { word: "Light", bg: "#F6E3E2", color: "#AF636A",
+    svg: <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" fill="#F6E3E2"/><circle cx="14" cy="16" r="1.9" fill="#AF636A"/><circle cx="26" cy="16" r="1.9" fill="#AF636A"/><path d="M12 22c2.5 4.5 13.5 4.5 16 0" stroke="#AF636A" strokeWidth="2.4" strokeLinecap="round"/></svg> },
 };
 
-const SLEEP_LABEL = { 2: "Hardly any", 4: "Broken", 6: "Okay", 8: "Slept well" };
+const SLEEP_LABEL = { 1: "Almost none", 2: "Very little", 3: "Some", 4: "Enough", 5: "Slept well" };
 
 const insightIconMap = { sleep: Moon, support: MessageCircleHeart, tag: AlertCircle, trend: TrendingUp };
 const insightLabels = ["Pattern to notice", "Another signal", "One more thing"];
 
 const insightColors = [
-  { bg: "#F7EDD8", color: "#9A7322" },
-  { bg: "#E7EFE8", color: "#577A62" },
-  { bg: "#F6E2E1", color: "#AF636A" },
+  { bg: COLORS.amberSoft, color: COLORS.amber },
+  { bg: COLORS.greenSoft, color: COLORS.green },
+  { bg: COLORS.accentSoft, color: COLORS.accent },
 ];
 
 const supportStyle = {
-  red:    { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2" },
-  orange: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0" },
-  yellow: { bg: "#F7EDD8", border: "#E8D3A0", text: "#9A7322", tag: "#F2E2BE" },
-  green:  { bg: "#E7EFE8", border: "#C8DFC9", text: "#577A62", tag: "#D8EDD9" },
-  none:   { bg: "#fff",    border: "#EFE6DC", text: "#6C5F56", tag: "#FBF6F0" },
+  unassessed: { bg: "#F8F4EF", border: "#E6DBCF", text: "#6C5F56", tag: "#F2EAE2", cta: "Take your first check-in", action: "checkin" },
+  immediate: { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2", cta: "Open urgent support", action: "help" },
+  extra: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0", cta: "Take emotional check", action: "epds" },
+  gentle: { bg: COLORS.amberSoft, border: "#E8D3A0", text: COLORS.amber, tag: "#F2E2BE", cta: "Update check-in", action: "checkin" },
+  steady: { bg: COLORS.greenSoft, border: "#C8DFC9", text: COLORS.green, tag: "#D8EDD9", cta: "Keep today noted", action: "checkin" },
 };
 
-// ── shared ────────────────────────────────────────────────────────────────────
-
-function Card({ children, style }) {
+function Card({ children, style, ...props }) {
   return (
-    <div style={{
-      background: "#fff", border: "1px solid #EFE6DC", borderRadius: 24,
-      padding: 20, boxShadow: "0 2px 12px rgba(80,56,42,.05)",
-      fontFamily: F, ...style,
-    }}>
+    <section
+      style={{
+        background: "#fff",
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: 14,
+        padding: 20,
+        fontFamily: F,
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </section>
+  );
+}
+
+function SectionLabel({ children, id, style }) {
+  return (
+    <div
+      id={id}
+      style={{
+        fontSize: 13,
+        fontWeight: 800,
+        color: COLORS.subheading,
+        ...style,
+      }}
+    >
       {children}
     </div>
   );
 }
 
-function SectionLabel({ children }) {
+function MoodFace({ face, size = 44 }) {
+  if (!face) return null;
   return (
-    <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#9C8E83", marginBottom: 0 }}>
-      {children}
+    <div
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: face.bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <svg viewBox="0 0 40 40" fill="none" width={size} height={size}>{face.svg.props.children}</svg>
     </div>
   );
 }
-
-// ── today summary ─────────────────────────────────────────────────────────────
 
 function TodaySummary({ todayEntry, onCheckIn }) {
   const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
-  const sleepLabel = todayEntry?.sleepHours != null
-    ? (SLEEP_LABEL[todayEntry.sleepHours] ?? `${todayEntry.sleepHours} hrs`)
+  const sleepLabel = todayEntry?.sleepScore != null
+    ? (SLEEP_LABEL[todayEntry.sleepScore] ?? `${todayEntry.sleepScore}/5`)
     : null;
 
   if (!face) {
     return (
-      <Card>
-        <SectionLabel>Today</SectionLabel>
-        <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.55, margin: "10px 0 16px" }}>
-          No check-in yet. Tap below to log how you're feeling.
+      <Card aria-labelledby="mood-today-title">
+        <SectionLabel id="mood-today-title">Today</SectionLabel>
+        <p style={{ fontSize: 14, color: COLORS.muted, lineHeight: 1.55, margin: "10px 0 16px" }}>
+          No check-in yet. Start with one short log; you can change it later.
         </p>
-        <button onClick={onCheckIn} style={{
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
-          width: "100%", padding: 15, borderRadius: 18,
-          background: "#C77E83", color: "#fff",
-          fontWeight: 700, fontSize: 14.5, border: 0,
-          boxShadow: "0 12px 24px rgba(175,99,106,.28)",
-          cursor: "pointer", fontFamily: F,
-        }}>
-          <svg viewBox="0 0 24 24" width="17" fill="none" stroke="currentColor" strokeWidth="2.1">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>
-          </svg>
+        <PrimaryButton onClick={onCheckIn} aria-label="Complete today's mood check-in">
+          <Pencil size={16} aria-hidden="true" />
           Complete today's check-in
-        </button>
+        </PrimaryButton>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <SectionLabel>Today's log</SectionLabel>
-        <button onClick={onCheckIn} style={{
-          display: "inline-flex", alignItems: "center", gap: 5,
-          fontSize: 12, fontWeight: 700, color: "#AF636A",
-          background: "#F6E2E1", border: "none",
-          padding: "5px 12px", borderRadius: 30, cursor: "pointer", fontFamily: F,
-        }}>
-          <Pencil size={11} /> Edit
+    <Card aria-labelledby="mood-today-title">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+        <SectionLabel id="mood-today-title">Today's log</SectionLabel>
+        <button
+          type="button"
+          onClick={onCheckIn}
+          aria-label="Edit today's mood check-in"
+          className="afterbloom-focus mood-action"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            minHeight: 44,
+            fontSize: 12.5,
+            fontWeight: 800,
+            color: COLORS.accentInk,
+            background: COLORS.accentSoft,
+            border: 0,
+            padding: "8px 13px",
+            borderRadius: 12,
+            cursor: "pointer",
+            fontFamily: F,
+          }}
+        >
+          <Pencil size={12} aria-hidden="true" /> Edit
         </button>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: todayEntry.tags?.length ? 14 : 0 }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: "50%", background: face.bg,
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        }}>
-          <svg viewBox="0 0 40 40" fill="none" width="48" height="48">{face.svg.props.children}</svg>
-        </div>
+        <MoodFace face={face} size={48} />
         <div>
-          <div style={{ fontFamily: S, fontSize: 22, fontWeight: 500, color: "#3E342C" }}>{face.word}</div>
+          <div style={{ fontFamily: S, fontSize: 22, fontWeight: 500, color: COLORS.text }}>{face.word}</div>
           {sleepLabel && (
-            <div style={{ fontSize: 12, color: "#9C8E83", marginTop: 2 }}>Sleep · {sleepLabel}</div>
+            <div style={{ fontSize: 12.5, color: COLORS.label, marginTop: 2 }}>Sleep · {sleepLabel}</div>
           )}
         </div>
       </div>
 
       {todayEntry.tags?.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {todayEntry.tags.map(tag => (
-            <span key={tag} style={{
-              fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 30,
-              background: "#FBF6F0", border: "1px solid #E6DBCF", color: "#6C5F56",
-              textTransform: "capitalize",
-            }}>{tag}</span>
+        <div role="list" aria-label="Today's mood tags" style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+          {todayEntry.tags.map((tag) => (
+            <span
+              key={tag}
+              role="listitem"
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "6px 11px",
+                borderRadius: 12,
+                background: "#FBF6F0",
+                border: "1px solid #E6DBCF",
+                color: COLORS.muted,
+                textTransform: "capitalize",
+              }}
+            >
+              {tag}
+            </span>
           ))}
         </div>
       )}
@@ -143,71 +186,206 @@ function TodaySummary({ todayEntry, onCheckIn }) {
   );
 }
 
-// ── recent history ────────────────────────────────────────────────────────────
-
-function RecentHistory({ history }) {
-  const recent = history.filter(e => e.moodScore != null).slice(0, 7);
-  if (!recent.length) return null;
+function TrendCard({ chartData, showChart }) {
+  const trendValues = chartData.filter((row) => row.mood != null).map((row) => row.mood);
+  const trendSummary = trendValues.length
+    ? `Mood values this week range from ${Math.min(...trendValues)} to ${Math.max(...trendValues)} out of 5.`
+    : "No mood values saved yet.";
 
   return (
-    <Card style={{ padding: 0, overflow: "hidden" }}>
-      <div style={{ padding: "18px 20px 12px" }}>
-        <SectionLabel>Recent days</SectionLabel>
+    <Card aria-labelledby="mood-trend-title">
+      <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: COLORS.accentSoft,
+            color: COLORS.accent,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <TrendingUp size={16} />
+        </span>
+        <div>
+          <SectionLabel id="mood-trend-title">7-day trend</SectionLabel>
+          <p style={{ fontSize: 12.5, color: COLORS.muted, marginTop: 3 }}>{trendSummary}</p>
+        </div>
       </div>
-      {recent.map((entry, i) => {
-        const face = SCORE_FACE[entry.moodScore];
-        if (!face) return null;
-        const sleepLabel = entry.sleepHours != null
-          ? (SLEEP_LABEL[entry.sleepHours] ?? `${entry.sleepHours}h`)
-          : null;
-        const tags = entry.tags?.slice(0, 2) || [];
-        const dateLabel = formatHistoryDate(entry.dateKey);
-
-        return (
-          <div key={entry.dateKey} style={{
-            display: "flex", alignItems: "center", gap: 14,
-            padding: "13px 20px",
-            borderTop: "1px solid #F5EFE8",
-          }}>
-            <div style={{
-              width: 38, height: 38, borderRadius: "50%", background: face.bg,
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              <svg viewBox="0 0 40 40" fill="none" width="38" height="38">{face.svg.props.children}</svg>
-            </div>
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                <span style={{ fontFamily: S, fontSize: 16, fontWeight: 500, color: "#3E342C" }}>{face.word}</span>
-                {tags.map(tag => (
-                  <span key={tag} style={{
-                    fontSize: 11, fontWeight: 600, color: "#9C8E83",
-                    background: "#FBF6F0", border: "1px solid #EFE6DC",
-                    padding: "2px 8px", borderRadius: 20,
-                    textTransform: "capitalize",
-                  }}>{tag}</span>
-                ))}
-              </div>
-              {sleepLabel && (
-                <div style={{ fontSize: 11, color: "#9C8E83", marginTop: 2 }}>Sleep · {sleepLabel}</div>
-              )}
-            </div>
-
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#9C8E83", flexShrink: 0 }}>
-              {dateLabel}
-            </span>
+      <div style={{ position: "relative", minHeight: 128 }}>
+        <Suspense fallback={<div role="status" aria-live="polite" style={{ height: 128, borderRadius: 12, background: "#FBF6F0" }} />}>
+          <MoodTrendChart data={chartData} height={128} ariaLabel={trendSummary} />
+        </Suspense>
+        {!showChart && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+            <p style={{ fontSize: 12, color: COLORS.muted, textAlign: "center", fontFamily: F, maxWidth: 220 }}>
+              Complete a check-in to start your trend line.
+            </p>
           </div>
-        );
-      })}
+        )}
+      </div>
     </Card>
   );
 }
 
-// ── main ──────────────────────────────────────────────────────────────────────
+function InsightCard({ insight, index }) {
+  const Icon = insightIconMap[insight.type] || TrendingUp;
+  const ic = insightColors[index] || insightColors[0];
+  return (
+    <Card aria-labelledby={`mood-insight-${index}`}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: ic.bg,
+            color: ic.color,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={16} />
+        </div>
+        <SectionLabel id={`mood-insight-${index}`}>
+          {insightLabels[index]}
+        </SectionLabel>
+      </div>
+      <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>{insight.text}</p>
+    </Card>
+  );
+}
 
-export default function MoodTab({ onCheckIn }) {
+function SupportCard({ supportSummary, onCheckIn, onEpds, onNeedHelp }) {
+  const ss = supportStyle[supportSummary.level] ?? supportStyle.steady;
+  const handleAction = ss.action === "help" ? onNeedHelp : ss.action === "epds" ? onEpds : onCheckIn;
+
+  return (
+    <section
+      aria-labelledby="mood-support-title"
+      style={{
+        borderRadius: 14,
+        padding: 20,
+        background: ss.bg,
+        border: `1px solid ${ss.border}`,
+        fontFamily: F,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
+        <span id="mood-support-title" style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>Today's support level</span>
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: ss.text,
+            background: ss.tag,
+            padding: "5px 10px",
+            borderRadius: 12,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {supportSummary.label}
+        </span>
+      </div>
+      <p style={{ fontSize: 13, color: ss.text, lineHeight: 1.55, marginBottom: 10 }}>{supportSummary.message}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 800, color: ss.text, marginBottom: 14 }}>Next step: {supportSummary.action}</p>
+      <PrimaryButton
+        variant="secondary"
+        onClick={handleAction}
+        aria-label={
+          ss.action === "help"
+            ? "Open urgent support from mood support level"
+            : ss.action === "epds"
+              ? "Start emotional check from mood support level"
+              : "Update today's check-in from mood support level"
+        }
+      >
+        {ss.cta}
+      </PrimaryButton>
+    </section>
+  );
+}
+
+function RecentHistory({ history }) {
+  const recent = history.filter((entry) => entry.moodScore != null).slice(0, 7);
+  if (!recent.length) return null;
+
+  return (
+    <Card style={{ padding: 0, overflow: "hidden" }} aria-labelledby="recent-mood-title">
+      <div style={{ padding: "18px 20px 12px" }}>
+        <SectionLabel id="recent-mood-title">Recent days</SectionLabel>
+      </div>
+      <div role="list" aria-label="Recent mood logs">
+        {recent.map((entry) => {
+          const face = SCORE_FACE[entry.moodScore];
+          if (!face) return null;
+          const sleepLabel = entry.sleepScore != null
+            ? (SLEEP_LABEL[entry.sleepScore] ?? `${entry.sleepScore}/5`)
+            : null;
+          const tags = entry.tags?.slice(0, 2) || [];
+          const dateLabel = formatHistoryDate(entry.dateKey);
+
+          return (
+            <div
+              key={entry.dateKey}
+              role="listitem"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                minHeight: 62,
+                padding: "12px 20px",
+                borderTop: "1px solid #F5EFE8",
+              }}
+            >
+              <MoodFace face={face} size={38} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: S, fontSize: 16, fontWeight: 500, color: COLORS.text }}>{face.word}</span>
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: COLORS.label,
+                        background: "#FBF6F0",
+                        border: `1px solid ${COLORS.border}`,
+                        padding: "3px 8px",
+                        borderRadius: 10,
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                {sleepLabel && (
+                  <div style={{ fontSize: 12, color: COLORS.label, marginTop: 2 }}>Sleep · {sleepLabel}</div>
+                )}
+              </div>
+              <time dateTime={entry.dateKey} style={{ fontSize: 11.5, fontWeight: 800, color: COLORS.label, flexShrink: 0 }}>
+                {dateLabel}
+              </time>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+export default function MoodTab({ onCheckIn, onEpds, onNeedHelp }) {
   const [history, setHistory] = useState(() => getMoodHistory());
-
   useEffect(() => {
     const unsub = subscribeToMoodHistory(setHistory);
     return unsub;
@@ -217,170 +395,47 @@ export default function MoodTab({ onCheckIn }) {
   const todayEntry = summary.todayEntry;
   const supportSummary = useMemo(() => getMoodSupportSummary(history), [history]);
   const insights = useMemo(() => getMoodInsights(history), [history]);
-
-  const chartData = getMoodChartData(history, 7);
-  const chartAnimKey = chartData.map(r => `${r.dateKey}:${r.mood ?? "n"}`).join("|");
+  const chartData = useMemo(() => getMoodChartData(history, 7), [history]);
   const showChart = hasMoodChartData(chartData);
-
   const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
-  const ss = supportStyle[supportSummary.level] ?? supportStyle.none;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      style={{ fontFamily: F }}
-    >
-      {/* ── Mood gradient header — same blob system as Home ── */}
-      <div
-        className="relative px-6 pb-8 overflow-hidden"
-        style={{ background: "#F5EEF2" }}
-      >
-        {/* blob 1 — dusty rose, top-right */}
-        <div className="dawn-blob dawn-blob-2" style={{ width: 320, height: 320, top: -100, right: -80,  background: "radial-gradient(circle, rgba(220,191,200,0.88), transparent 68%)", filter: "blur(60px)" }} />
-        {/* blob 2 — lavender, left */}
-        <div className="dawn-blob dawn-blob-1" style={{ width: 270, height: 270, top:   20, left:  -70, background: "radial-gradient(circle, rgba(232,213,226,0.82), transparent 68%)", filter: "blur(55px)" }} />
-        {/* blob 3 — blush, bottom */}
-        <div className="dawn-blob dawn-blob-3" style={{ width: 250, height: 250, bottom: -50, left: "28%", background: "radial-gradient(circle, rgba(226,197,208,0.78), transparent 68%)", filter: "blur(52px)" }} />
-        {/* blob 4 — light purple accent */}
-        <div className="dawn-blob dawn-blob-4" style={{ width: 200, height: 200, top:   40, left: "48%", background: "radial-gradient(circle, rgba(200,185,215,0.72), transparent 68%)", filter: "blur(48px)" }} />
+    <div style={{ fontFamily: F }}>
+      <TabHero
+        theme="rose"
+        eyebrow="Mood"
+        title={<>Mood patterns,<HeroAccent>without pressure.</HeroAccent></>}
+        subtitle={summary.hasTodayCheckIn
+          ? "Today's check-in is saved. Review the pattern, then choose whether anything needs attention."
+          : "Use this as a private read on the week, not a scorecard."}
+        rightSlot={face && (
+          <div
+            aria-label={`Today's mood is ${face.word}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "rgba(255,255,255,.58)",
+              border: "1px solid rgba(255,255,255,.74)",
+              padding: "6px 12px 6px 8px",
+              borderRadius: 14,
+            }}
+          >
+            <MoodFace face={face} size={22} />
+            <span style={{ fontSize: 12, fontWeight: 800, color: COLORS.text }}>{face.word} today</span>
+          </div>
+        )}
+      />
 
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14 }}>
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase", color: "#8A5060" }}>
-            Mood
-          </span>
-          {face && (
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 7,
-              background: "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)",
-              padding: "5px 13px 5px 8px", borderRadius: 30,
-            }}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: face.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg viewBox="0 0 40 40" fill="none" width="22" height="22">{face.svg.props.children}</svg>
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#5A3F3A" }}>{face.word} today</span>
-            </div>
-          )}
-        </div>
-
-        <div style={{ position: "relative", marginTop: 26 }}>
-          <h1 style={{ fontFamily: S, fontWeight: 500, fontSize: 42, lineHeight: 1.0, letterSpacing: "-0.015em", color: "#4A2F2C" }}>
-            How you've
-            <em style={{ display: "block", fontStyle: "italic" }}>been feeling.</em>
-          </h1>
-          <p style={{ marginTop: 14, fontSize: 15, fontWeight: 600, color: "#7A453F", maxWidth: "78%" }}>
-            {summary.hasTodayCheckIn
-              ? "Today's check-in is saved. Here's your pattern."
-              : "Your trends and patterns, all in one place."}
-          </p>
-        </div>
-
-        {/* bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
-          style={{ height: 64, background: "linear-gradient(to bottom, transparent 0%, #FBF6F0 100%)" }} />
-      </div>
-
-      {/* ── Sheet ── */}
-      <div style={{ background: "#FBF6F0", borderRadius: "26px 26px 0 0", marginTop: -16, padding: "24px 22px 0", display: "flex", flexDirection: "column", gap: 13 }}>
-
+      <TabSheet gap={13}>
         <TodaySummary todayEntry={todayEntry} onCheckIn={onCheckIn} />
-
-        {/* 7-day trend */}
-        <Card>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <TrendingUp size={15} color="#C77E83" />
-            <SectionLabel>7-day trend</SectionLabel>
-          </div>
-          <div style={{ position: "relative", height: 128, margin: "0 -8px" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="moodGradMT" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#C77E83" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="#C77E83" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="day" axisLine={false} tickLine={false}
-                  tick={{ fontSize: 10, fill: "#9C8E83", fontFamily: F }} dy={8} />
-                <YAxis hide domain={[0, 5]} />
-                <Tooltip
-                  contentStyle={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 12, fontSize: 12, fontFamily: F }}
-                  formatter={v => [`${v}/5`, "Mood"]}
-                />
-                <Area key={chartAnimKey} type="monotone" dataKey="mood"
-                  stroke="#C77E83" strokeWidth={2.5} fill="url(#moodGradMT)"
-                  isAnimationActive animationBegin={40} animationDuration={720}
-                  dot={({ cx, cy, payload }) =>
-                    payload?.mood != null
-                      ? <circle cx={cx} cy={cy} r={3.5} fill="#C77E83" stroke="white" strokeWidth={1.5} />
-                      : null
-                  }
-                  connectNulls
-                  activeDot={{ r: 5, fill: "#C77E83", stroke: "white", strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-            {!showChart && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <p style={{ fontSize: 11, color: "#9C8E83", textAlign: "center", fontFamily: F }}>
-                  Complete a check-in to start your trend line.
-                </p>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* all insights */}
-        {insights.slice(0, 3).map((insight, i) => {
-          const Icon = insightIconMap[insight.type] || TrendingUp;
-          const ic = insightColors[i] || insightColors[0];
-          return (
-            <Card key={insight.key}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: 11,
-                  background: ic.bg, color: ic.color,
-                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                }}>
-                  <Icon size={16} />
-                </div>
-                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#9C8E83" }}>
-                  {insightLabels[i]}
-                </span>
-              </div>
-              <p style={{ fontSize: 13.5, color: "#3E342C", lineHeight: 1.55 }}>{insight.text}</p>
-            </Card>
-          );
-        })}
-
-        {/* support card */}
-        <div style={{
-          borderRadius: 24, padding: 20,
-          background: ss.bg, border: `1px solid ${ss.border}`,
-          boxShadow: "0 2px 12px rgba(80,56,42,.05)", fontFamily: F,
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>Today's Support Level</span>
-            <span style={{
-              fontSize: 9.5, fontWeight: 800, letterSpacing: "0.09em", textTransform: "uppercase",
-              color: ss.text, background: ss.tag, padding: "4px 10px", borderRadius: 30,
-            }}>
-              {supportSummary.label}
-            </span>
-          </div>
-          <p style={{ fontSize: 12.5, color: ss.text, opacity: 0.85, lineHeight: 1.5, marginBottom: 12 }}>{supportSummary.message}</p>
-          <p style={{ fontSize: 12, fontWeight: 700, color: ss.text }}>Next step: {supportSummary.action}</p>
-        </div>
-
-        {/* recent history list */}
+        <TrendCard chartData={chartData} showChart={showChart} />
+        {insights.slice(0, 3).map((insight, index) => (
+          <InsightCard key={insight.key || index} insight={insight} index={index} />
+        ))}
+        <SupportCard supportSummary={supportSummary} onCheckIn={onCheckIn} onEpds={onEpds} onNeedHelp={onNeedHelp} />
         <RecentHistory history={history} />
-
-        <div style={{ height: 8 }} />
-      </div>
-    </motion.div>
+      </TabSheet>
+    </div>
   );
 }
-
-
-

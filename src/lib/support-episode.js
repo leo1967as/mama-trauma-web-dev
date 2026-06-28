@@ -1,6 +1,8 @@
 // Tracks the lifecycle of a Support Need (spec 3.9) prompt so it doesn't
 // re-show every check-in (habituation) once answered.
 import { getAlerts } from "./alert-service";
+import { doc, getDoc } from "firebase/firestore";
+import { db, getUid } from "./firebase";
 
 const KEY = "afterbloom_support_episode";
 
@@ -30,6 +32,27 @@ function addDays(dateKey, days) {
   const d = new Date(`${dateKey}T00:00:00`);
   d.setDate(d.getDate() + days);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// Called when the Care Team has resolved the episode (e.g. via deep link).
+export function clearSupportEpisode() {
+  write(null);
+}
+
+// Poll the patient's own Firestore doc for care-team resolution.
+// Fire-and-forget: call on app mount; clears episode silently if resolved.
+export async function checkAndClearIfResolved() {
+  const episode = read();
+  if (!episode || episode.status !== "pending_resolution") return;
+  try {
+    const uid = await getUid();
+    const snap = await getDoc(doc(db, "mothers", uid));
+    if (snap.exists() && snap.data().caseStatus === "resolved") {
+      write(null);
+    }
+  } catch {
+    // offline or permission error — ignore, will retry next load
+  }
 }
 
 // Record the mother's answer to the Support Need prompt.

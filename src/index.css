@@ -1,6 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/fonts/newsreader-latin-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/fonts/newsreader-latin-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/plus-jakarta-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 @tailwind base;
 @tailwind components;
@@ -8,7 +31,8 @@
 
 @layer base {
   :root {
-    --font-nunito: 'Nunito', sans-serif;
+    --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-nunito: var(--font-body);
 
     --background: 30 40% 96%;
     --foreground: 20 15% 20%;
@@ -21,7 +45,7 @@
     --secondary: 270 30% 90%;
     --secondary-foreground: 270 25% 35%;
     --muted: 30 20% 93%;
-    --muted-foreground: 20 10% 50%;
+    --muted-foreground: 20 10% 42%; /* darkened from 50% → WCAG AA (≥4.5:1 on white/warm bg) for body captions */
     --accent: 270 35% 88%;
     --accent-foreground: 270 25% 30%;
     --destructive: 0 65% 55%;
@@ -97,7 +121,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-nunito;
+    @apply bg-background text-foreground font-body;
   }
 }
 
@@ -138,7 +162,7 @@
     0 3px 8px rgba(168,72,72,.2),
     inset 0 1px 0 rgba(255,255,255,.22),
     inset 0 -1px 0 rgba(0,0,0,.1);
-  transition: transform .16s cubic-bezier(.34,1.3,.64,1), box-shadow .16s ease;
+  transition: transform .16s cubic-bezier(.16,1,.3,1), box-shadow .16s ease;
   will-change: transform, box-shadow;
 }
 /* gloss */
@@ -245,6 +269,120 @@
 .dawn-blob-2 { animation: blob-2 var(--blob-speed-2, 36s) ease-in-out infinite; }
 .dawn-blob-3 { animation: blob-3 var(--blob-speed-3, 22s) ease-in-out infinite; }
 .dawn-blob-4 { animation: blob-4 var(--blob-speed-4, 42s) ease-in-out infinite; }
+
+/* ── Dawn breathing glow — single soft pulse, echoes the 4-7-8 rhythm ──────── */
+@keyframes dawn-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.45; }
+  50%      { transform: scale(1.18); opacity: 0.75; }
+}
+.dawn-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: dawn-breathe 7s ease-in-out infinite;
+}
+
+/* ── Dawn light sweep — soft diagonal band drifting like morning light ────── */
+@keyframes dawn-sweep {
+  0%   { transform: translate(-25%, -8%) rotate(8deg); }
+  100% { transform: translate(25%, 8%) rotate(8deg); }
+}
+.dawn-sweep {
+  position: absolute;
+  inset: -30% -50%;
+  pointer-events: none;
+  will-change: transform;
+  background: linear-gradient(75deg, transparent 38%, rgba(255,255,255,0.4) 50%, transparent 62%);
+  animation: dawn-sweep 22s ease-in-out infinite alternate;
+}
+
+.afterbloom-focus:focus-visible {
+  outline: 3px solid rgba(175, 99, 106, 0.42);
+  outline-offset: 3px;
+}
+
+.afterbloom-action {
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.afterbloom-action:hover {
+  transform: translateY(-1px);
+}
+
+.afterbloom-action:active {
+  transform: translateY(0);
+}
+
+.daily-goal-primary {
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.daily-goal-primary:hover {
+  transform: translateY(-1px);
+}
+
+.daily-goal-primary:active {
+  transform: scale(0.97);
+}
+
+.daily-goal-skip {
+  transition: background 160ms ease-out, color 160ms ease-out;
+}
+
+.daily-goal-skip:hover,
+.daily-goal-skip:focus-visible {
+  background: #E7EFE8;
+  color: #4F7059;
+}
+
+@keyframes afterbloom-skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.afterbloom-skeleton {
+  background: linear-gradient(100deg, #F1E7DD 32%, #FAF3EC 50%, #F1E7DD 68%);
+  background-size: 250% 100%;
+  animation: afterbloom-skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dawn-blob,
+  .dawn-glow,
+  .dawn-sweep,
+  .welcome-blob,
+  .ci-btn::after,
+  .ci-spinner,
+  .ci-ripple,
+  .ci-checkmark.draw {
+    animation: none !important;
+  }
+
+  .afterbloom-action {
+    transition: none !important;
+  }
+
+  .afterbloom-action:hover,
+  .afterbloom-action:active {
+    transform: none !important;
+  }
+
+  .daily-goal-primary,
+  .daily-goal-skip {
+    transition: none !important;
+  }
+
+  .daily-goal-primary:hover,
+  .daily-goal-primary:active {
+    transform: none !important;
+  }
+
+  .afterbloom-skeleton {
+    animation: none !important;
+    background: #F1E7DD;
+  }
+}
 
 /* slider thumb inside slider panel */
 .dawn-slider-thumb::-webkit-slider-thumb {

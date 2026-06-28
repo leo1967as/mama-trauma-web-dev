@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Eye, AlertCircle, Phone, Download } from 'lucide-react';
+import { Search, Eye, AlertCircle, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMothers } from '@/hooks/useFirestoreData';
 import RiskBadge from '@/components/shared/RiskBadge';
@@ -25,7 +25,8 @@ export default function MotherList() {
   const [staffFilter, setStaffFilter] = useState('all');
 
   const filtered = mothers.filter((m) => {
-    const matchSearch = !search || m.name.includes(search) || m.hn.includes(search) || m.phone.includes(search);
+    const term = search.trim().toLowerCase();
+    const matchSearch = !term || [m.name, m.hn, m.phone].some((value) => String(value || '').toLowerCase().includes(term));
     const matchRisk = riskFilter === 'all' || m.riskLevel === riskFilter;
     const matchStage = stageFilter === 'all' || m.postpartumStage === stageFilter;
     const matchStaff = staffFilter === 'all' || m.assignedStaff === staffFilter;
@@ -33,12 +34,33 @@ export default function MotherList() {
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    const order = { high: 0, attention: 1, low: 2, inactive: 3 };
-    return (order[a.riskLevel] ?? 4) - (order[b.riskLevel] ?? 4);
+    const priority = (mother) => mother.q10Flag ? 0 : mother.supportRequest ? 1 : mother.riskLevel === 'high' ? 2 : mother.riskLevel === 'attention' ? 3 : 4;
+    return priority(a) - priority(b);
   });
 
   const stages = [...new Set(mothers.map((m) => m.postpartumStage))];
   const staffList = [...new Set(mothers.map((m) => m.assignedStaff))];
+
+  const exportCsv = () => {
+    const rows = [
+      ['Name', 'HN', 'Phone', 'Postpartum stage', 'Support level', 'Case status', 'Assigned staff'],
+      ...sorted.map((mother) => [mother.name, mother.hn, mother.phone, mother.postpartumStage, mother.riskLevel, mother.caseStatus, mother.assignedStaff]),
+    ];
+    const csv = rows.map((row) => row.map((value) => `"${String(value || '').replaceAll('"', '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `afterbloom-mothers-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getAttentionReason = (mother) => {
+    if (mother.q10Flag) return 'EPDS ข้อ 10';
+    if (mother.alertReason === 'urgent_safety_access') return 'Help เร่งด่วน';
+    if (mother.supportRequest) return 'ขอความช่วยเหลือ';
+    return mother.needsAttentionReason || '';
+  };
 
   if (loading) {
     return (
@@ -55,7 +77,7 @@ export default function MotherList() {
           <h1 className="text-2xl font-bold text-foreground">รายชื่อคุณแม่</h1>
           <p className="text-sm text-muted-foreground mt-1">Mother List — Worklist เรียงตามลำดับความสำคัญ</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2 text-xs">
+        <Button variant="outline" size="sm" className="gap-2 text-xs" onClick={exportCsv}>
           <Download className="w-3.5 h-3.5" />
           Export
         </Button>
@@ -80,6 +102,7 @@ export default function MotherList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">ทุกระดับ</SelectItem>
+                <SelectItem value="unassessed">ยังไม่ประเมิน</SelectItem>
                 <SelectItem value="high">เร่งด่วน</SelectItem>
                 <SelectItem value="attention">ต้องการความใส่ใจ</SelectItem>
                 <SelectItem value="low">ดูแลน้อย</SelectItem>
@@ -103,7 +126,7 @@ export default function MotherList() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">ทุกคน</SelectItem>
-                {staffList.map((s) => (
+                {staffList.filter(Boolean).map((s) => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
               </SelectContent>
@@ -124,6 +147,7 @@ export default function MotherList() {
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">ระดับ</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Trend</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">หมายเหตุ</th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">สถานะเคส</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">ผู้ดูแล</th>
                   <th className="text-right px-4 py-3 font-medium text-muted-foreground"></th>
                 </tr>
@@ -142,10 +166,10 @@ export default function MotherList() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{m.hn}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{m.phone}</td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{m.postpartumStage}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{m.display?.phone || m.phone}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{m.display?.postpartumStage || m.postpartumStage}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
-                      {formatDate(m.deliveryDate)}
+                        {m.display?.deliveryDate || formatDate(m.deliveryDate, 'ยังไม่เก็บจากคุณแม่')}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
                       {formatDateTime(m.lastCheckIn)}
@@ -157,14 +181,15 @@ export default function MotherList() {
                       <TrendIndicator trend={m.trend} />
                     </td>
                     <td className="px-4 py-3">
-                      {m.needsAttentionReason && (
+                      {getAttentionReason(m) && (
                         <div className="flex items-center gap-1.5 text-xs text-amber-600">
                           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate max-w-[120px]">{m.needsAttentionReason}</span>
+                          <span className="truncate max-w-[120px]">{getAttentionReason(m)}</span>
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{m.assignedStaff}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{m.caseStatus || 'none'}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{m.assignedStaff || 'ยังไม่มอบหมาย'}</td>
                     <td className="px-4 py-3 text-right">
                       <Button
                         variant="ghost"

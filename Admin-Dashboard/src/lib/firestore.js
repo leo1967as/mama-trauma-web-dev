@@ -21,6 +21,7 @@ const MOTHERS = 'mothers';
 const checkins = (motherId) => collection(db, MOTHERS, motherId, 'checkins');
 const epdsScores = (motherId) => collection(db, MOTHERS, motherId, 'epds_scores');
 const caseNotes = (motherId) => collection(db, MOTHERS, motherId, 'case_notes');
+const safetyEvents = (motherId) => collection(db, MOTHERS, motherId, 'safety_log');
 
 // ─── Mothers ───────────────────────────────────────────────────
 
@@ -53,17 +54,45 @@ export function subscribeMothers(callback) {
 }
 
 // ─── Case status ───────────────────────────────────────────────
-// status: 'new' | 'reviewed' | 'contacted' | 'referred' | 'resolved'
+// status: 'none' | 'new' | 'reviewed' | 'contacted' | 'referred' | 'resolved'
 
 export async function updateCaseStatus(motherId, status, staffName, note = '') {
-  await updateDoc(doc(db, MOTHERS, motherId), {
+  const patch = {
     caseStatus: status,
+    caseSource: status === 'none' ? 'none' : 'manual',
+    caseStatusUpdatedAt: serverTimestamp(),
+    lastActionBy: staffName,
     updatedAt: serverTimestamp(),
-  });
+  };
+  if (status === 'resolved') {
+    Object.assign(patch, {
+      supportRequest: false,
+      alertReason: null,
+      caseClosedAt: serverTimestamp(),
+    });
+  }
+  await updateDoc(doc(db, MOTHERS, motherId), patch);
   await addDoc(caseNotes(motherId), {
     action: status,
     staffName,
-    note,
+    note: note || `เปลี่ยนสถานะเคสเป็น ${status}`,
+    createdAt: serverTimestamp(),
+  });
+}
+
+export async function scheduleFollowUp(motherId, followUpAt, staffName) {
+  await updateDoc(doc(db, MOTHERS, motherId), {
+    nextFollowUp: followUpAt,
+    caseStatus: 'contacted',
+    caseSource: 'manual',
+    caseStatusUpdatedAt: serverTimestamp(),
+    lastActionBy: staffName,
+    updatedAt: serverTimestamp(),
+  });
+  await addDoc(caseNotes(motherId), {
+    action: 'follow_up_scheduled',
+    staffName,
+    note: `นัดติดตาม ${followUpAt}`,
     createdAt: serverTimestamp(),
   });
 }
@@ -95,6 +124,12 @@ export async function getEpdsScores(motherId) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+export async function getSafetyEvents(motherId) {
+  const q = query(safetyEvents(motherId), orderBy('createdAt', 'desc'), limit(10));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
 export async function addEpdsScore(motherId, data) {
   return addDoc(epdsScores(motherId), { ...data, createdAt: serverTimestamp() });
 }
@@ -105,6 +140,13 @@ export async function getCaseNotes(motherId) {
   const q = query(caseNotes(motherId), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export function subscribeCaseNotes(motherId, callback) {
+  const q = query(caseNotes(motherId), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, snap => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
 }
 
 export async function addCaseNote(motherId, staffName, note) {

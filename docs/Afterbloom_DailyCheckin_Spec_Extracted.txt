@@ -1,0 +1,2119 @@
+Afterbloom 
+Daily  Check-in  Feature  Specification Version  1.0   |   Developer  Brief   |   Postpartum  Depression  Monitoring  App 
+ 
+Flow  input    Step  0:  Welcome  Screen  จุด ประสงค์ :  บอก แม่ ว่า แอ พ นี้ ไม่ ใช่ แอ พ วินิจฉัย โรค  แต่ เป็น เพื่อน ช่วย ติดตาม หลัง คลอด  Screen  copy  Welcome  to  AfterBloom  
+A
+ 
+gentle
+ 
+space
+ 
+to
+ 
+check
+ 
+in
+ 
+with
+ 
+yourself
+ 
+after
+ 
+birth.
+ Button:  
+Start
+ 
+my
+ 
+care
+ 
+journey
+ หน้า นี้ ยัง ไม่ ต้อง เก็บ  input   Step  1:  Basic  Setup  Input  อัน นี้ คือ กรอก ครั้ง แรก เท่านั้น  เพื่อให้ ระบบ รู้ ว่า แม่ อยู่  stage  ไหน  1.1  Mother  name  /  nickname  คํา ถาม :  
+อยาก
+ให้
+ 
+AfterBloom
+ 
+เรียก
+คุณ
+ว่า
+อะไร
+?
+ Input  type:  text  field  
+Example:
+ 
+Sia
+ 
+/
+ 
+Moji
+ 
+/
+ 
+แม่เมย์
+ Developer  field:  
+mother_name
+  เอา ไป ใช้ :  
+แสดง
+ 
+greeting
+ 
+บน
+ 
+Home
+ 
+เช่น
+ 
+“Good
+ 
+morning,
+ 
+Sia”
+  จําเป็น **   1.2  Baby’s  birth  date  คํา ถาม :  
+ลูก
+เกิด
+วัน
+ที่
+เท่า
+ไหร่
+?
+ Input  type:  date  picker  Developer  field:  
+baby_birth_date
+ เอา ไป ใช้ :  
+ระบบ
+คํานวณ
+เอง
+ว่า
+แม่
+อยู่
+ 
+Day
+ 
+/
+ 
+Week
+ 
+/
+ 
+Month
+ 
+ไหน
+ 
+เช่น
+ Today  -  baby_birth_date  =  postpartum_day  
+postpartum_day
+ 
+14
+ 
+=
+ 
+Week
+ 
+2
+ postpartum_day  42  =  Week  6  
+postpartum_day
+ 
+90
+ 
+=
+ 
+Month
+ 
+3
+ สําคัญ มาก :  
+อัน
+นี้
+คือ
+ 
+input
+ 
+ที่
+สําคัญ
+ที่สุด
+ใน
+ 
+onboarding
+ 
+เพราะ
+มัน
+ทําให้
+ 
+Home
+ 
+แสดง
+ 
+stage
+ 
+badge
+ 
+และ
+ 
+Care
+ 
+Journey
+ 
+ได้
+ ห้าม ตัด   1.3  First-time  mother?  คํา ถาม :  
+นี่
+เป็น
+ลูก
+คน
+แรก
+ของ
+คุณ
+ไหม
+?
+ Choices:  
+●
+ 
+ใช่  ลูก คน แรก   
+●
+ 
+ไม่ ใช่   
+●
+ 
+ไม่ อยาก ตอบ   Developer  field:  
+is_first_time_mother
+ เอา ไป ใช้ :  
+ปรับ
+ 
+tone
+ 
+ของ
+คํา
+แนะนํา
+ 
+เช่น
+ 
+แม่
+ลูก
+คน
+แรก
+อาจ
+ต้องการ
+ 
+guidance
+ 
+ที่
+อธิบาย
+ละเอียด
+กว่า
+ จําเป็น ไหม :  
+ควร
+มี
+ 
+แต่
+ถ้า
+ 
+prototype
+ 
+ด่วน
+มาก
+ 
+ตัด
+ได้
+  1.4  Delivery  hospital  คํา ถาม :  
+คุณ
+คลอด
+ที่
+โรง
+พยาบาล
+ไหน
+?
+ Input  type:  dropdown  /  text  field  Developer  field:\  
+hospital_name
+ เอา ไป ใช้ :  
+ทําให้
+ 
+model
+ 
+B2B
+ 
+ดู
+ชัด
+ขึ้น
+ 
+เช่น
+ 
+Home
+ 
+อาจ
+ขึ้น
+ว่า
+ 
+“Connected
+ 
+with
+ 
+KKU
+ 
+Hospital
+ 
+Care
+ 
+Journey”
+ จําเป็น ไหม :  
+ถ้า
+ 
+pitch
+ 
+เน้น
+ 
+hospital
+ 
+integration
+ 
+ควร
+มี
+  1.5  Preferred  check-in  time  คํา ถาม :  
+อยาก
+ให้
+เรา
+เตือน
+ 
+check-in
+ 
+เวลา
+ไหน
+?
+ Choices:  ●  Morning   ●  Afternoon   ●  Evening   ●  Before  bed   ●  I’ll  check  in  by  myself   Developer  field:  
+preferred_checkin_time
+ เอา ไป ใช้ :  
+notification
+ 
+setting
+ 
+/
+ 
+reminder
+ 
+mockup
+ สําคัญ :  
+ใน
+ 
+research
+ 
+ที่
+โม
+จิ
+ใส่
+ไว้
+ 
+แม่
+อยาก
+ควบคุม
+เวลา
+แจ้ง
+เตือน
+เอง
+ 
+ไม่
+ใช่
+ให้
+แอ
+พ
+บังคับ
+เวลา
+ 
+  1.6  Privacy  preference  คํา ถาม :  
+ถ้า
+วัน
+ไหน
+คุณ
+ต้องการ
+ 
+support
+ 
+เพิ่ม
+ 
+อยาก
+ให้
+ใคร
+เห็น
+ข้อมูล
+นี้
+ไหม
+?
+ Choices:  
+●
+ 
+ยัง ไม่ แชร์ กับ ใคร   
+●
+ 
+แชร์ กับ คนใน ครอบครัว ที่ ฉัน เลือก   
+●
+ 
+แชร์ กับ  care  team  เท่านั้น   
+●
+ 
+ค่อย ตั้ง ค่า ทีหลัง   Developer  field:  
+sharing_preference
+ เอา ไป ใช้ :  
+Invite
+ 
+Your
+ 
+Circle
+ 
+/
+ 
+hospital
+ 
+dashboard
+ 
+phase
+ 
+2
+ สําหรับ  prototype:  
+ทําเป็น
+หน้า
+ 
+mock
+ 
+ได้
+ 
+ยัง
+ไม่
+ต้อง
+ทํา
+ระบบ
+แชร์
+จริง
+  สรุป  Onboarding  Input  ที่ ต้อง มี จริง   1.mother_name  
+2.baby_birth_date
+ 
+3.First-time
+ 
+mother?
+ 
+4.preferred_checkin_time
+  ถ้า เวลา น้อย มาก  ๆ  เหลือ แค่  2:  baby_birth_date  
+preferred_checkin_time
+  Step  2:  Home  Screen  Output  หน้า  Home  ไม่ ควร เป็น หน้า กรอก ข้อมูล เยอะ  
+Home
+ 
+คือ
+หน้าที่
+ 
+“
+ดึง
+ 
+input
+ 
+มา
+แสดง
+”
+ Home  ควร ขึ้น หลัง  onboarding  แบบ นี้   *** สี เหลือง คือ ข้อความ  
+***
+สี
+เขียว
+คือ
+ปุ่ม
+ 
+หรือ
+ 
+สิ่ง
+ที่
+โชว์
+  Good  morning,  Sia  
+You
+ 
+are
+ 
+in
+ 
+Week
+ 
+2
+ 
+after
+ 
+birth
+ 
+ 
+How
+ 
+are
+ 
+you
+ 
+feeling
+ 
+today?
+ 
+[Start
+ 
+30-sec
+ 
+check-in]
+ 
+ 
+Today’s
+ 
+care
+ 
+journey:
+ Week  2  is  a  sensitive  emotional  adjustment  period.  
+ 
+Your
+ 
+mood
+ 
+this
+ 
+week
+ 
+ 
+[Mood
+ 
+Trend
+ 
+7
+ 
+วัน
+]
+ 
+ 
+ 
+Tiny
+ 
+goal:
+ 
+Take
+ 
+one
+ 
+deep
+ 
+breath
+ 
+before
+ 
+feeding
+ 
+ 
+[
+ 
+I
+ 
+Need
+ 
+Help
+ 
+]
+  Home  ใช้ ข้อมูล จาก  input  ไหน  Home  element  มา จาก  input  Greeting  mother_name  Stage  badge  baby_birth_date  Check-in  CTA  daily  check-in  status  Care  Journey  postpartum  stage  Support  Level  daily  check-in  answers  Mood  Trend  check-in  history  I  Need  Help  always  visible  ใน ไฟล์ของ โม จิ เอง ก็ วาง ไว้ ว่า  Home  ควร มี  Contextual  greeting,  Check-in  CTA,  Care  Journey,  Support  
+Level,
+ 
+Help
+ 
+button,
+ 
+Tiny
+ 
+Goal
+ 
+และ
+ 
+Mood
+ 
+Trend
+ 
+โดย
+ทุก
+ 
+element
+ 
+มี
+เหตุผล
+รอง
+รับ
+ 
+ไม่
+ใช่
+เลือก
+ตาม
+ 
+preference
+ 
+เฉย
+ 
+ๆ
+ 
+ 
+Section  3:  Daily  Check-in  Input  Specification  
+The  daily  check-in  is  the  core  touchpoint  of  the  Afterbloom  app.  It  collects  4  validated  clinical  
+indicators
+ 
+every
+ 
+day,
+ 
+with
+ 
+conditional
+ 
+follow-up
+ 
+questions
+ 
+triggered
+ 
+by
+ 
+low
+ 
+scores.
+ 
+All
+ 
+questions
+ 
+use
+ 
+closed-ended
+ 
+1–5
+ 
+scales
+ 
+to
+ 
+minimize
+ 
+cognitive
+ 
+load
+ 
+for
+ 
+postpartum
+ 
+mothers.
+  Design  principle:  One  question  per  screen.  Tap  to  answer.  Target  completion  time  under  60  
+seconds
+ 
+for
+ 
+the
+ 
+core
+ 
+4
+ 
+indicators.  
+Phase  1:  Core  Daily  Check-in  (Always  Asked)  The  following  4  indicators  are  asked  every  day,  in  this  order.  All  use  a  1–5  scale  where  1  =  
+worst,
+ 
+5
+ 
+=
+ 
+best,
+ 
+EXCEPT
+ 
+anxiety_score
+ 
+which
+ 
+is
+ 
+reversed
+ 
+(1
+ 
+=
+ 
+not
+ 
+at
+ 
+all,
+ 
+5
+ 
+=
+ 
+overwhelmed).
+  
+3.1   Mood 
+Question How  are  you  feeling  today?  
+UI  format Emoji  scale  /  card  buttons  —  one  per  screen  Developer  field mood_score  
+Data  type number   1–5   (1  =  worst,  5  =  best)  
+ Choices:  
+1 😢   Very  low  
+2 🙁   Low  
+3 😐   Neutral  
+4 🙂   Good  
+5 😊   Very  good  
+⚑   Research  basis:  EPDS  item  1  (able  to  laugh  /  see  funny  side)  +  PHQ-9  item  1  (depressed  mood).  
+EMA
+ 
+pilot
+ 
+PMC
+ 
+2022
+ 
+(n=26):
+ 
+self-reported
+ 
+mood
+ 
+has
+ 
+predictive
+ 
+validity
+ 
+against
+ 
+EPDS
+ 
+follow-up
+ 
+score.  
+3.2   Sleep 
+Question How  did  you  sleep  last  night?  (even  if  you  woke  up  often)  
+UI  format Card  buttons  —  one  per  screen  
+Developer  field sleep_score  
+Data  type number   1–5   (1  =  worst,  5  =  best)  
+ Choices:  
+1 Almost  none  
+2 Very  little  
+3 Some  
+4 Enough  
+5 Slept  well  
+⚑   Note:  The  phrase  'even  if  you  woke  up  often'  is  intentional  —  postpartum  mothers  wake  frequently  
+for
+ 
+feeding.
+ 
+Framing
+ 
+removes
+ 
+guilt
+ 
+about
+ 
+broken
+ 
+sleep
+ 
+and
+ 
+improves
+ 
+response
+ 
+accuracy. ⚑   Research  basis:  EPDS  item  7  (difficulty  sleeping).  Okun  et  al.  2018  (SLEEP):  sleep  disturbance  is  
+a
+ 
+prodromal
+ 
+symptom
+ 
+appearing
+ 
+weeks
+ 
+before
+ 
+full
+ 
+PPD
+ 
+onset.
+ 
+EMA
+ 
+pilot
+ 
+PMC
+ 
+2022:
+ 
+sleep
+ 
+quality
+ 
+has
+ 
+predictive
+ 
+validity
+ 
+against
+ 
+EPDS
+ 
+score.  
+3.3   Energy 
+Question How  much  energy  do  you  have  today?  UI  format Card  buttons  —  one  per  screen  
+Developer  field energy_score  
+Data  type number   1–5   (1  =  worst,  5  =  best)  
+ Choices:  
+1 Drained  
+2 Tired  
+3 Managing  
+4 Okay  
+5 Energized  
+⚑   Research  basis:  DSM-5  criterion  —  fatigue  or  loss  of  energy  as  core  MDD  symptom.  PubMed  
+2012
+ 
+brief
+ 
+scales:
+ 
+'slowed
+ 
+down'
+ 
+/
+ 
+psychomotor
+ 
+retardation
+ 
+is
+ 
+a
+ 
+top
+ 
+predictor
+ 
+of
+ 
+major
+ 
+depressive
+ 
+episode
+ 
+postpartum.
+ 
+Russell
+ 
+1980
+ 
+circumplex
+ 
+model:
+ 
+activation
+ 
+is
+ 
+the
+ 
+second
+ 
+axis
+ 
+after
+ 
+valence.  
+3.4   Worry 
+Question How  much  is  on  your  mind  today?  
+UI  format Card  buttons  —  one  per  screen  
+Developer  field worry_score  
+Data  type number   1–5   (REVERSED:  1  =  not  at  all,  5  =  overwhelmed)  
+ Choices:  
+1 Not  at  all  
+2 A  little  
+3 Somewhat  
+4 A  lot  
+5 Overwhelmed  
+⚑   IMPORTANT  for  developer:  worry_score  is  REVERSED.  A  score  of  5  =  overwhelmed  =  worst  
+state.
+ 
+When
+ 
+computing
+ 
+composite
+ 
+score,
+ 
+invert
+ 
+this
+ 
+field:
+ 
+adjusted_worry
+ 
+=
+ 
+6
+ 
+-
+ 
+worry_score.
+ 
+Do
+ 
+not
+ 
+store
+ 
+the
+ 
+inverted
+ 
+value
+ 
+—
+ 
+store
+ 
+raw
+ 
+input,
+ 
+invert
+ 
+during
+ 
+scoring. ⚑   Research  basis:  Goodman  2009  (JOGNN):  ~50%  of  mothers  with  PPD  have  comorbid  anxiety  
+disorder.
+ 
+EMA
+ 
+pilot
+ 
+2022:
+ 
+anxiety
+ 
+has
+ 
+predictive
+ 
+validity
+ 
+against
+ 
+EPDS.
+ 
+Cognitive
+ 
+worry
+ 
+/
+ 
+rumination
+ 
+is
+ 
+the
+ 
+dominant
+ 
+anxiety
+ 
+presentation
+ 
+in
+ 
+PPD,
+ 
+not
+ 
+physiological
+ 
+panic.  Phase  2:  Conditional  Follow-up  (Triggered  When  Output  Is  Not  Good)  These  questions  appear  only  when  the  composite  score  from  Phase  1  falls  below  threshold.  
+They
+ 
+do
+ 
+not
+ 
+appear
+ 
+on
+ 
+every
+ 
+check-in.
+  
+Trigger  condition composite_score  <  2.5   OR   any  single  core  indicator  score  =  1  
+Phase  2  flow  order 3.5  Problem  Tag   →   3.6  Optional  Journal   →   3.7  Baby  Connection  
+ 
+3.5   Problem  Tag 
+Question What  feels  hardest  today?  
+UI  format Multi-select  tag  chips  
+Developer  field problem_tags  
+Data  type array  of  enum  strings   |   maximum  2  selections  
+Additional  field problem_other_text   |   text  /  nullable   |   max  150  characters  
+Required problem_other_text  required  only  if  'Something  else'  is  selected  
+ Choices  (select  up  to  2):  
+1 Exhaustion  
+2 Feeding  
+3 Baby  crying  
+4 Body  pain  
+5 Sleep  deprivation  
+6 Feeling  alone  
+7 Family  stress  
+8 Partner  support  
+9 Recovery  after  birth  
+10 Household  responsibilities  
+11 Feeling  overwhelmed  
+12 I'm  not  sure  
+13 Something  else  ⚑   If  'Something  else'  is  selected:  show  short  text  field.  Placeholder:  'Tell  us  what  feels  hardest  
+today.'  
+3.6   Optional  Journal 
+Question Would  you  like  to  write  a  little  more  about  today?  
+Description  shown This  is  optional.  You  can  leave  it  blank.  
+Input  type Text  area  
+Placeholder Write  anything  you  want  to  remember,  release,  or  explain  about  today.  
+Developer  field journal_entry  
+Data  type text  /  nullable  
+Character  limit 500  characters  
+Required No  —  must  never  block  check-in  flow.  Mother  can  skip  anytime.  
+ 
+3.7   Baby  Connection 
+Question How  did  moments  with  your  baby  feel  today?  
+UI  format Card  buttons  —  one  per  screen  
+Developer  field baby_connection_score  
+Data  type number   1–5   (1  =  worst,  5  =  best)  
+ Choices:  
+1 Hard  
+2 A  little  distant  
+3 Mixed  
+4 Mostly  okay  
+5 Warm  
+⚑   Important:  Framing  must  not  imply  judgment.  'A  little  distant'  should  not  feel  like  a  failure  label.  
+Avoid
+ 
+words
+ 
+like
+ 
+'disconnected'
+ 
+or
+ 
+'bad
+ 
+mother'.
+ 
+The
+ 
+goal
+ 
+is
+ 
+honest
+ 
+reporting,
+ 
+not
+ 
+guilt. ⚑   Research  basis:  Postpartum  Bonding  Questionnaire  (Brockington  2001).  EPDS  bonding  construct.  
+Poor
+ 
+bonding
+ 
+is
+ 
+associated
+ 
+with
+ 
+downstream
+ 
+child
+ 
+developmental
+ 
+risk
+ 
+(Murray
+ 
+1992,
+ 
+Br
+ 
+J
+ 
+Psychiatry).  
+Phase  3:  Support  Need  (Triggered  by  Pattern,  Not  Every  Check-in)  This  question  is  shown  only  when  a  specific  pattern  is  detected.  It  is  NOT  part  of  the  daily  
+conditional
+ 
+flow.
+ 
+It
+ 
+must
+ 
+not
+ 
+appear
+ 
+more
+ 
+than
+ 
+once
+ 
+per
+ 
+unresolved
+ 
+episode.
+  
+3.9   Support  Need 
+Question Do  you  need  our  hospital  team  to  reach  out  to  you  today?  
+UI  format Two  large  tap  buttons  
+Developer  field support_request  
+Data  type boolean   |   true  =  Yes  please   |   false  =  Not  right  now  
+ Choices:  
+1 Yes,  please  
+2 Not  right  now  
+ Trigger  logic:   **  สําหรับ  Single  day  crash  ( จู่ๆ ทุก อย่าง แย่ ลง หนัก มาก ภายใน วัน เดียว  )  หรือ  ถ้า หาก  mood  
+trend
+ 
+ตํ่า
+รวม
+ 
+3
+ 
+วัน
+ 
+Trigger  A composite_score  <  2.5  for  3  consecutive  days   
+Trigger  B mood_score  =  1  AND  worry_score  =  5  on  the  same  day   (single  day  crash)  
+After  'Yes,  please' support_request  =  true  is  sent  to  hospital  dashboard.  Question  disappears  until  hospital  marks  episode  as  resolved.  
+After  'Not  right  now' Wait  3  days.  Re-trigger  if  scores  remain  low.  
+⚑   Rationale:  Asking  this  question  every  day  a  mother  feels  low  causes  habituation  (automatic  'no'  
+responses)
+ 
+and
+ 
+increases
+ 
+burden.
+ 
+Triggering
+ 
+on
+ 
+pattern
+ 
+ensures
+ 
+the
+ 
+question
+ 
+is
+ 
+timely
+ 
+and
+ 
+meaningful.
+ 
+EMA
+ 
+pilot
+ 
+2022
+ 
+supports
+ 
+3-day
+ 
+trend
+ 
+as
+ 
+a
+ 
+clinically
+ 
+significant
+ 
+threshold.  
+Always  Accessible:  I  Need  Help  Button  The  I  Need  Help  button  is  always  visible  on  the  home  screen  and  does  not  require  a  check-in  to  
+access.
+ 
+This
+ 
+replaces
+ 
+a
+ 
+daily
+ 
+Safety
+ 
+Check
+ 
+question
+ 
+in
+ 
+the
+ 
+check-in
+ 
+flow.
+  
+Location Home  screen  —  persistent  button,  always  visible  
+Purpose Safety  check   |   crisis  access   |   EPDS  item  10  equivalent  
+Action  on  tap Route  to:  emergency  contact   /   hospital  contact   /   'I  am  with  someone  safe'  Developer  field safety_access_used  
+Data  type boolean  /  timestamp   |   log  each  use  
+⚑   Clinical  basis:  ACOG  2023  mandatory  safety  screening.  npj  Digital  Medicine  2023:  crisis  access  
+must
+ 
+be
+ 
+1-tap,
+ 
+must
+ 
+not
+ 
+require
+ 
+completion
+ 
+of
+ 
+other
+ 
+steps.
+ 
+EPDS
+ 
+item
+ 
+10
+ 
+(thoughts
+ 
+of
+ 
+self-harm)
+ 
+is
+ 
+the
+ 
+only
+ 
+item
+ 
+requiring
+ 
+immediate
+ 
+action
+ 
+regardless
+ 
+of
+ 
+total
+ 
+score. ⚑   Rationale  for  not  asking  daily:  Daily  safety  questions  cause  sensitization  —  mothers  begin  
+answering
+ 
+automatically
+ 
+without
+ 
+genuine
+ 
+reflection,
+ 
+reducing
+ 
+clinical
+ 
+validity
+ 
+(Shiffman
+ 
+et
+ 
+al.
+ 
+2008).   Section  4:  Check-in  Result  Output  
+After  completing  the  daily  check-in,  the  app  displays  a  result  screen  immediately.  The  result  
+communicates
+ 
+the
+ 
+mother's
+ 
+Support
+ 
+Level
+ 
+for
+ 
+the
+ 
+day.
+  Language  requirement:  Do  NOT  use  the  term  'Risk  Level'.  Use  'Today's  Support  Level'.  
+Diagnostic
+ 
+labels
+ 
+and
+ 
+clinical
+ 
+risk
+ 
+language
+ 
+increase
+ 
+stigma
+ 
+and
+ 
+reduce
+ 
+engagement.
+ 
+This
+ 
+is
+ 
+supported
+ 
+by
+ 
+the
+ 
+app's
+ 
+own
+ 
+survey
+ 
+data
+ 
+(n=320,
+ 
+72%
+ 
+feared
+ 
+judgment).
+  
+4.1   Scoring  Logic  
+mood_score Raw  score   1–5   (1  =  worst)  
+sleep_score Raw  score   1–5   (1  =  worst)  
+energy_score Raw  score   1–5   (1  =  worst)  
+worry_score  (inverted) 
+adjusted_worry  =  6  -  worry_score   (so  1  =  best,  5  =  worst)  
+composite_score (mood_score  +  sleep_score  +  energy_score  +  adjusted_worry)  /  4  
+composite  range 1.0  =  all  worst   |   5.0  =  all  best  
+Override  rule If  support_request  was  triggered  and  baby_connection_score  =  1:  escalate  to  Level  3  regardless  of  composite  
+ 
+4.2   Support  Level  Definitions   
+Level  1   Steady 
+Trigger  condition composite_score  >=  3.5  
+Message  to  mother 
+You  seem  steady  today.  Keep  going  at  your  own  pace.  
+CTA  buttons →   View  today's  care  tip  →   See  your  mood  trend  
+Research  basis Positive  reinforcement  increases  sustained  engagement  (JMIR  Human  Factors,  MBapp  2024).  Steady  days  should  feel  rewarding,  not  neutral. 
+ 
+Level  2   Gentle  Support 
+Trigger  condition composite_score  >=  2.5  AND  <  3.5  Message  to  mother 
+Today  might  feel  a  little  heavy.  You  don't  have  to  push  through  everything  at  once.  
+CTA  buttons →   Choose  one  small  goal  →   Breathing  exercise  
+Research  basis Behavioral  activation  (CBT  micro-actions)  for  mild  symptoms  has  evidence  in  MBapp  2024.  Small  achievable  actions  reduce  learned  helplessness. 
+ 
+Level  3   Extra  Support  Recommended 
+Trigger  condition composite_score  >=  1.5  AND  <  2.5   |   OR   |   mood_score  <=  2  AND  adjusted_worry  >=  4  
+Message  to  mother 
+You  may  need  a  little  more  support  right  now.  Afterbloom  recommends  an  emotional  check-in  or  talking  to  someone  you  trust.  
+CTA  buttons →   Take  emotional  screening  (EPDS)  →   Talk  to  your  support  circle  →   Contact  your  hospital  team  
+Research  basis EMA  pilot  2022:  3-day  low  trend  has  predictive  validity  for  EPDS  high  score.  Level  3  triggers  EPDS  screening  prompt. 
+ 
+Level  4   Immediate  Support 
+Trigger  condition support_request  =  true   (mother  tapped  'Yes,  please'  on  Support  Need  question)  
+Message  to  mother 
+You  don't  have  to  go  through  this  alone.  We'll  connect  you  with  support  right  away.  
+CTA  buttons →   Contact  hospital  team  →   Call  emergency  line  →   I'm  with  someone  safe  
+Research  basis Triggered  by  mother's  explicit  request  for  help.  Hospital  dashboard  receives  alert.  ACOG  2023:  hospital  follow-up  is  mandatory  when  support  need  is  flagged. 
+ 
+4.3   Hospital  Dashboard  Alerts  
+Alert  A support_request  =  true   →   immediate  notification  to  hospital  staff  dashboard  
+Alert  B composite_score  <  2.5  for  3  consecutive  days   →   flag  on  hospital  dashboard  (no  immediate  notification  required)  
+Alert  C safety_access_used  =  true   →   log  and  flag  on  hospital  dashboard  Resolution Hospital  staff  marks  episode  as  resolved  in  dashboard.  support_request  question  re-enables  after  resolution.  
+ ⚑   Integration  note:  Hospital  dashboard  integration  is  required  for  Alert  A  to  function.  Confirm  HIS  
+integration
+ 
+scope
+ 
+and
+ 
+data
+ 
+format
+ 
+with
+ 
+pilot
+ 
+hospital
+ 
+before
+ 
+development.
+   เพิ่มเติม  
+4.1  Addendum  —  Scoring  Logic  (Edge  Cases)  
+Partial  check-in:  If  the  mother  exits  before  completing  all  4  core  indicators,  composite_score  is  not  
+calculated
+ 
+for
+ 
+that
+ 
+day.
+ 
+Previously
+ 
+entered
+ 
+responses
+ 
+are
+ 
+saved
+ 
+and
+ 
+remain
+ 
+visible
+ 
+when
+ 
+the
+ 
+mother
+ 
+reopens
+ 
+the
+ 
+app.
+ 
+The
+ 
+check-in
+ 
+session
+ 
+remains
+ 
+resumable
+ 
+until
+ 
+11:59
+ 
+PM
+ 
+of
+ 
+the
+ 
+same
+ 
+day.
+ 
+Score  weighting:  All  four  core  indicators  carry  equal  weight  (25%  each).  Formula:  composite_score  =  
+(mood_score
+ 
++
+ 
+sleep_score
+ 
++
+ 
+energy_score
+ 
++
+ 
+adjusted_worry)
+ 
+/
+ 
+4.
+ 
+Weighting
+ 
+will
+ 
+be
+ 
+reviewed
+ 
+and
+ 
+calibrated
+ 
+during
+ 
+the
+ 
+pilot
+ 
+phase
+ 
+based
+ 
+on
+ 
+clinical
+ 
+outcomes
+ 
+data.
+ 
+ 
+4.3  Addendum  —  Hospital  Dashboard  Data  
+When  support_request  =  true  or  composite_score  <  2.5  for  3  consecutive  days,  the  hospital  dashboard  
+receives:
+ 
+mother
+ 
+ID,
+ 
+alert
+ 
+type,
+ 
+composite_score,
+ 
+and
+ 
+all
+ 
+four
+ 
+individual
+ 
+scores
+ 
+(mood,
+ 
+sleep,
+ 
+energy,
+ 
+worry).
+ 
+Rationale:
+ 
+clinical
+ 
+staff
+ 
+require
+ 
+indicator-level
+ 
+context
+ 
+to
+ 
+conduct
+ 
+a
+ 
+meaningful
+ 
+follow-up
+ 
+call.
+ 
+Sending
+ 
+a
+ 
+flag
+ 
+only
+ 
+increases
+ 
+time-to-support.
+ 
+Data  transmitted  follows  minimum  necessary  principle  per  PDPA  Thailand  requirements.  
+ 
+4.4  Contact  Hospital  —  Available  Options  (Level  3  &  Level  4)  
+When  the  mother  taps  "Contact  your  hospital  team",  two  options  are  presented:  
+Option  1  —  Call  now:  Displays  the  hospital's  direct  phone  number.  Tapping  dials  immediately.  App  logs  
+the
+ 
+action
+ 
+as
+ 
+hospital_contact_initiated.
+ 
+Option  2  —  Request  callback:  App  sends  a  notification  to  the  hospital  dashboard  indicating  the  mother  
+has
+ 
+requested
+ 
+contact.
+ 
+Hospital
+ 
+staff
+ 
+follow
+ 
+up
+ 
+by
+ 
+phone.
+ 
+App
+ 
+displays
+ 
+confirmation:
+ 
+"Your
+ 
+hospital
+ 
+team
+ 
+has
+ 
+been
+ 
+notified
+ 
+and
+ 
+will
+ 
+reach
+ 
+out
+ 
+to
+ 
+you
+ 
+soon."
+ 
+Note:  Option  2  requires  hospital  dashboard  integration  to  function.  Confirm  availability  with  pilot  hospital  
+before
+ 
+development.
+ 
+Option
+ 
+1
+ 
+is
+ 
+available
+ 
+as
+ 
+a
+ 
+fallback
+ 
+regardless
+ 
+of
+ 
+integration
+ 
+status.
+ 
+  
+ Document  prepared  for  Afterbloom  developer  brief   |   Concept  validation  stage   |   June  2026 Key  references:  DSM-5,  EPDS  (Cox  et  al.  1987),  EMA  Pilot  PMC  2022,  Okun  et  al.  2018  
+(SLEEP),
+ 
+Goodman
+ 
+2009
+ 
+(JOGNN),
+ 
+ACOG
+ 
+2023,
+ 
+npj
+ 
+Digital
+ 
+Medicine
+ 
+2023,
+ 
+MBapp
+ 
+2024
+ 
+(JMIR
+ 
+Human
+ 
+Factors),
+ 
+PubMed
+ 
+2012
+ 
+brief
+ 
+scales,
+ 
+Russell
+ 
+1980
+ 
+circumplex
+ 
+model,
+ 
+Brockington
+ 
+2001
+ 
+(PBQ)
+   
+ Need  Update  ยัง ไม่  confirm  Step  5:  Tiny  Goal  Input  /  Output  หลัง  result  ให้ แม่ เลือก  goal  ได้  1  อย่าง  ไม่ ต้อง เยอะ  คํา ถาม  วัน นี้ อยาก ลอง ทํา สิ่ง เล็ก  ๆ  อะไร หนึ่ง อย่าง ?  Choices:  
+●
+ 
+ดื่ม นํ้าหนึ่ง แก้ว   
+●
+ 
+ส่ง ข้อความ หา คน ที่ ไว้ใจ   
+●
+ 
+หลับตา หายใจ ลึก  30  วินาที   
+●
+ 
+วางมือ บน อก แล้ว บอก ตัว เอง ว่า  “ ฉัน กําลัง พยายาม อยู่ ”   
+●
+ 
+ข้าม วัน นี้ ก่อน   Developer  field:  
+selected_tiny_goal
+ Data  type:  enum/string  สําคัญ :  
+ต้อง
+มี
+ 
+“
+ข้าม
+วัน
+นี้
+ก่อน
+”
+ 
+เพราะ
+แม่
+บาง
+วัน
+ไม่
+ไหว
+จริง
+ 
+ๆ
+ 
+และ
+ใน
+ไฟล์โม
+จิ
+ก็
+มี
+ 
+research
+ 
+support
+ 
+เรื่อง
+ 
+defer/snooze
+ 
+option
+ 
+ว่า
+ช่วย
+เรื่อง
+ 
+acceptability
+ 
+  Step  6:  Care  Journey  Input  Care  Journey  จริง  ๆ  ไม่ ต้อง ให้ แม่ กรอก เพิ่ม เยอะ  
+มัน
+ควร
+ใช้
+ 
+baby_birth_date
+ 
+เพื่อ
+ 
+generate
+ 
+stage
+ 
+อัตโนมัติ
+ Stage  mapping  Day  0–3  =  First  Days  
+Day
+ 
+4–13
+ 
+=
+ 
+Early
+ 
+Adjustment
+ 
+Day
+ 
+14–21
+ 
+=
+ 
+Week
+ 
+2
+ 
+Checkpoint
+ 
+Day
+ 
+22–42
+ 
+=
+ 
+First
+ 
+6
+ 
+Weeks
+ 
+Month
+ 
+2–3
+ 
+=
+ 
+Settling
+ 
+Phase
+ 
+Month
+ 
+4–6
+ 
+=
+ 
+Returning
+ 
+Rhythm
+ 
+Month
+ 
+7–9
+ 
+=
+ 
+Late
+ 
+Emotional
+ 
+Check
+ 
+Month
+ 
+10–12
+ 
+=
+ 
+First
+ 
+Year
+ 
+Reflection
+ Care  Journey  card  บน  Home  ถ้า แม่ อยู่  Week  2:  Week  2  Checkpoint  
+Many
+ 
+mothers
+ 
+feel
+ 
+emotionally
+ 
+sensitive
+ 
+during
+ 
+this
+ 
+period.
+ 
+If
+ 
+sadness,
+ 
+numbness,
+ 
+or
+ 
+anxiety
+ 
+continues,
+ 
+a
+ 
+short
+ 
+emotional
+ 
+check
+ 
+can
+ 
+help
+ 
+you
+ 
+understand
+ 
+what
+ 
+support
+ 
+you
+ 
+may
+ 
+need.
+ CTA:  
+Start
+ 
+Week
+ 
+2
+ 
+emotional
+ 
+check
+ ใน ไฟล์โม จิ  support  ว่า  Care  Journey  ไม่ ควร ถูก ซ่อน ใน  tab  เพราะ แม่ ต้องการ  emotional  change  info  บน  
+Home
+ 
+และ
+ช่วง
+ 
+Week
+ 
+2
+ 
+/
+ 
+Week
+ 
+6
+ 
+เป็น
+ช่วง
+สําคัญ
+ของ
+ 
+PPD
+ 
+  Step  7:  EPDS-based  Screening  Input  อัน นี้ ไม่ ใช่  daily  input  
+ให้
+ขึ้น
+เฉพาะ
+บาง
+จังหวะ
+ 
+เช่น
+ 
+Week
+ 
+2
+ 
+/
+ 
+Week
+ 
+6
+ 
+/
+ 
+Month
+ 
+3
+ 
+/
+ 
+Month
+ 
+6
+ 
+/
+ 
+Month
+ 
+9
+ 
+/
+ 
+Month
+ 
+12
+ Trigger  EPDS-based  screening  ควร ขึ้น เมื่อ :  postpartum_stage  =  Week  2  
+or
+ 
+postpartum_stage
+ 
+=
+ 
+Week
+ 
+6
+ 
+or
+ 
+support_level
+ 
+=
+ 
+Extra
+ 
+Support
+ 
+Recommended
+ 
+or
+ 
+safety_status
+ 
+=
+ 
+some
+ 
+or
+ 
+mood_score
+ 
+<=
+ 
+2
+ 
+for
+ 
+3
+ 
+days
+ 
+or
+ 
+anxiety_score
+ 
+>=
+ 
+4
+ 
+for
+ 
+3
+ 
+days
+ Wording  หน้า แรก  ไม่ ใช้ คําว่า :  Depression  Test  ใช้ ว่า :  Emotional  Check  
+คํา
+ถาม
+สั้น
+ 
+ๆ
+ 
+เพื่อ
+ดู
+ว่า
+ช่วง
+นี้
+คุณ
+ต้องการ
+ 
+support
+ 
+แบบ
+ไหน
+ Input  type  ใช้ คํา ถาม แบบ  EPDS-based  แต่ ใน  prototype  ไม่ ต้อง ใส่ ครบ ทุก  clinical  scoring  ก็ได้  ถ้า กลัว ผิด  ให้ ทําเป็น  
+mock
+ 
+flow
+ 
+ก่อน
+ Developer  field:  epds_answers[]  
+epds_total_score
+ 
+screening_date
+ 
+screening_trigger
+ Output:  screening_result_level  
+recommended_next_step
+  Step  8:  Help  Input  /  Emergency  Flow  ปุ่ม  I  Need  Help  ต้อง อยู่ ทุก หน้า  ไม่ ใช่ แค่ หน้า  result  เมื่อ กด  I  Need  Help  ให้ ถาม แค่  1  ข้อ :  ตอน นี้ คุณ ต้องการ ความ ช่วยเหลือ แบบ ไหน ?  Choices:  
+●
+ 
+อยาก คุย กับ คน ที่ ไว้ใจ   
+●
+ 
+อยาก ติดต่อ โรง พยาบาล   
+●
+ 
+อยาก อ่าน วิธี รับมือ เบื้องต้น   
+●
+ 
+รู้สึก ไม่ ปลอดภัย กับ ตัว เอง   ถ้า เลือก  “ รู้สึก ไม่ ปลอดภัย กับ ตัว เอง ”  ไป หน้า  urgent  support  ทันที  You  deserve  immediate  support.  
+Please
+ 
+contact
+ 
+emergency
+ 
+help
+ 
+or
+ 
+stay
+ 
+with
+ 
+someone
+ 
+you
+ 
+trust
+ 
+now.
+ Prototype  ยัง ไม่ ต้อง โทร จริง  แต่ ควร มี ปุ่ม  mock:  ●  Call  emergency  support   ●  Contact  hospital   ●  Message  trusted  person   ใน ไฟล์โม จิ ระบุ ว่า  Help  access  ต้อง  visible  ทุก  state  เพราะ  distress  ไม่ ได้ เกิด เฉพาะ เวลา ทํา การ  และ แม่ อาจ
+ใช้
+แอ
+พ
+ตอน
+กลางคืน
+/
+ตี
+ 
+4
+ 
+   

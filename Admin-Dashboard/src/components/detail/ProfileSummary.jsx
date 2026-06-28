@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Phone, MapPin, Calendar, User, Baby, Heart } from 'lucide-react';
+import { Phone, MapPin, Calendar, User, Baby } from 'lucide-react';
 import RiskBadge from '@/components/shared/RiskBadge';
 import { getFlagLabel } from '@/lib/mockData';
 import { formatDate } from '@/lib/dateUtils';
@@ -12,6 +12,7 @@ export default function ProfileSummary({ mother }) {
     low_social_support: 'bg-violet-50 text-violet-600 border-violet-200',
     missed_checkin: 'bg-orange-50 text-orange-600 border-orange-200',
     high_epds: 'bg-red-50 text-red-700 border-red-200',
+    epds_q10: 'bg-red-100 text-red-800 border-red-300',
   };
 
   return (
@@ -19,13 +20,13 @@ export default function ProfileSummary({ mother }) {
       <CardContent className="pt-6">
         <h3 className="text-sm font-semibold text-foreground mb-4">ข้อมูลสรุป — Profile Summary</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
-          <InfoItem icon={Calendar} label="อายุ" value={`${mother.age} ปี`} />
-          <InfoItem icon={Phone} label="เบอร์โทร" value={mother.phone} />
-          <InfoItem icon={Calendar} label="วันคลอด" value={formatDate(mother.deliveryDate)} />
-          <InfoItem icon={Baby} label="ประเภทการคลอด" value={mother.deliveryType} />
-          <InfoItem icon={Calendar} label="วันหลังคลอด" value={`Day ${mother.postpartumDay}`} />
-          <InfoItem icon={User} label="ผู้ดูแลหลัก" value={mother.supportPerson} />
-          <InfoItem icon={MapPin} label="ที่อยู่" value={mother.location} />
+          <InfoItem icon={Calendar} label="อายุ" value={mother.display?.age || 'รอทีมดูแลกรอก'} />
+          <InfoItem icon={Phone} label="เบอร์โทร" value={mother.display?.phone || 'ยังไม่เก็บจากคุณแม่'} />
+          <InfoItem icon={Calendar} label="วันคลอด" value={mother.display?.deliveryDate || formatDate(mother.deliveryDate, 'ยังไม่เก็บจากคุณแม่')} />
+          <InfoItem icon={Baby} label="ประเภทการคลอด" value={mother.display?.deliveryType || 'รอทีมดูแลกรอก'} />
+          <InfoItem icon={Calendar} label="วันหลังคลอด" value={mother.display?.postpartumDay || 'ยังไม่เก็บวันคลอด'} />
+          <InfoItem icon={User} label="ผู้ดูแลหลัก" value={mother.display?.supportPerson || 'รอทีมดูแลกรอก'} />
+          <InfoItem icon={MapPin} label="ที่อยู่" value={mother.display?.location || 'รอทีมดูแลกรอก'} />
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">ระดับการดูแล</span>
             <RiskBadge level={mother.riskLevel} />
@@ -33,7 +34,7 @@ export default function ProfileSummary({ mother }) {
         </div>
 
         {/* Quick Flags */}
-        {mother.flags.length > 0 && (
+        {Array.isArray(mother.flags) && mother.flags.length > 0 && (
           <div>
             <p className="text-xs text-muted-foreground mb-2">Quick Flags</p>
             <div className="flex flex-wrap gap-2">

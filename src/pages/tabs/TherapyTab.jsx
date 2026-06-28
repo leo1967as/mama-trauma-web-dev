@@ -1,169 +1,204 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CalendarHeart, Clock, Shield, CheckCircle2 } from "lucide-react";
 import TherapistCard from "../../components/booking/TherapistCard";
 import BookingFlow from "../../components/booking/BookingFlow";
 import SafetySection from "../../components/afterbloom/SafetySection";
+import { FONT_BODY, COLORS, Card, CardLabel, ACCENT_COLORS, PrimaryButton, TabHero, TabSheet, HeroAccent } from "../../lib/theme.jsx";
+import { THERAPISTS, getBookingState } from "../../lib/therapy-data";
 
-const therapists = [
-  {
-    name: "Dr. Amara Lee",
-    specialty: "Postpartum & Perinatal",
-    rating: 4.9,
-    reviews: 128,
-    nextSlot: "Today, 3:00 PM",
-    avatar: "👩🏽⚕️",
-    bg: "bg-rose-100",
-    tag: "Top Rated",
-    tagColor: "text-rose-600 bg-rose-50",
-    focuses: ["Baby blues", "Anxiety", "Identity"],
-  },
-  {
-    name: "Dr. Sofia Reyes",
-    specialty: "Maternal Mental Health",
-    rating: 4.8,
-    reviews: 94,
-    nextSlot: "Tomorrow, 10:00 AM",
-    avatar: "👩🏻⚕️",
-    bg: "bg-violet-100",
-    tag: "New Moms",
-    tagColor: "text-violet-600 bg-violet-50",
-    focuses: ["PPD", "Bonding", "Sleep"],
-  },
-  {
-    name: "Dr. Mia Chen",
-    specialty: "Anxiety & Mood Support",
-    rating: 4.7,
-    reviews: 76,
-    nextSlot: "Wed, 2:30 PM",
-    avatar: "👩🏼⚕️",
-    bg: "bg-amber-100",
-    tag: "Anxiety",
-    tagColor: "text-amber-600 bg-amber-50",
-    focuses: ["Panic", "Mood swings", "Trauma"],
-  },
-  {
-    name: "Dr. Priya Nair",
-    specialty: "Grief & Life Transitions",
-    rating: 4.8,
-    reviews: 61,
-    nextSlot: "Thu, 11:00 AM",
-    avatar: "👩🏾⚕️",
-    bg: "bg-teal-100",
-    tag: "Transitions",
-    tagColor: "text-teal-600 bg-teal-50",
-    focuses: ["Loss", "Identity", "Self-worth"],
-  },
-];
-
-const upcomingSession = {
-  therapist: "Dr. Amara Lee",
-  avatar: "👩🏽⚕️",
-  bg: "bg-rose-100",
-  date: "Wednesday, May 8",
-  time: "3:00 PM",
-  mode: "Video Call",
-};
+function getUpcomingDisplay(bookingState) {
+  if (!bookingState) return null;
+  const therapist = THERAPISTS.find((t) => t.id === bookingState.therapistId);
+  return {
+    name: bookingState.name,
+    icon: therapist?.icon || CalendarHeart,
+    color: bookingState.color,
+    date: bookingState.date,
+    time: bookingState.time,
+    mode: bookingState.mode,
+    durationLabel: bookingState.durationLabel,
+    note: bookingState.note,
+  };
+}
 
 export default function TherapyTab() {
   const [bookingTherapist, setBookingTherapist] = useState(null);
   const [booked, setBooked] = useState(false);
+  const [bookingState, setBookingState] = useState(null);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    setBookingState(getBookingState());
+  }, []);
 
   const handleDone = () => {
     setBookingTherapist(null);
     setBooked(true);
+    setBookingState(getBookingState());
+  };
+
+  const upcoming = getUpcomingDisplay(bookingState);
+  const upcomingColors = upcoming ? (ACCENT_COLORS[upcoming.color] || ACCENT_COLORS.accent) : ACCENT_COLORS.green;
+  const UpcomingIcon = upcoming?.icon || CalendarHeart;
+
+  const scrollToTherapists = () => {
+    document.getElementById("therapy-recommended")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   };
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="space-y-4"
-      >
-        {/* Header */}
-        <div className="pt-2 pb-1">
-          <div className="flex items-center gap-2 mb-1">
-            <CalendarHeart className="w-5 h-5 text-primary" />
-            <h1 className="text-xl font-bold text-foreground">Therapy</h1>
-          </div>
-          <p className="text-xs text-muted-foreground">Safe, judgment-free support for you</p>
-        </div>
-
-        {/* Safety First */}
-        <SafetySection />
-
-        {/* Booked Success Banner */}
+      <div style={{ fontFamily: FONT_BODY }}>
+        <TabHero
+          theme="sage"
+          eyebrow="Support"
+          title={<>Support that fits<HeroAccent>today.</HeroAccent></>}
+          subtitle="Request private care when you're ready, or open immediate support if today feels unsafe."
+        />
+        <TabSheet gap={14}>
+        {/* Care request saved banner */}
         <AnimatePresence>
           {booked && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="bg-emerald-50 border border-emerald-200/60 rounded-3xl p-4 flex items-start gap-3"
             >
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-bold text-emerald-700">Session booked successfully!</p>
-                <p className="text-xs text-emerald-600/80 mt-0.5">You'll receive a reminder before it starts 💛</p>
-              </div>
+              <Card style={{ background: COLORS.greenSoft, border: `1px solid ${COLORS.greenSoft}`, display: "flex", alignItems: "flex-start", gap: 12, padding: 16 }}>
+                <CheckCircle2 style={{ width: 18, height: 18, color: COLORS.green, marginTop: 2, flexShrink: 0 }} />
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: COLORS.heading }}>Care request saved.</p>
+                  <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>These details stay on this device until booking is connected.</p>
+                </div>
+              </Card>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Upcoming Session Banner */}
-        <div className="bg-gradient-to-br from-primary/12 to-calm-lavender rounded-3xl p-5 border border-primary/15">
-          <div className="flex items-center gap-1.5 mb-3">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse-soft" />
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">Upcoming Session</span>
-          </div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`w-12 h-12 ${upcomingSession.bg} rounded-2xl flex items-center justify-center text-2xl`}>
-              {upcomingSession.avatar}
-            </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">{upcomingSession.therapist}</p>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                <span className="flex items-center gap-1">
-                  <CalendarHeart className="w-3 h-3" />{upcomingSession.date}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />{upcomingSession.time}
+        {/* Saved care request */}
+        <div style={{ background: upcoming ? upcomingColors.bg : "#fff", borderRadius: 16, padding: 18, border: `1px solid ${COLORS.border}`, boxShadow: upcoming ? "none" : "0 2px 12px rgba(80,56,42,.05)" }}>
+          {upcoming ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: upcomingColors.text }} />
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: upcomingColors.text }}>
+                  Saved care request
                 </span>
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <UpcomingIcon style={{ width: 22, height: 22, color: upcomingColors.text }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>{upcoming.name}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11.5, color: COLORS.muted, marginTop: 2, flexWrap: "wrap" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <CalendarHeart style={{ width: 12, height: 12 }} />{upcoming.date}
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Clock style={{ width: 12, height: 12 }} />{upcoming.time}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 4 }}>{upcoming.durationLabel} · {upcoming.mode}</p>
+                </div>
+              </div>
+              <PrimaryButton
+                onClick={scrollToTherapists}
+                style={{ minHeight: 44, padding: 13, fontWeight: 700, fontSize: 13.5, boxShadow: `0 10px 20px ${COLORS.ctaShadow}` }}
+              >
+                Change request time
+              </PrimaryButton>
+            </>
+          ) : (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 13 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.greenSoft, color: COLORS.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <CalendarHeart style={{ width: 20, height: 20 }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <CardLabel style={{ color: COLORS.green }}>No care request saved</CardLabel>
+                <p style={{ fontSize: 15, fontWeight: 800, color: COLORS.heading, marginTop: 5 }}>You can choose support when it feels right.</p>
+                <p style={{ fontSize: 12.5, color: COLORS.muted, lineHeight: 1.55, marginTop: 5 }}>
+                  Start with support matched to what has been hardest lately. Nothing leaves this device in this version.
+                </p>
+                <PrimaryButton
+                  onClick={scrollToTherapists}
+                  style={{ marginTop: 13, minHeight: 44, padding: 12, background: COLORS.green, fontSize: 13 }}
+                >
+                  See recommended support
+                </PrimaryButton>
+              </div>
             </div>
-          </div>
-          <button className="w-full bg-primary text-primary-foreground rounded-2xl py-3 text-sm font-bold shadow-md shadow-primary/20">
-            Join Session
-          </button>
+          )}
         </div>
 
         {/* Therapist List */}
-        <div>
-          <p className="text-sm font-bold text-foreground mb-3">Recommended for you</p>
-          <div className="space-y-3">
-            {therapists.map((t, i) => (
-              <TherapistCard
-                key={t.name}
-                therapist={t}
-                index={i}
-                onSelect={setBookingTherapist}
-              />
+        <div id="therapy-recommended" style={{ scrollMarginTop: 12 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>Recommended support</p>
+              <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>Choose by care fit, not pressure.</p>
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 800, color: COLORS.label }}>{THERAPISTS.length} options</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {THERAPISTS.map((t, i) => (
+              <TherapistCard key={t.id} therapist={t} index={i} onSelect={setBookingTherapist} />
             ))}
           </div>
         </div>
 
+        {/* Immediate support is available without becoming the main booking flow. */}
+        <div style={{ background: "#FFF4F2", border: "1px solid #F0C8C8", borderRadius: 14, padding: 14 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#F9DEDC", color: "#B84C45", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Shield style={{ width: 18, height: 18 }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13.5, fontWeight: 800, color: COLORS.heading }}>Need support right now?</p>
+              <p style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.45, marginTop: 3 }}>
+                Open the safety options if you do not feel safe or need someone now.
+              </p>
+              <button
+                type="button"
+                onClick={() => setSupportOpen((open) => !open)}
+                aria-expanded={supportOpen}
+                aria-controls="therapy-safety-options"
+                className="afterbloom-focus"
+                style={{ marginTop: 10, width: "100%", minHeight: 44, padding: 11, borderRadius: 11, border: 0, background: supportOpen ? "#F9DEDC" : "#B84C45", color: supportOpen ? "#B84C45" : "#fff", fontSize: 12.5, fontWeight: 800, fontFamily: FONT_BODY, cursor: "pointer" }}
+              >
+                {supportOpen ? "Hide safety options" : "Open safety options"}
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence initial={false}>
+            {supportOpen && (
+              <motion.div
+                id="therapy-safety-options"
+                initial={reduceMotion ? false : { opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #F0C8C8" }}
+              >
+                <SafetySection />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Privacy Note */}
-        <div className="flex items-start gap-3 bg-muted/40 rounded-2xl p-4">
-          <Shield className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            All sessions are completely confidential. You deserve care without judgment. 🌸
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: COLORS.border + "55", borderRadius: 12, padding: 14 }}>
+          <Shield style={{ width: 15, height: 15, color: COLORS.muted, marginTop: 2, flexShrink: 0 }} />
+          <p style={{ fontSize: 11.5, color: COLORS.muted, lineHeight: 1.6 }}>
+            Care conversations are confidential. You deserve care without judgment.
           </p>
         </div>
-      </motion.div>
+        </TabSheet>
+      </div>
 
-      {/* Booking Flow Overlay */}
+      {/* Care request flow overlay */}
       <AnimatePresence>
         {bookingTherapist && (
           <BookingFlow
@@ -176,4 +211,3 @@ export default function TherapyTab() {
     </>
   );
 }
-

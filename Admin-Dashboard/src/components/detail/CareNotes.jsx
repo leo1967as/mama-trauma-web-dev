@@ -50,7 +50,7 @@ export default function CareNotes({ motherId }) {
   }
 
   return (
-    <Card className="border-border/60">
+    <Card id="care-notes" className="border-border/60 scroll-mt-24">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
           <div>

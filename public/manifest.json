@@ -1,0 +1,11 @@
+{
+  "name": "Afterbloom",
+  "short_name": "Afterbloom",
+  "description": "Private postpartum emotional support and daily check-ins.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF6F0",
+  "theme_color": "#C77E83",
+  "lang": "th"
+}

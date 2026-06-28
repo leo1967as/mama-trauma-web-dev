@@ -1,5 +1,24 @@
-- Run a browser smoke check on the Afterbloom shell and verify the global I Need Help sheet.
+- Run the fresh tracer on the new identity/state model: onboarding with legal first+last name, preferred name, and phone -> verify Admin shows `ยังไม่ประเมิน`, `ยังไม่เก็บจากคุณแม่`, and `รอทีมดูแลกรอก` in the correct places before any clinical event.
+- Trigger one flagged clinical path after that fresh onboarding (Check-in extra/immediate, EPDS Q10, or urgent Help) and confirm Admin Alerts, Mother Detail, and timeline preserve `caseSource` correctly.
+- Human-check the new onboarding step order and Home settings edit sheet on a visible mobile-width browser; confirm required identity fields, optional preferred name, and final welcome bridge all feel coherent.
+- Human-check the final onboarding "Go to my dashboard" handoff on a visible mobile-width browser; Progression should be the only visible layer, Welcome should hold clearly, and Dashboard Home should already be ready behind the 2s fade.
+- Run a human browser smoke check on the Afterbloom shell and verify the global I Need Help sheet.
 - Tune the support-level thresholds and CTA copy after browser QA if the results feel too aggressive or too soft.
 - Consider removing the `riskLevel` compatibility alias once all old consumers are gone.
 - Decide whether `.agents/skills/` and `skills-lock.json` from the caveman install should be committed, ignored, or removed from this app repo.
 - If caveman or other newly installed skills do not appear, restart/open a fresh Codex session and re-check the skill inventory before changing the install layout.
+- Do a final human visual pass on Mood, BottomNav safe-area spacing, Check-in result scrolling, Therapy/Plans tone, and small-screen fold behavior after the interaction fixes.
+- Decide whether `.claude/skills/impeccable` should live in this app repo alongside `.agents/skills/impeccable` or be ignored/removed.
+- Manually check OS/browser reduced-motion mode against the implemented Afterbloom screens.
+- Replace or clearly gate prototype safety/support phone/contact placeholders before any production release.
+- Run a de-slop visual system pass: reduce repeated blurred blobs, all-caps eyebrow labels, ghost-card border+shadow styling, rounded icon tiles, and glassy nav treatment.
+- Rebalance Check-in result and EPDS screens so support guidance leads and raw score/data density stays secondary.
+- Consider font self-hosting/subsetting or prototype analytics gating if improving mobile LCP beyond 3.8s becomes the priority.
+- Run the live tracer check with a fresh mother: onboarding -> flagged Check-in/EPDS Q10/urgent Help -> Admin alert -> reviewed/contacted/referred -> note -> resolved -> refresh.
+- Re-run the Check-in follow-up path specifically after deploy: core 4 questions -> follow-up tags/journal/baby connection or support request -> result -> Admin alert consistency.
+- Re-run the Check-in edit path after deploy: reopen today's saved check-in, verify answers/follow-up fields preload, open details, and confirm tiny goal/no crash.
+- Confirm the Admin mother detail displays the same Check-in values, EPDS score/Q10 state, event time, and Help path produced by the Mother App.
+- Re-open the fresh mother in Admin after deploy and verify normalized profile output: no raw `Unknown`, Thai journey stage matches postpartum day, and onboarding appears in timeline before the first check-in.
+- Add worklist owner assignment, SLA/overdue state, and next-follow-up filtering after the tracer check passes.
+- Replace client-side `admin/admin` auth with real staff authentication/RBAC and reviewed Firestore rules before using any real patient data.
+- Repair the Admin JS typecheck configuration/component typings, add route-level code splitting, and add responsive sidebar/table behavior after workflow validation.

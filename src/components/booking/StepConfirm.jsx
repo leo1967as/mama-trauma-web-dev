@@ -1,142 +1,155 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CalendarHeart, Clock, Video, Phone, MessageCircle, Shield, CheckCircle2, Sparkles } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { CalendarHeart, Clock, Video, Phone, MessageCircle, Shield, CheckCircle2 } from "lucide-react";
+import { FONT_BODY, FONT_SERIF, COLORS, Card, ACCENT_COLORS, PrimaryButton } from "../../lib/theme.jsx";
+import { saveBookingState } from "../../lib/therapy-data";
 
 const modeIcons = { video: Video, phone: Phone, chat: MessageCircle };
 
-export default function StepConfirm({ therapist, dateTime, duration, mode, onConfirm, onBack }) {
+function Row({ icon: Icon, label, value }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11.5, color: COLORS.muted }}>
+        <Icon style={{ width: 13, height: 13 }} />
+        <span>{label}</span>
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 700, color: COLORS.heading }}>{value}</span>
+    </div>
+  );
+}
+
+export default function StepConfirm({ therapist, dateTime, duration, mode, onConfirm }) {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const ModeIcon = modeIcons[mode?.id] || Video;
+  const colors = ACCENT_COLORS[therapist.color] || ACCENT_COLORS.accent;
+  const TherapistIcon = therapist.icon;
 
   const handleConfirm = async () => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1500));
     setLoading(false);
     setConfirmed(true);
+    saveBookingState({
+      therapistId: therapist.id,
+      name: therapist.name,
+      color: therapist.color,
+      date: dateTime.date,
+      time: dateTime.time,
+      durationLabel: `${duration.label} (${duration.length})`,
+      mode: mode?.label,
+      note,
+    });
     setTimeout(() => onConfirm(), 2200);
   };
 
   if (confirmed) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-10 text-center space-y-4"
+        role="status"
+        aria-live="polite"
+        style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 0", textAlign: "center", gap: 16, fontFamily: FONT_BODY }}
       >
         <motion.div
-          initial={{ scale: 0 }}
+          initial={reduceMotion ? false : { scale: 0.9 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", bounce: 0.5, delay: 0.1 }}
-          className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center"
+          transition={reduceMotion ? { duration: 0.15 } : { type: "spring", bounce: 0.25, delay: 0.1 }}
+          style={{ width: 72, height: 72, borderRadius: "50%", background: COLORS.greenSoft, display: "flex", alignItems: "center", justifyContent: "center" }}
         >
-          <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+          <CheckCircle2 style={{ width: 36, height: 36, color: COLORS.green }} />
         </motion.div>
         <div>
-          <p className="text-lg font-bold text-foreground">You're booked! 🎉</p>
-          <p className="text-sm text-muted-foreground mt-1">A confirmation has been sent to your phone</p>
+          <p style={{ fontSize: 18, fontWeight: 500, color: COLORS.heading, fontFamily: FONT_SERIF }}>Your request is saved.</p>
+          <p style={{ fontSize: 13, color: COLORS.muted, marginTop: 4 }}>Keep these details here until care booking is connected.</p>
         </div>
-        <div className="bg-muted/40 rounded-2xl px-5 py-3 text-xs text-muted-foreground space-y-1">
-          <p className="font-semibold text-foreground">{therapist.name}</p>
+        <div style={{ background: COLORS.accentSoft, borderRadius: 12, padding: "12px 20px", fontSize: 12, color: COLORS.text, display: "flex", flexDirection: "column", gap: 4 }}>
+          <p style={{ fontWeight: 700, color: COLORS.heading }}>{therapist.name}</p>
           <p>{dateTime.date} · {dateTime.time}</p>
-          <p>{duration.label} · {mode?.label}</p>
+          <p>{duration.label} ({duration.length}) · {mode?.label}</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>You took a step for yourself today 💛</span>
-        </div>
+        <p style={{ maxWidth: 260, fontSize: 12, color: COLORS.muted, lineHeight: 1.55 }}>
+          This does not contact a clinic yet. Use your care team or urgent support if you need help now.
+        </p>
       </motion.div>
     );
   }
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-
+    <motion.div initial={reduceMotion ? false : { opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -20 }} style={{ display: "flex", flexDirection: "column", gap: 14, fontFamily: FONT_BODY }}>
       {/* Summary Card */}
-      <div className="bg-gradient-to-br from-primary/10 to-calm-lavender rounded-3xl p-5 border border-primary/15 space-y-3">
-        <p className="text-xs font-bold text-primary uppercase tracking-wider">Booking Summary</p>
+      <div style={{ background: COLORS.accentSoft, borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+        <p style={{ fontSize: 12.5, fontWeight: 800, color: COLORS.accentInk }}>Private care request</p>
 
-        {/* Therapist */}
-        <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 ${therapist.bg} rounded-2xl flex items-center justify-center text-2xl`}>{therapist.avatar}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <TherapistIcon style={{ width: 22, height: 22, color: colors.text }} />
+          </div>
           <div>
-            <p className="text-sm font-bold text-foreground">{therapist.name}</p>
-            <p className="text-xs text-muted-foreground">{therapist.specialty}</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.heading }}>{therapist.name}</p>
+            <p style={{ fontSize: 11.5, color: COLORS.muted }}>{therapist.specialty}</p>
           </div>
         </div>
 
-        <div className="border-t border-border/30 pt-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <CalendarHeart className="w-3.5 h-3.5" />
-              <span>Date & Time</span>
-            </div>
-            <span className="text-xs font-semibold text-foreground">{dateTime.date} · {dateTime.time}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Duration</span>
-            </div>
-            <span className="text-xs font-semibold text-foreground">{duration.label} · {duration.desc}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <ModeIcon className="w-3.5 h-3.5" />
-              <span>Session type</span>
-            </div>
-            <span className="text-xs font-semibold text-foreground">{mode?.label}</span>
-          </div>
-          <div className="flex items-center justify-between border-t border-border/30 pt-2 mt-2">
-            <span className="text-xs font-bold text-foreground">Total</span>
-            <span className="text-sm font-bold text-primary">{duration.price}</span>
-          </div>
+        <div style={{ borderTop: "1px solid rgba(175,99,106,.15)", paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <Row icon={CalendarHeart} label="Date & Time" value={`${dateTime.date} · ${dateTime.time}`} />
+          <Row icon={Clock} label="Support" value={`${duration.label} · ${duration.length}`} />
+          <Row icon={ModeIcon} label="Session type" value={mode?.label} />
         </div>
       </div>
 
       {/* Note for therapist */}
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <p className="text-sm font-semibold text-foreground mb-1">Add a note <span className="text-muted-foreground font-normal">(optional)</span></p>
-        <p className="text-xs text-muted-foreground mb-3">Let your therapist know what you'd like to focus on</p>
+      <Card>
+        <p style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.heading, marginBottom: 2 }}>
+          Add a note <span style={{ color: COLORS.muted, fontWeight: 400 }}>(optional)</span>
+        </p>
+        <p style={{ fontSize: 11.5, color: COLORS.muted, marginBottom: 10 }}>Only share what feels useful. You can leave this blank.</p>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="e.g. I've been struggling with sleep and anxiety since birth..."
+          aria-label="Optional note for therapist"
+          placeholder="e.g. Sleep has been hard, and I want help staying steady."
           rows={3}
-          className="w-full bg-muted/30 rounded-2xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground resize-none outline-none leading-relaxed border border-transparent focus:border-primary/30 transition-colors"
+          style={{ width: "100%", background: "#FBF6F0", borderRadius: 12, padding: 12, fontSize: 13, color: COLORS.text, resize: "none", outline: "none", lineHeight: 1.5, border: "2px solid transparent", fontFamily: FONT_BODY }}
         />
-      </div>
+      </Card>
 
       {/* Privacy */}
-      <div className="flex items-start gap-2.5 bg-muted/40 rounded-2xl p-3.5">
-        <Shield className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Fully confidential. Your note is only shared with your therapist. 🌸
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#FBF6F0", borderRadius: 12, padding: 14 }}>
+        <Shield style={{ width: 15, height: 15, color: COLORS.muted, marginTop: 2, flexShrink: 0 }} />
+        <p style={{ fontSize: 11.5, color: COLORS.muted, lineHeight: 1.6 }}>
+          Private by default. Your note stays on this device until a real booking connection is added.
         </p>
       </div>
 
       {/* Confirm Button */}
-      <motion.button
-        whileTap={{ scale: 0.97 }}
+      <PrimaryButton
         onClick={handleConfirm}
         disabled={loading}
-        className="w-full py-4 rounded-2xl text-sm font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-70"
+        aria-busy={loading}
+        style={{ padding: 15, fontWeight: 700, fontSize: 14.5, boxShadow: `0 12px 24px ${COLORS.ctaShadow}`, opacity: loading ? 0.8 : 1 }}
       >
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              Confirming your session...
+            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <motion.div
+                animate={reduceMotion ? undefined : { rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid rgba(255,255,255,.3)", borderTopColor: "#fff" }}
+              />
+              Saving your request...
             </motion.div>
           ) : (
             <motion.span key="confirm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              Confirm Booking · {duration.price}
+              Save request
             </motion.span>
           )}
         </AnimatePresence>
-      </motion.button>
+      </PrimaryButton>
     </motion.div>
   );
 }

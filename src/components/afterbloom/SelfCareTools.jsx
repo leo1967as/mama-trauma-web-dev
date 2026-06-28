@@ -38,7 +38,7 @@ export default function SelfCareTools() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.55 }}
-      className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm"
+      className="bg-card rounded-2xl p-5 border border-border/40 shadow-sm"
     >
       <p className="text-sm font-semibold text-foreground mb-1">Micro Self-Care</p>
       <p className="text-xs text-muted-foreground mb-4">Quick tools — under 2 minutes each</p>
@@ -53,7 +53,7 @@ export default function SelfCareTools() {
             whileTap={{ scale: 0.95 }}
             className="flex flex-col items-center gap-2 group"
           >
-            <div className={`w-14 h-14 ${tool.bg} rounded-2xl flex items-center justify-center transition-all group-hover:shadow-md group-hover:scale-105`}>
+            <div className={`w-14 h-14 ${tool.bg} rounded-xl flex items-center justify-center transition-all group-hover:shadow-md group-hover:scale-105`}>
               <tool.icon className={`w-5 h-5 ${tool.iconColor}`} />
             </div>
             <div className="text-center">

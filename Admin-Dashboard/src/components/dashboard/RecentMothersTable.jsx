@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,7 @@ export default function RecentMothersTable() {
   const [stageFilter, setStageFilter] = useState('all');
 
   const filtered = mothers.filter((m) => {
-    const matchSearch = !search || m.name.includes(search) || m.hn.includes(search);
+    const matchSearch = !search || [m.name, m.hn, m.phone].some((value) => String(value || '').includes(search));
     const matchRisk = riskFilter === 'all' || m.riskLevel === riskFilter;
     const matchStage = stageFilter === 'all' || m.postpartumStage === stageFilter;
     return matchSearch && matchRisk && matchStage;
@@ -33,7 +32,7 @@ export default function RecentMothersTable() {
 
   // Sort: high risk first, then attention, then others
   const sorted = [...filtered].sort((a, b) => {
-    const order = { high: 0, attention: 1, low: 2, inactive: 3 };
+    const order = { high: 0, attention: 1, unassessed: 2, low: 3, inactive: 4 };
     return (order[a.riskLevel] ?? 4) - (order[b.riskLevel] ?? 4);
   });
 
@@ -82,10 +81,11 @@ export default function RecentMothersTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">ทุกระดับ</SelectItem>
+              <SelectItem value="unassessed">ยังไม่ประเมิน</SelectItem>
               <SelectItem value="high">เร่งด่วน</SelectItem>
               <SelectItem value="attention">ต้องการความใส่ใจ</SelectItem>
               <SelectItem value="low">ดูแลน้อย</SelectItem>
-              <SelectItem value="inactive">ไม่มีข้อมูล</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
           <Select value={stageFilter} onValueChange={setStageFilter}>

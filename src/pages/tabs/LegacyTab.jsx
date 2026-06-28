@@ -25,7 +25,7 @@ export default function LegacyTab({ onNavigate }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="space-y-4"
+      className="space-y-4 px-[22px] pt-2"
     >
       <div className="pt-2 pb-1">
         <div className="flex items-center gap-2 mb-1">
@@ -35,7 +35,7 @@ export default function LegacyTab({ onNavigate }) {
         <p className="text-xs text-muted-foreground">Previous Home and Mood modules kept here temporarily so they are not lost during the refactor.</p>
       </div>
 
-      <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm">
+      <div className="rounded-2xl border border-border/40 bg-card p-5 shadow-sm">
         <p className="text-sm font-semibold text-foreground">Moved out of Home and Mood</p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           These modules were useful but too crowded for the main postpartum flow. They stay here until each one gets its own better destination.

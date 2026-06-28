@@ -2,12 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <link rel="preload" href="/fonts/newsreader-latin-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="manifest" href="/manifest.json" />
     <title>Afterbloom</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <!-- impeccable-live-start -->
+    <script>
+      if (new URLSearchParams(window.location.search).has("impeccable_live")) {
+        const script = document.createElement("script");
+        script.src = "http://localhost:8400/live.js";
+        document.body.appendChild(script);
+      }
+    </script>
+    <!-- impeccable-live-end -->
+</body>
 </html>

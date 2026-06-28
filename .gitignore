@@ -36,3 +36,23 @@ dist-ssr
 # caveman tooling (local skills, not app code)
 .agents/
 skills-lock.json
+
+# AI tooling (local only)
+.claude/
+.impeccable/
+.playwright-mcp/
+
+# Dev screenshots (not app assets)
+booking*.png
+checkin*.png
+circle*.png
+home*.png
+mood*.png
+plans*.png
+therapy*.png
+booking1.png
+booking2.png
+booking3.png
+
+# Admin Dashboard (separate project, tracked independently)
+Admin-Dashboard/

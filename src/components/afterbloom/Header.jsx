@@ -35,10 +35,10 @@ export default function Header() {
         </motion.h1>
       </div>
       <div className="flex items-center gap-2">
-        <button className="w-10 h-10 rounded-2xl bg-card flex items-center justify-center border border-border/50 shadow-sm">
+        <button className="w-10 h-10 rounded-xl bg-card flex items-center justify-center border border-border/50 shadow-sm">
           <Bell className="w-4.5 h-4.5 text-muted-foreground" />
         </button>
-        <button className="w-10 h-10 rounded-2xl bg-card flex items-center justify-center border border-border/50 shadow-sm">
+        <button className="w-10 h-10 rounded-xl bg-card flex items-center justify-center border border-border/50 shadow-sm">
           <Settings className="w-4.5 h-4.5 text-muted-foreground" />
         </button>
       </div>

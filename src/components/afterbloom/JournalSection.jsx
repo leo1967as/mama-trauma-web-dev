@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, ChevronRight, PenLine, Sparkles } from "lucide-react";
+import { BookOpen, ChevronRight, PenLine } from "lucide-react";
 import { formatHistoryDate, getTodaysMoodEntry, upsertMoodEntry } from "../../lib/mood-data";
 import { MOOD_FACES } from "../../lib/faces";
 
 const moods = MOOD_FACES.map(f => ({ svg: f.svg, bg: f.bg, value: f.score, label: f.label ?? f.word }));
 
 const prompts = [
-  "What was one small win today, even if tiny?",
+  "What was one small win today?",
   "What does your body need right now?",
-  "Write a kind note to yourself.",
-  "What are you most proud of this week?",
+  "What do you want your care team to know?",
+  "What would make tomorrow easier?",
 ];
 
 export default function JournalSection({ history, setHistory }) {
@@ -43,7 +43,7 @@ export default function JournalSection({ history, setHistory }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm">
+      <div className="rounded-2xl border border-border/40 bg-card p-5">
         <div className="flex items-center gap-2 mb-1">
           <BookOpen className="w-4 h-4 text-primary" />
           <p className="text-sm font-semibold text-foreground">Journal</p>
@@ -54,7 +54,7 @@ export default function JournalSection({ history, setHistory }) {
       </div>
 
       {saved ? (
-        <div className="bg-emerald-50 border border-emerald-200/60 rounded-2xl px-4 py-3 text-xs text-emerald-700 font-medium">
+        <div className="bg-emerald-50 border border-emerald-200/60 rounded-xl px-4 py-3 text-xs text-emerald-700 font-medium">
           Journal saved into today&apos;s check-in.
         </div>
       ) : null}
@@ -66,7 +66,7 @@ export default function JournalSection({ history, setHistory }) {
             type="button"
             whileTap={{ scale: 0.98 }}
             onClick={() => setWriting(true)}
-            className="w-full bg-gradient-to-br from-calm-cream to-calm-peach rounded-3xl p-5 border border-border/20 text-left shadow-sm"
+            className="w-full bg-card rounded-2xl p-5 border border-border/40 text-left"
           >
             <div className="flex items-center gap-2 mb-2">
               <PenLine className="w-4 h-4 text-primary" />
@@ -85,7 +85,7 @@ export default function JournalSection({ history, setHistory }) {
             key="editor"
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm"
+            className="bg-card rounded-2xl p-5 border border-border/40"
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold text-foreground">Today&apos;s entry</p>
@@ -98,13 +98,13 @@ export default function JournalSection({ history, setHistory }) {
               value={text}
               onChange={(event) => setText(event.target.value)}
               placeholder="How are you really feeling today? Keep it short if needed."
-              className="w-full h-36 bg-muted/30 rounded-2xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground resize-none outline-none leading-relaxed"
+              className="w-full h-36 bg-muted/30 rounded-xl p-3.5 text-sm text-foreground placeholder:text-muted-foreground resize-none outline-none leading-relaxed"
             />
             <button
               type="button"
               onClick={handleSaveJournal}
               disabled={!text.trim()}
-              className={`mt-3 w-full py-3 rounded-2xl text-sm font-semibold transition-all ${text.trim() ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"}`}
+              className={`mt-3 w-full py-3 rounded-xl text-sm font-semibold transition-all ${text.trim() ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"}`}
             >
               Save entry
             </button>
@@ -112,10 +112,10 @@ export default function JournalSection({ history, setHistory }) {
         )}
       </AnimatePresence>
 
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
+      <div className="bg-card rounded-2xl p-5 border border-border/40">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-primary" />
-          <p className="text-sm font-semibold text-foreground">Gentle prompts</p>
+          <PenLine className="w-4 h-4 text-primary" />
+          <p className="text-sm font-semibold text-foreground">Writing prompts</p>
         </div>
         <div className="space-y-2">
           {prompts.map((prompt, index) => (
@@ -128,7 +128,7 @@ export default function JournalSection({ history, setHistory }) {
                 setWriting(true);
                 setText(prompt.endsWith("?") ? `${prompt}\n\n` : `${prompt}\n`);
               }}
-              className={`w-full text-left px-3.5 py-3 rounded-2xl text-xs leading-relaxed transition-all ${
+              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs leading-relaxed transition-all ${
                 activePrompt === index ? "bg-primary/10 text-primary border border-primary/20 font-medium" : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
               }`}
             >
@@ -138,11 +138,11 @@ export default function JournalSection({ history, setHistory }) {
         </div>
       </div>
 
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <p className="text-sm font-semibold text-foreground mb-3">Recent entries</p>
-        <div className="space-y-3">
-          {noteEntries.length ? (
-            noteEntries.map((entry) => {
+      <div className="bg-card rounded-2xl border border-border/40 overflow-hidden">
+        <p className="text-sm font-semibold text-foreground px-5 pt-5 pb-3">Recent entries</p>
+        {noteEntries.length ? (
+          <div className="divide-y divide-border/30">
+            {noteEntries.map((entry) => {
               const moodFace = moods.find((item) => item.value === entry.moodScore);
               const preview = entry.note || "Mood-only check-in saved for this day.";
               return (
@@ -150,7 +150,7 @@ export default function JournalSection({ history, setHistory }) {
                   key={entry.dateKey}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-muted/30 rounded-2xl p-3.5"
+                  className="px-5 py-3"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] text-muted-foreground font-medium">{formatHistoryDate(entry.dateKey)}</span>
@@ -171,17 +171,16 @@ export default function JournalSection({ history, setHistory }) {
                   ) : null}
                 </motion.div>
               );
-            })
-          ) : (
-            <div className="bg-muted/30 rounded-2xl p-4 text-xs text-muted-foreground leading-relaxed">
-              No entries yet. Once a mood or note is saved, recent history will appear here.
-            </div>
-          )}
-        </div>
+            })}
+          </div>
+        ) : (
+          <p className="px-5 pb-5 text-xs text-muted-foreground leading-relaxed">
+            No entries yet. Once a mood or note is saved, recent history will appear here.
+          </p>
+        )}
       </div>
     </div>
   );
 }
-
 
 

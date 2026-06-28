@@ -1,18 +1,29 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import BottomNav from "../components/afterbloom/BottomNav";
 import { logSafetyAccess } from "../lib/mood-data";
+import { LAYERS, LAYOUT, EASE_OUT_QUINT } from "../lib/theme.jsx";
+import { useBodyScrollLock } from "../hooks/use-body-scroll-lock";
 import HomeTab from "./tabs/HomeTab";
 
 // Lazy: heavy modals + secondary tabs -> out of initial chunk.
-const MoodTab = lazy(() => import("./tabs/MoodTab"));
+const tabLoaders = {
+  mood: () => import("./tabs/MoodTab"),
+  legacy: () => import("./tabs/LegacyTab"),
+  therapy: () => import("./tabs/TherapyTab"),
+  careplans: () => import("./tabs/CarePlansTab"),
+  circle: () => import("./tabs/CircleTab"),
+};
+
+const MoodTab = lazy(tabLoaders.mood);
 const CheckInFlow = lazy(() => import("../components/afterbloom/CheckInFlow"));
 const EpdsFlow = lazy(() => import("../components/afterbloom/EpdsFlow"));
 const SafetySection = lazy(() => import("../components/afterbloom/SafetySection"));
-const LegacyTab = lazy(() => import("./tabs/LegacyTab"));
-const TherapyTab = lazy(() => import("./tabs/TherapyTab"));
-const CircleTab = lazy(() => import("./tabs/CircleTab"));
-const CarePlansTab = lazy(() => import("./tabs/CarePlansTab"));
+const LegacyTab = lazy(tabLoaders.legacy);
+const TherapyTab = lazy(tabLoaders.therapy);
+const CircleTab = lazy(tabLoaders.circle);
+const CarePlansTab = lazy(tabLoaders.careplans);
 
 const tabComponents = {
   home: HomeTab,
@@ -36,19 +47,45 @@ export default function Dashboard() {
   const [legacyUnlocked, setLegacyUnlocked] = useState(false);
   const [toast, setToast] = useState(null);
   const bufferRef = useRef("");
+
+  useBodyScrollLock(helpOpen);
+  const reduceMotion = useReducedMotion();
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef(null);
+  const helpDialogRef = useRef(null);
+  const helpCloseRef = useRef(null);
+  const helpReturnFocusRef = useRef(null);
   const TabContent = tabComponents[activeTab];
+  const navVisible = !checkInOpen && !epdsOpen && !helpOpen;
 
   // Spec: I Need Help is reachable from every state and each access is logged.
   const openHelp = (source) => {
+    helpReturnFocusRef.current = typeof document !== "undefined" ? document.activeElement : null;
     logSafetyAccess({ source: source || activeTab });
     setHelpOpen(true);
+  };
+
+  const closeHelp = () => {
+    setHelpOpen(false);
+    window.requestAnimationFrame(() => {
+      helpReturnFocusRef.current?.focus?.();
+      helpReturnFocusRef.current = null;
+    });
   };
 
   const openEpds = (source) => {
     setEpdsTrigger(source || activeTab);
     setEpdsOpen(true);
+  };
+
+  const changeTab = (nextTab) => {
+    if (nextTab === activeTab) return;
+    const loadTab = tabLoaders[nextTab];
+    if (!loadTab) {
+      setActiveTab(nextTab);
+      return;
+    }
+    loadTab().finally(() => setActiveTab(nextTab));
   };
 
   const triggerUnlock = () => {
@@ -73,6 +110,64 @@ export default function Dashboard() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [activeTab]);
 
+  useEffect(() => {
+    if (!helpOpen) return;
+    helpCloseRef.current?.focus();
+  }, [helpOpen]);
+
+  useEffect(() => {
+    if (!helpOpen) return;
+    const handleGlobalHelpKey = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      closeHelp();
+    };
+
+    window.addEventListener("keydown", handleGlobalHelpKey, true);
+    return () => window.removeEventListener("keydown", handleGlobalHelpKey, true);
+  }, [helpOpen]);
+
+  useEffect(() => {
+    const preloadTabs = () => Object.values(tabLoaders).forEach((load) => load());
+    let idleId = null;
+    const timer = window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(preloadTabs, { timeout: 2500 });
+        return;
+      }
+      preloadTabs();
+    }, 3500);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId !== null) window.cancelIdleCallback?.(idleId);
+    };
+  }, []);
+
+  const handleHelpKeyDown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeHelp();
+      return;
+    }
+
+    if (e.key !== "Tab") return;
+    const focusable = helpDialogRef.current?.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
   const handleSecretTap = () => {
     tapCountRef.current += 1;
     clearTimeout(tapTimerRef.current);
@@ -84,84 +179,108 @@ export default function Dashboard() {
     }
   };
 
+  const canUseDOM = typeof document !== "undefined";
+  const helpLayer = helpOpen ? (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { duration: 0.2, ease: EASE_OUT_QUINT } }}
+      exit={{ opacity: 0, transition: { duration: 0.15, ease: EASE_OUT_QUINT } }}
+      className="fixed inset-0 bg-black/35 overflow-y-auto px-4 pt-16"
+      style={{ zIndex: LAYERS.urgentOverlay, paddingBottom: LAYOUT.flowScrollPadding, WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}
+      onClick={closeHelp}
+    >
+      <motion.div
+        ref={helpDialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="global-help-title"
+        initial={reduceMotion ? { opacity: 0 } : { y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1, transition: { duration: 0.24, ease: EASE_OUT_QUINT } }}
+        exit={reduceMotion ? { opacity: 0, transition: { duration: 0.15 } } : { y: 24, opacity: 0, transition: { duration: 0.18, ease: EASE_OUT_QUINT } }}
+        className="mx-auto max-w-md rounded-2xl bg-background p-4 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleHelpKeyDown}
+      >
+        <div className="mb-3 flex items-center justify-between px-1">
+          <div id="global-help-title" className="text-sm font-bold text-foreground">
+            I Need Help
+          </div>
+          <button
+            ref={helpCloseRef}
+            onClick={closeHelp}
+            className="afterbloom-focus min-h-11 rounded-full border border-border/60 bg-white px-4 text-xs font-bold text-foreground"
+          >
+            Close
+          </button>
+        </div>
+        <Suspense fallback={null}>
+          <SafetySection onLog={(action) => logSafetyAccess({ action })} />
+        </Suspense>
+      </motion.div>
+    </motion.div>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className={`max-w-md mx-auto pb-32 overflow-y-auto overflow-x-hidden${activeTab !== "home" && activeTab !== "mood" ? " px-4 pt-2" : ""}`}>
-        <AnimatePresence mode="wait">
+      <div
+        className="max-w-md mx-auto overflow-y-auto overflow-x-hidden"
+        style={{ paddingBottom: LAYOUT.bottomNavSpace }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: reduceMotion ? 0.08 : 0.16, ease: EASE_OUT_QUINT } }}
+            exit={{ opacity: 0, transition: { duration: reduceMotion ? 0.06 : 0.1, ease: EASE_OUT_QUINT } }}
           >
             <Suspense fallback={null}>
               {activeTab === "home"
-                ? <HomeTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
+                ? <HomeTab onNavigate={changeTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
                 : activeTab === "mood"
-                  ? <MoodTab onNavigate={setActiveTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} />
+                  ? <MoodTab onNavigate={changeTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} onNeedHelp={() => openHelp("mood")} />
                   : activeTab === "legacy"
-                    ? <LegacyTab onNavigate={setActiveTab} />
+                    ? <LegacyTab onNavigate={changeTab} />
                     : <TabContent />}
             </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        legacyUnlocked={legacyUnlocked}
-        onHelp={() => openHelp("global")}
-        showHelp={!checkInOpen && !epdsOpen && !helpOpen}
-      />
-
-      <Suspense fallback={null}>
-        {checkInOpen && <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />}
-        {epdsOpen && <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} trigger={epdsTrigger} />}
-      </Suspense>
+      {navVisible && (
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={changeTab}
+          legacyUnlocked={legacyUnlocked}
+          onHelp={() => openHelp("global")}
+          showHelp
+        />
+      )}
 
       <AnimatePresence>
-        {helpOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[90] bg-black/35 px-4 pt-16"
-            onClick={() => setHelpOpen(false)}
-          >
-            <motion.div
-              initial={{ y: 24, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="mx-auto max-w-md rounded-[28px] bg-background p-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="mb-3 flex items-center justify-between px-1">
-                <div className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  I Need Help
-                </div>
-                <button
-                  onClick={() => setHelpOpen(false)}
-                  className="rounded-full border border-border/60 bg-white px-3 py-1 text-xs font-bold text-foreground"
-                >
-                  Close
-                </button>
-              </div>
-              <Suspense fallback={null}>
-                <SafetySection onLog={(action) => logSafetyAccess({ action })} />
-              </Suspense>
-            </motion.div>
-          </motion.div>
+        {checkInOpen && (
+          <Suspense fallback={null} key="checkin">
+            <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />
+          </Suspense>
         )}
+        {epdsOpen && (
+          <Suspense fallback={null} key="epds">
+            <EpdsFlow onClose={() => setEpdsOpen(false)} onNeedHelp={() => openHelp("epds")} trigger={epdsTrigger} />
+          </Suspense>
+        )}
+      </AnimatePresence>
 
+      {canUseDOM
+        ? createPortal(<AnimatePresence>{helpLayer}</AnimatePresence>, document.body)
+        : <AnimatePresence>{helpLayer}</AnimatePresence>}
+
+      <AnimatePresence>
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[80] pointer-events-none"
+            className="fixed left-1/2 -translate-x-1/2 pointer-events-none"
+            style={{ bottom: LAYOUT.toastBottom, zIndex: LAYERS.toast }}
           >
             <div className="bg-foreground/90 text-background text-xs font-bold px-4 py-2 rounded-full shadow-lg">
               {toast}
@@ -172,9 +291,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-
-
-
-
-

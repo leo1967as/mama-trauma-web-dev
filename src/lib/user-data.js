@@ -13,7 +13,17 @@ export function isOnboarded() {
 }
 
 export function getDisplayName() {
-  return getOnboardingData()?.mother_name || "there";
+  const data = getOnboardingData();
+  return data?.preferred_name || data?.mother_name || data?.legal_first_name || "there";
+}
+
+export function getLegalFullName() {
+  const data = getOnboardingData();
+  return [data?.legal_first_name, data?.legal_last_name].filter(Boolean).join(" ").trim();
+}
+
+export function getProfilePhone() {
+  return getOnboardingData()?.phone || "";
 }
 
 export function getIsFirstTimeMother() {
@@ -22,6 +32,10 @@ export function getIsFirstTimeMother() {
 
 export function getPreferredCheckinTime() {
   return getOnboardingData()?.preferred_checkin_time || null;
+}
+
+export function getHeaderMotion() {
+  return getOnboardingData()?.header_motion || "blobs";
 }
 
 export function getDaysSinceBirth() {
@@ -51,19 +65,17 @@ export function consumeJustOnboarded() {
   return v;
 }
 
-// Ordered postpartum journey stages. Anchors per spec: day14=Week2, day42=Week6, day90=Month3.
+// Ordered postpartum journey stages as per Afterbloom_DailyCheckin_Spec.
 export const STAGES = [
-  { label: "Day 1",    weekLabel: "Week 1 · Day 1", phase: "Baby Blues Zone",        desc: "Hormones shifting — tears are normal",            pct: 5,   maxDay: 2 },
-  { label: "Day 3",    weekLabel: "Week 1 · Day 3", phase: "Peak Adjustment",        desc: "Milk may come in — emotions intensify",           pct: 15,  maxDay: 6 },
-  { label: "Day 7",    weekLabel: "Week 1 · Day 7", phase: "Finding Rhythm",         desc: "Building small routines, some relief",            pct: 25,  maxDay: 13 },
-  { label: "Week 2",   weekLabel: "Week 2",         phase: "Settling In",            desc: "Baby blues should start to ease",                 pct: 35,  maxDay: 20 },
-  { label: "Week 3",   weekLabel: "Week 3",         phase: "Growing Confidence",     desc: "Trust your instincts",                            pct: 45,  maxDay: 27 },
-  { label: "Week 4",   weekLabel: "Week 4",         phase: "Hitting Your Stride",    desc: "Routines feel more familiar now",                 pct: 55,  maxDay: 34 },
-  { label: "Week 5",   weekLabel: "Week 5",         phase: "Steadier Days",          desc: "Energy may slowly start returning",               pct: 65,  maxDay: 41 },
-  { label: "Week 6",   weekLabel: "Week 6",         phase: "Six-Week Milestone",     desc: "A good time to check in with your doctor",        pct: 75,  maxDay: 48 },
-  { label: "Month 2",  weekLabel: "Month 2",        phase: "New Normal",             desc: "If sadness persists, reach out",                  pct: 88,  maxDay: 78 },
-  { label: "Month 3",  weekLabel: "Month 3",        phase: "Finding Your Footing",   desc: "Many mothers feel more like themselves",          pct: 100, maxDay: 90 },
-  { label: "Month 4+", weekLabel: "Month 4+",       phase: "Continuing the Journey", desc: "Keep checking in — you're doing great",           pct: 100, maxDay: Infinity },
+  { label: "First Days", weekLabel: "First Days", phase: "First Days", desc: "Hormones shifting — tears are normal", pct: 5, maxDay: 3 },
+  { label: "Early Adj.", weekLabel: "Early Adjustment", phase: "Early Adjustment", desc: "Milk may come in — emotions start to adjust", pct: 15, maxDay: 13 },
+  { label: "Week 2", weekLabel: "Week 2 Checkpoint", phase: "Week 2 Checkpoint", desc: "Many mothers feel emotionally sensitive during this period.", pct: 25, maxDay: 21 },
+  { label: "First 6 Weeks", weekLabel: "First 6 Weeks", phase: "First 6 Weeks", desc: "A good time to check in with your doctor", pct: 40, maxDay: 42 },
+  { label: "Month 2-3", weekLabel: "Settling Phase", phase: "Settling Phase", desc: "Many mothers feel more like themselves", pct: 60, maxDay: 90 },
+  { label: "Month 4-6", weekLabel: "Returning Rhythm", phase: "Returning Rhythm", desc: "Routines feel more familiar now", pct: 75, maxDay: 180 },
+  { label: "Month 7-9", weekLabel: "Late Emotional Check", phase: "Late Emotional Check", desc: "Keep checking in — you're doing great", pct: 90, maxDay: 270 },
+  { label: "Month 10-12", weekLabel: "First Year Reflection", phase: "First Year Reflection", desc: "Reflecting on your journey", pct: 100, maxDay: 365 },
+  { label: "Year 1+", weekLabel: "Continuing the Journey", phase: "Continuing the Journey", desc: "Keep checking in — you're doing great", pct: 100, maxDay: Infinity },
 ];
 
 export function getCurrentStage() {
@@ -72,5 +84,4 @@ export function getCurrentStage() {
   const stageIndex = STAGES.findIndex((stage) => d <= stage.maxDay);
   return { ...STAGES[stageIndex], stageIndex, days: d };
 }
-
 

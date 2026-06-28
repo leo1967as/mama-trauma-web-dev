@@ -5,6 +5,7 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
+  			body: ['var(--font-body)'],
   			nunito: ['var(--font-nunito)'],
   		},
   		borderRadius: {

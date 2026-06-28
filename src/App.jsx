@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Onboarding from './components/afterbloom/Onboarding';
 import { isOnboarded } from './lib/user-data';
 import { getUid } from './lib/firebase';
+import { clearSupportEpisode, checkAndClearIfResolved } from './lib/support-episode';
 
 const AuthenticatedApp = () => {
   return (
@@ -74,6 +75,18 @@ function App() {
     void getUid().catch((error) => {
       console.warn('Firebase identity initialization failed', error?.code || error?.message);
     });
+
+    // Care-team resolution: deep-link fallback
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('resolve_support') === '1') {
+      clearSupportEpisode();
+      const clean = new URL(window.location.href);
+      clean.searchParams.delete('resolve_support');
+      window.history.replaceState({}, '', clean.toString());
+    } else {
+      // Primary path: poll own Firestore doc for Admin resolution
+      void checkAndClearIfResolved();
+    }
   }, []);
 
   return (

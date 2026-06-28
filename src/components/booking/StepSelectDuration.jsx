@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Clock, Video, Phone, MessageCircle, CheckCircle2 } from "lucide-react";
+import { FONT_BODY, COLORS, Card, PrimaryButton } from "../../lib/theme.jsx";
 
 const durations = [
-  { mins: 25, label: "25 min", desc: "Quick check-in", price: "$45", popular: false },
-  { mins: 50, label: "50 min", desc: "Standard session", price: "$85", popular: true },
-  { mins: 80, label: "80 min", desc: "Deep-dive session", price: "$130", popular: false },
+  { mins: 25, label: "Short support", length: "25 min", desc: "A focused check-in for one concern", popular: false },
+  { mins: 50, label: "Standard care", length: "50 min", desc: "Enough time to talk through the day", popular: true },
+  { mins: 80, label: "More time", length: "80 min", desc: "For layered feelings or a harder week", popular: false },
 ];
 
 const modes = [
@@ -14,63 +15,66 @@ const modes = [
   { id: "chat", icon: MessageCircle, label: "Live Chat" },
 ];
 
-export default function StepSelectDuration({ onNext, onBack }) {
+export default function StepSelectDuration({ onNext }) {
   const [selectedDuration, setSelectedDuration] = useState(durations[1]);
   const [selectedMode, setSelectedMode] = useState("video");
+  const reduceMotion = useReducedMotion();
 
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-
+    <motion.div initial={reduceMotion ? false : { opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -20 }} style={{ display: "flex", flexDirection: "column", gap: 14, fontFamily: FONT_BODY }}>
       {/* Duration Picker */}
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-4 h-4 text-primary" />
-          <p className="text-sm font-bold text-foreground">Session length</p>
+      <Card>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <Clock style={{ width: 16, height: 16, color: COLORS.accent }} />
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>Choose the amount of support</p>
+            <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>You can start small. Longer is not always better.</p>
+          </div>
         </div>
-        <div className="space-y-2.5">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {durations.map((d) => {
             const active = selectedDuration.mins === d.mins;
             return (
               <motion.button
                 key={d.mins}
-                whileTap={{ scale: 0.98 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.98 }}
                 onClick={() => setSelectedDuration(d)}
-                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all ${
-                  active
-                    ? "border-primary/40 bg-primary/8"
-                    : "border-border/40 bg-muted/20 hover:bg-muted/40"
-                }`}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "14px 16px", borderRadius: 12,
+                  border: `2px solid ${active ? COLORS.accent : COLORS.border}`,
+                  background: active ? COLORS.accentSoft : "#fff", cursor: "pointer",
+                }}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${active ? "bg-primary/15" : "bg-muted/60"}`}>
-                    <Clock className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? "#fff" : COLORS.border, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Clock style={{ width: 16, height: 16, color: active ? COLORS.accent : COLORS.muted }} />
                   </div>
-                  <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${active ? "text-foreground" : "text-foreground"}`}>{d.label}</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: COLORS.heading }}>{d.label}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: active ? COLORS.accent : COLORS.muted }}>{d.length}</span>
                       {d.popular && (
-                        <span className="text-[10px] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-md">
-                          Most popular
+                        <span style={{ fontSize: 10, fontWeight: 700, background: COLORS.accent, color: "#fff", padding: "2px 6px", borderRadius: 6 }}>
+                          Common first choice
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">{d.desc}</p>
+                    <p style={{ fontSize: 11.5, color: COLORS.muted }}>{d.desc}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>{d.price}</span>
-                  {active && <CheckCircle2 className="w-4 h-4 text-primary" />}
-                </div>
+                {active && <CheckCircle2 style={{ width: 16, height: 16, color: COLORS.accent }} />}
               </motion.button>
             );
           })}
         </div>
-      </div>
+      </Card>
 
       {/* Mode Picker */}
-      <div className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm">
-        <p className="text-sm font-bold text-foreground mb-3">How would you like to connect?</p>
-        <div className="flex gap-2">
+      <Card>
+        <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading, marginBottom: 4 }}>How would you like to connect?</p>
+        <p style={{ fontSize: 11.5, color: COLORS.muted, marginBottom: 12 }}>Choose the format that feels easiest to show up for.</p>
+        <div style={{ display: "flex", gap: 8 }}>
           {modes.map((m) => {
             const Icon = m.icon;
             const active = selectedMode === m.id;
@@ -78,24 +82,27 @@ export default function StepSelectDuration({ onNext, onBack }) {
               <button
                 key={m.id}
                 onClick={() => setSelectedMode(m.id)}
-                className={`flex-1 flex flex-col items-center gap-2 py-3.5 rounded-2xl border-2 transition-all ${
-                  active ? "border-primary/40 bg-primary/8" : "border-border/40 bg-muted/20 hover:bg-muted/40"
-                }`}
+                style={{
+                  flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                  padding: "14px 0", borderRadius: 12,
+                  border: `2px solid ${active ? COLORS.accent : COLORS.border}`,
+                  background: active ? COLORS.accentSoft : "#fff", cursor: "pointer",
+                }}
               >
-                <Icon className={`w-5 h-5 ${active ? "text-primary" : "text-muted-foreground"}`} strokeWidth={active ? 2.5 : 1.8} />
-                <span className={`text-[10px] font-bold ${active ? "text-primary" : "text-muted-foreground"}`}>{m.label}</span>
+                <Icon style={{ width: 18, height: 18, color: active ? COLORS.accent : COLORS.muted }} strokeWidth={active ? 2.5 : 1.8} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: active ? COLORS.accent : COLORS.muted }}>{m.label}</span>
               </button>
             );
           })}
         </div>
-      </div>
+      </Card>
 
-      <button
-        onClick={() => onNext({ duration: selectedDuration, mode: modes.find(m => m.id === selectedMode) })}
-        className="w-full py-4 rounded-2xl text-sm font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+      <PrimaryButton
+        onClick={() => onNext({ duration: selectedDuration, mode: modes.find((m) => m.id === selectedMode) })}
+        style={{ padding: 15, fontWeight: 700, fontSize: 14.5, boxShadow: `0 12px 24px ${COLORS.ctaShadow}` }}
       >
         Continue
-      </button>
+      </PrimaryButton>
     </motion.div>
   );
 }

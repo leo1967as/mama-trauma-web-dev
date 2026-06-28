@@ -3,14 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, Plus, X, Baby, Heart } from "lucide-react";
 
 const PRESETS = [
-  { label: "First smile 😊", category: "baby" },
-  { label: "First full night of sleep 🌙", category: "mom" },
-  { label: "First self-care day 🛁", category: "mom" },
-  { label: "First giggle 😂", category: "baby" },
-  { label: "First time holding head up 💪", category: "baby" },
-  { label: "Asked for help 🤝", category: "mom" },
-  { label: "First solo outing 🌸", category: "mom" },
-  { label: "First solid food 🥣", category: "baby" },
+  { label: "First smile", category: "baby" },
+  { label: "Longer sleep stretch", category: "mom" },
+  { label: "First quiet recovery hour", category: "mom" },
+  { label: "First giggle", category: "baby" },
+  { label: "Holding head up", category: "baby" },
+  { label: "Asked for help", category: "mom" },
+  { label: "First solo outing", category: "mom" },
+  { label: "First shared meal", category: "baby" },
 ];
 
 const categoryStyle = {
@@ -24,8 +24,8 @@ function formatDate(iso) {
 
 export default function MilestonesSection() {
   const [milestones, setMilestones] = useState([
-    { id: 1, label: "First smile 😊", category: "baby", date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 2, label: "First full night of sleep 🌙", category: "mom", date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 1, label: "First smile", category: "baby", date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 2, label: "Longer sleep stretch", category: "mom", date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
   ]);
   const [showForm, setShowForm] = useState(false);
   const [customLabel, setCustomLabel] = useState("");
@@ -48,17 +48,17 @@ export default function MilestonesSection() {
   const handleRemove = (id) => setMilestones((prev) => prev.filter((m) => m.id !== id));
 
   return (
-    <div className="bg-card rounded-3xl border border-border/40 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <div className="flex items-center gap-2">
           <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-          <p className="text-sm font-bold text-foreground">Baby & Mom Milestones</p>
+          <p className="text-sm font-bold text-foreground">Care moments</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.93 }}
           onClick={() => setShowForm((s) => !s)}
-          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${showForm ? "bg-muted" : "bg-primary/10"}`}
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${showForm ? "bg-muted" : "bg-primary/10"}`}
         >
           {showForm ? <X className="w-4 h-4 text-muted-foreground" /> : <Plus className="w-4 h-4 text-primary" />}
         </motion.button>
@@ -84,12 +84,12 @@ export default function MilestonesSection() {
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold border-2 transition-all ${
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold border-2 transition-all ${
                         category === cat ? `${s.bg} ${s.text} ${s.border}` : "bg-muted/40 text-muted-foreground border-transparent"
                       }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
-                      {cat === "baby" ? "Baby" : "Mom"}
+                      {cat === "baby" ? "Baby" : "Mother"}
                     </button>
                   );
                 })}
@@ -116,21 +116,21 @@ export default function MilestonesSection() {
               <input
                 value={customLabel}
                 onChange={(e) => { setCustomLabel(e.target.value); setSelectedPreset(null); }}
-                placeholder="Or write your own milestone…"
-                className="w-full bg-muted/30 rounded-xl px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none border border-border/30 focus:border-primary/40"
+                placeholder="Or write your own moment..."
+                className="w-full bg-muted/30 rounded-lg px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground outline-none border border-border/30 focus:border-primary/40"
               />
 
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAdd}
                 disabled={!selectedPreset && !customLabel.trim()}
-                className={`w-full py-3 rounded-2xl text-xs font-bold transition-all ${
+                className={`w-full py-3 rounded-xl text-xs font-bold transition-all ${
                   selectedPreset || customLabel.trim()
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "bg-muted text-muted-foreground cursor-not-allowed"
                 }`}
               >
-                Log this milestone 🌟
+                Save this moment
               </motion.button>
             </div>
           </motion.div>
@@ -140,7 +140,7 @@ export default function MilestonesSection() {
       {/* Timeline */}
       <div className="px-5 py-4">
         {milestones.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">No milestones yet — log your first one! 🌱</p>
+          <p className="text-xs text-muted-foreground text-center py-4">No moments saved yet.</p>
         ) : (
           <div className="relative">
             {/* Vertical line */}
@@ -166,7 +166,7 @@ export default function MilestonesSection() {
                       </div>
 
                       {/* Content */}
-                      <div className={`flex-1 ${s.bg} rounded-2xl px-3.5 py-2.5 border ${s.border}`}>
+                      <div className={`flex-1 ${s.bg} rounded-xl px-3.5 py-2.5 border ${s.border}`}>
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-xs font-semibold text-foreground leading-snug">{m.label}</p>
                           <button onClick={() => handleRemove(m.id)} className="opacity-30 hover:opacity-70 transition-opacity flex-shrink-0 mt-0.5">

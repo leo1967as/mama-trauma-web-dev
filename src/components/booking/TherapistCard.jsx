@@ -1,46 +1,60 @@
-import { motion } from "framer-motion";
-import { Star, Clock, ChevronRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Clock, ChevronRight } from "lucide-react";
+import { FONT_BODY, COLORS, ACCENT_COLORS } from "../../lib/theme.jsx";
 
 export default function TherapistCard({ therapist, index, onSelect }) {
   const t = therapist;
+  const colors = ACCENT_COLORS[t.color] || ACCENT_COLORS.accent;
+  const Icon = t.icon;
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.button
-      initial={{ opacity: 0, y: 8 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.07 }}
-      whileTap={{ scale: 0.97 }}
+      transition={{ delay: reduceMotion ? 0 : index * 0.05, duration: 0.2 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
       onClick={() => onSelect(t)}
-      className="w-full text-left bg-card rounded-3xl p-4 border border-border/40 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
+      style={{
+        width: "100%",
+        textAlign: "left",
+        background: "#fff",
+        borderRadius: 16,
+        padding: 16,
+        border: `1px solid ${COLORS.border}`,
+        boxShadow: "none",
+        fontFamily: FONT_BODY,
+        cursor: "pointer",
+      }}
     >
-      <div className="flex items-start gap-3">
-        <div className={`w-14 h-14 ${t.bg} rounded-2xl flex items-center justify-center text-3xl flex-shrink-0`}>
-          {t.avatar}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ width: 52, height: 52, borderRadius: 14, background: colors.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon style={{ width: 24, height: 24, color: colors.text }} />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            <span className="text-sm font-bold text-foreground">{t.name}</span>
-            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-lg ${t.tagColor}`}>{t.tag}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 2 }}>
+            <span style={{ fontSize: 13.5, fontWeight: 800, color: COLORS.heading }}>{t.name}</span>
+            <span style={{ fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 999, background: colors.bg, color: colors.text }}>{t.tag}</span>
           </div>
-          <p className="text-xs text-muted-foreground mb-1.5">{t.specialty}</p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-0.5">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span className="text-xs font-bold text-foreground">{t.rating}</span>
-              <span className="text-[10px] text-muted-foreground ml-0.5">({t.reviews})</span>
-            </div>
-            <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5" />Next: {t.nextSlot}
+          <p style={{ fontSize: 12, color: COLORS.muted, marginBottom: 8 }}>{t.specialty}</p>
+          <p style={{ fontSize: 12.5, color: COLORS.text, lineHeight: 1.45, marginBottom: 9 }}>{t.careFit}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 9 }}>
+            <span style={{ fontSize: 10, color: COLORS.green, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+              <Clock style={{ width: 10, height: 10 }} />{t.availability}
             </span>
           </div>
-          <div className="flex gap-1.5 mt-2 flex-wrap">
+          <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
             {t.focuses.map((f) => (
-              <span key={f} className="text-[10px] bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-full">
+              <span key={f} style={{ fontSize: 10, fontWeight: 700, background: "#FBF6F0", border: `1px solid ${COLORS.border}`, color: COLORS.muted, padding: "3px 8px", borderRadius: 999 }}>
                 {f}
               </span>
             ))}
           </div>
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground/40 mt-1 flex-shrink-0" />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, marginTop: 4, flexShrink: 0 }}>
+          <ChevronRight style={{ width: 16, height: 16, color: COLORS.label }} />
+          <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.accentInk }}>Request</span>
+        </div>
       </div>
     </motion.button>
   );

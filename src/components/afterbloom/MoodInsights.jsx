@@ -20,7 +20,7 @@ export default function MoodInsights({ entries = [] }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.45 }}
-      className="bg-card rounded-3xl p-5 border border-border/40 shadow-sm"
+      className="bg-card rounded-2xl p-5 border border-border/40 shadow-sm"
     >
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-primary" />
@@ -49,7 +49,7 @@ export default function MoodInsights({ entries = [] }) {
               contentStyle={{
                 background: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
-                borderRadius: "12px",
+                borderRadius: "8px",
                 fontSize: "12px",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
               }}
@@ -71,7 +71,7 @@ export default function MoodInsights({ entries = [] }) {
           </AreaChart>
         </ResponsiveContainer>
         {!showChartData ? (
-          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-gradient-to-b from-transparent to-background/50">
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-gradient-to-b from-transparent to-background/50">
             <p className="px-4 text-center text-[11px] font-medium text-muted-foreground">
               Trend line appears after the first saved mood check-in.
             </p>
@@ -82,7 +82,7 @@ export default function MoodInsights({ entries = [] }) {
       {/* Insights */}
       <div className="space-y-2.5">
         {insights.map((insight, i) => (
-          <div key={insight.key || i} className="flex items-start gap-2.5 bg-muted/40 rounded-xl p-3">
+          <div key={insight.key || i} className="flex items-start gap-2.5 bg-muted/40 rounded-lg p-3">
             {(() => {
               const InsightIcon = iconMap[insight.type] || Lightbulb;
               return <InsightIcon className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />;

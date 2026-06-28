@@ -1,22 +1,32 @@
-export default function BookingStepIndicator({ currentStep, totalSteps = 4 }) {
-  const labels = ["Therapist", "Date & Time", "Duration", "Confirm"];
+import { COLORS } from "../../lib/theme.jsx";
+
+export default function BookingStepIndicator({ currentStep, totalSteps = 3 }) {
+  const labels = ["Date & Time", "Session", "Confirm"];
+  const stepIndex = Math.max(0, currentStep - 1);
   return (
-    <div className="flex items-center gap-1.5">
+    <div
+      style={{ display: "flex", alignItems: "center", gap: 6 }}
+      role="status"
+      aria-live="polite"
+      aria-label={`Booking step ${currentStep} of ${totalSteps}: ${labels[stepIndex]}`}
+    >
       {Array.from({ length: totalSteps }).map((_, i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <div
-            className={`h-1.5 rounded-full transition-all duration-400 ${
-              i < currentStep
-                ? "bg-primary w-6"
-                : i === currentStep
-                ? "bg-primary w-10"
-                : "bg-border w-4"
-            }`}
-          />
-        </div>
+        <div
+          key={i}
+          aria-hidden="true"
+          style={{
+            height: 6,
+            borderRadius: 999,
+            transition: "transform .2s ease, background .2s ease",
+            width: 40,
+            transform: `scaleX(${i < stepIndex ? 0.6 : i === stepIndex ? 1 : 0.4})`,
+            transformOrigin: "left center",
+            background: i <= stepIndex ? COLORS.accent : COLORS.border,
+          }}
+        />
       ))}
-      <span className="text-[10px] text-muted-foreground font-medium ml-1">
-        {labels[currentStep]}
+      <span style={{ fontSize: 10, color: COLORS.muted, fontWeight: 600, marginLeft: 4 }} aria-hidden="true">
+        {labels[stepIndex]}
       </span>
     </div>
   );

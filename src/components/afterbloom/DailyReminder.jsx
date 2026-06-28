@@ -88,10 +88,10 @@ export default function DailyReminder({ onNavigate }) {
             transition={{ type: "spring", bounce: 0.3, duration: 0.45 }}
             className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm"
           >
-            <div className="bg-card border border-border/50 rounded-3xl shadow-xl shadow-black/10 p-4">
+            <div className="bg-card border border-border/50 rounded-2xl shadow-xl shadow-black/10 p-4">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-primary" />
                   </div>
                   <p className="text-sm font-bold text-foreground">Daily check-in ✨</p>
@@ -105,14 +105,14 @@ export default function DailyReminder({ onNavigate }) {
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={() => handleCTA("mood")}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-primary-foreground rounded-2xl py-2.5 text-xs font-bold shadow-md"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-primary-foreground rounded-xl py-2.5 text-xs font-bold shadow-md"
                 >
                   <Smile className="w-3.5 h-3.5" /> Log mood
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   onClick={() => handleCTA("mood")}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-muted text-foreground rounded-2xl py-2.5 text-xs font-bold"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-muted text-foreground rounded-xl py-2.5 text-xs font-bold"
                 >
                   <BookOpen className="w-3.5 h-3.5" /> Journal
                 </motion.button>
@@ -123,7 +123,7 @@ export default function DailyReminder({ onNavigate }) {
       </AnimatePresence>
 
       {/* Settings Card */}
-      <div className="bg-card rounded-3xl border border-border/40 shadow-sm p-5">
+      <div className="bg-card rounded-2xl border border-border/40 shadow-sm p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-primary" />
@@ -156,7 +156,7 @@ export default function DailyReminder({ onNavigate }) {
                 type="time"
                 value={settings.time}
                 onChange={(e) => handleUpdate({ time: e.target.value })}
-                className="w-full bg-muted/40 border border-border/40 rounded-2xl px-4 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary/50 transition-colors"
+                className="w-full bg-muted/40 border border-border/40 rounded-xl px-4 py-3 text-sm font-semibold text-foreground outline-none focus:border-primary/50 transition-colors"
               />
               <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">
                 A gentle nudge will appear at this time each day to check in with your mood or journal 🌸
