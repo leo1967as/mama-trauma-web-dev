@@ -126,7 +126,7 @@
       "tags": [
         "Exhaustion", "Feeding", "Baby crying", "Body pain", "Sleep deprivation",
         "Feeling alone", "Family stress", "Partner support", "Recovery after birth",
-        "Household responsibilities", "Feeling overwhelmed", "I'm not sure", "Something else"
+        "Household responsibilities", "Feeling overwhelmed", "Feeling irritable or angry", "Feeling like I'm not doing enough", "I'm not sure", "Something else"
       ],
       "otherPlaceholder": "Tell us what feels hardest today."
     },
@@ -138,7 +138,7 @@
     "babyConnection": {
       "title": "How did moments with your baby feel today?",
       "subtitle": "However it felt is okay. There's no right answer here.",
-      "labels": ["Hard", "A little distant", "Mixed", "Mostly okay", "Warm"]
+      "labels": ["Distant", "A little distant", "Mixed", "Mostly okay", "Warm"]
     },
     "supportNeed": {
       "title": "Do you need our care team to reach out to you today?",

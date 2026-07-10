@@ -382,7 +382,7 @@ function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 36, lineHeight: 1.05, letterSpacing: "-0.015em", color: "#4A2F2C", position: "relative", marginBottom: 12 }}>
           {resultStrings.supportLevelTitle}
-          <em style={{ display: "block", fontStyle: "italic" }}>{resultStrings.supportLevelIs.replace('{{level}}', t.supportLevels[support.level]?.label ?? support.label)}.</em>
+          <em style={{ display: "block", fontStyle: "italic" }}>{resultStrings.supportLevelIs.replace('{{level}}', t.supportLevels[support.level]?.label ?? support.label)}</em>
         </div>
         <div style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: "rgba(74,47,44,.68)", lineHeight: 1.5, maxWidth: 280 }}>
           {resultStrings.numbersNote}
