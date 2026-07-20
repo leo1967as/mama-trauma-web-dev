@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, X, Smile, BookOpen, Sparkles } from "lucide-react";
+import { enablePushNotifications, getPushStatus } from "../../lib/push-notifications";
 
 const STORAGE_KEY = "afterbloom_reminder";
 
@@ -45,6 +46,9 @@ export default function DailyReminder({ onNavigate }) {
   const [settings, setSettings] = useState(getStoredSettings);
   const [showBanner, setShowBanner] = useState(false);
   const [prompt] = useState(() => PROMPTS[Math.floor(Math.random() * PROMPTS.length)]);
+  const [pushStatus, setPushStatus] = useState(getPushStatus);
+  const [pushPending, setPushPending] = useState(false);
+  const [pushError, setPushError] = useState(false);
 
   const checkAndShow = useCallback(() => {
     const s = getStoredSettings();
@@ -76,6 +80,19 @@ export default function DailyReminder({ onNavigate }) {
     if (onNavigate) onNavigate(target);
   };
 
+  const handleEnablePush = async () => {
+    setPushPending(true);
+    setPushError(false);
+    try {
+      setPushStatus((await enablePushNotifications()) || getPushStatus());
+    } catch {
+      setPushStatus(getPushStatus());
+      setPushError(true);
+    } finally {
+      setPushPending(false);
+    }
+  };
+
   return (
     <>
       {/* Reminder Banner */}
@@ -96,7 +113,7 @@ export default function DailyReminder({ onNavigate }) {
                   </div>
                   <p className="text-sm font-bold text-foreground">Daily check-in ✨</p>
                 </div>
-                <button onClick={handleDismiss} className="text-muted-foreground hover:text-foreground transition-colors mt-0.5">
+                <button type="button" onClick={handleDismiss} aria-label="Dismiss reminder" className="text-muted-foreground hover:text-foreground transition-colors mt-0.5">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -111,7 +128,7 @@ export default function DailyReminder({ onNavigate }) {
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => handleCTA("mood")}
+                  onClick={() => handleCTA("legacy")}
                   className="flex-1 flex items-center justify-center gap-1.5 bg-muted text-foreground rounded-xl py-2.5 text-xs font-bold"
                 >
                   <BookOpen className="w-3.5 h-3.5" /> Journal
@@ -131,7 +148,11 @@ export default function DailyReminder({ onNavigate }) {
           </div>
           {/* Toggle */}
           <button
+            type="button"
             onClick={() => handleUpdate({ enabled: !settings.enabled })}
+            role="switch"
+            aria-checked={settings.enabled}
+            aria-label="Enable daily reminder"
             className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${settings.enabled ? "bg-primary" : "bg-muted"}`}
           >
             <motion.span
@@ -168,6 +189,39 @@ export default function DailyReminder({ onNavigate }) {
         {!settings.enabled && (
           <p className="text-xs text-muted-foreground">Turn on to get a gentle daily check-in prompt.</p>
         )}
+
+        {pushStatus.configured && <div className="mt-4 border-t border-border/40 pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-foreground">Browser notifications</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                {pushStatus.enabled ? "Notifications are on for this device." : "Get reminders even when Afterbloom is in the background."}
+              </p>
+            </div>
+            {pushStatus.enabled ? (
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700" role="status">On</span>
+            ) : pushStatus.supported && pushStatus.permission !== "denied" ? (
+              <button
+                type="button"
+                onClick={handleEnablePush}
+                disabled={pushPending}
+                aria-busy={pushPending}
+                className="shrink-0 rounded-lg bg-primary px-3 py-2 text-[11px] font-bold text-primary-foreground disabled:opacity-60"
+              >
+                {pushPending ? "Enabling..." : "Allow"}
+              </button>
+            ) : null}
+          </div>
+          {pushStatus.permission === "denied" && (
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground" role="status">Notifications are blocked. Allow them in your browser settings.</p>
+          )}
+          {!pushStatus.supported && (
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground" role="status">Browser notifications are not available here.</p>
+          )}
+          {pushError && (
+            <p className="mt-2 text-[11px] leading-relaxed text-destructive" role="alert">Could not enable notifications. Please try again.</p>
+          )}
+        </div>}
       </div>
     </>
   );

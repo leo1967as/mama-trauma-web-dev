@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sparkles, CheckCircle2, Circle, RefreshCw, Heart, Brain, Moon, ChevronDown } from "lucide-react";
+import { useLang } from "../../lib/i18n";
 import { FONT_BODY, COLORS, Card, PrimaryButton, TabHero, TabSheet, HeroAccent } from "../../lib/theme.jsx";
 import { getMoodHistory, getMoodInsights, getMoodSupportSummary, subscribeToMoodHistory } from "../../lib/mood-data";
 import { getCarePlanState, saveCarePlanState, clearCarePlanState } from "../../lib/careplan-data";
@@ -25,41 +26,49 @@ const PLAN_TEMPLATE = [
   {
     category: "Emotional",
     title: "Name feelings without judgment",
+    titleTh: "เรียกชื่ออารมณ์โดยไม่วิจารณ์",
     why: "Naming emotions helps reduce overwhelm and creates emotional space.",
+    whyTh: "การเรียกชื่ออารมณ์ช่วยลดความหนักใจและสร้างพื้นที่อารมณ์ค่ะ",
     habits: [
-      { action: "Mood check-in after breakfast", tip: "One word is enough today." },
-      { action: "Write one feeling in notes", tip: "No need for long journaling." },
-      { action: "Say a kind line to yourself", tip: "Speak as you would to someone you trust." },
+      { action: "Mood check-in after breakfast", actionTh: "บันทึกอารมณ์หลังอาหารเช้า", tip: "One word is enough today.", tipTh: "แค่คำเดียวก็พอนะคะ" },
+      { action: "Write one feeling in notes", actionTh: "เขียนอารมณ์หนึ่งข้อในโน้ต", tip: "No need for long journaling.", tipTh: "ไม่ต้องเขียนเยอะค่ะ" },
+      { action: "Say a kind line to yourself", actionTh: "พูดคำใจดีกับตัวเอง", tip: "Speak as you would to someone you trust.", tipTh: "พูดเหมือนกับคนที่คุณแม่เชื่อใจค่ะ" },
     ],
   },
   {
     category: "Sleep",
     title: "Protect short recovery windows",
+    titleTh: "เก็บเวลาพักผ่อนให้ดี",
     why: "Small sleep protection steps can improve next-day mood and patience.",
+    whyTh: "การดูแลการนอนเล็กน้อยช่วยให้อารมณ์วันถัดไปดีขึ้นและอดทนมากขึ้นค่ะ",
     habits: [
-      { action: "10-minute rest before noon", tip: "Eyes closed still counts as rest." },
-      { action: "Screen-off 20 minutes before bed", tip: "Use warm light if needed." },
-      { action: "Ask for one evening support task", tip: "Choose one concrete task someone else can take." },
+      { action: "10-minute rest before noon", actionTh: "พักสักสิบนาทีตอนเช้า", tip: "Eyes closed still counts as rest.", tipTh: "หลับตาก็นับเป็นการพักแล้วค่ะ" },
+      { action: "Screen-off 20 minutes before bed", actionTh: "ปิดจออพยพ 20 นาทีก่อนนอน", tip: "Use warm light if needed.", tipTh: "ใช้แสงอุ่นถ้าต้องการค่ะ" },
+      { action: "Ask for one evening support task", actionTh: "ขอคนใกล้ช่วยงานเย็นหนึ่งอย่าง", tip: "Choose one concrete task someone else can take.", tipTh: "เลือกงานเฉพาะที่คนอื่นช่วยได้ค่ะ" },
     ],
   },
   {
     category: "Social",
     title: "Stay lightly connected",
+    titleTh: "เชื่อมต่ออยู่บ้าง",
     why: "Quick connection moments reduce isolation and restore emotional energy.",
+    whyTh: "ช่วงเชื่อมต่อสั้นๆ ช่วยลดความเหงาและฟื้นอารมณ์ค่ะ",
     habits: [
-      { action: "Send one honest message daily", tip: "Keep it short and real." },
-      { action: "Reply to one caring person", tip: "A short reply is enough." },
-      { action: "Ask one concrete favor", tip: "Specific asks get better help." },
+      { action: "Send one honest message daily", actionTh: "ส่งข้อความจริงใจหนึ่งข้อทุกวัน", tip: "Keep it short and real.", tipTh: "สั้นและจริงใจพอค่ะ" },
+      { action: "Reply to one caring person", actionTh: "ตอบหนึ่งคนที่ห่วงใยคุณแม่", tip: "A short reply is enough.", tipTh: "ตอบสั้นก็พอค่ะ" },
+      { action: "Ask one concrete favor", actionTh: "ขอความช่วยเหลือหนึ่งอย่าง", tip: "Specific asks get better help.", tipTh: "ขอเฉพาะเจาะจงจะได้ผลดีกว่าค่ะ" },
     ],
   },
   {
     category: "Mindset",
     title: "Practice tiny self-compassion",
+    titleTh: "เห็นใจตัวเองเล็กน้อย",
     why: "Gentle self-talk supports healing through postpartum transitions.",
+    whyTh: "การพูดกับตัวเองอย่างอ่อนโยนช่วยการฟื้นตัวหลังคลอดค่ะ",
     habits: [
-      { action: "Pause for 3 deep breaths", tip: "Use slow exhale to calm." },
-      { action: "List one thing done well", tip: "Small wins are real wins." },
-      { action: "Replace one harsh thought", tip: "Try: I am learning, not failing." },
+      { action: "Pause for 3 deep breaths", actionTh: "หยุดสักครู่ หายใจลึกสามครั้ง", tip: "Use slow exhale to calm.", tipTh: "ปล่อยลมหายใจช้าจะเบิกใจได้ค่ะ" },
+      { action: "List one thing done well", actionTh: "เขียนหนึ่งอย่างที่ทำได้ดี", tip: "Small wins are real wins.", tipTh: "ชัยชนะเล็กๆ นั้นเป็นชัยชนะจริงค่ะ" },
+      { action: "Replace one harsh thought", actionTh: "เปลี่ยนความคิดเด็ดขาดหนึ่งอย่าง", tip: "Try: I am learning, not failing.", tipTh: "พูดว่า ฉันกำลังเรียนรู้ ไม่ใช่ล้มเหลวค่ะ" },
     ],
   },
 ];
@@ -105,7 +114,7 @@ function buildLocalPlan(entries) {
   return { summary: buildSummary(context), goals };
 }
 
-function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
+function GoalCard({ goal, index, completedHabits, onToggleHabit, t, lang }) {
   const [expanded, setExpanded] = useState(index === 0);
   const reduceMotion = useReducedMotion();
   const colors = categoryColors[goal.category] || categoryColors.Emotional;
@@ -113,6 +122,9 @@ function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
   const doneCount = goal.habits.filter((_, i) => completedHabits.has(`${goal.category}-${i}`)).length;
   const progressValue = Math.round((doneCount / goal.habits.length) * 100);
   const contentId = `care-goal-${goal.category.toLowerCase()}-content`;
+  const categoryLabel = t?.carePlans?.categories?.[goal.category] ?? goal.category;
+  const goalTitle = lang === 'th' ? (goal.titleTh ?? goal.title) : goal.title;
+  const goalWhy = lang === 'th' ? (goal.whyTh ?? goal.why) : goal.why;
 
   return (
     <motion.div
@@ -134,7 +146,7 @@ function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: colors.text }}>{goal.category}</span>
+              <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: colors.text }}>{categoryLabel}</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: COLORS.muted }}>
                 {doneCount}/{goal.habits.length} today
                 <ChevronDown
@@ -148,15 +160,15 @@ function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
                 />
               </span>
             </div>
-            <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginTop: 2 }}>{goal.title}</p>
-            <p style={{ fontSize: 12, color: COLORS.muted, marginTop: 2, lineHeight: 1.5 }}>{goal.why}</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.text, marginTop: 2 }}>{goalTitle}</p>
+            <p style={{ fontSize: 12, color: COLORS.muted, marginTop: 2, lineHeight: 1.5 }}>{goalWhy}</p>
           </div>
         </div>
 
         <div
           style={{ marginTop: 12, height: 6, background: "rgba(255,255,255,.6)", borderRadius: 999, overflow: "hidden" }}
           role="progressbar"
-          aria-label={`${goal.category} habits completed`}
+          aria-label={t?.carePlans?.habitProgressAria?.replace("{{category}}", categoryLabel) ?? `${categoryLabel} habits completed`}
           aria-valuemin={0}
           aria-valuemax={goal.habits.length}
           aria-valuenow={doneCount}
@@ -216,9 +228,9 @@ function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
                     )}
                     <div>
                       <p style={{ fontSize: 12, fontWeight: 600, color: done ? COLORS.muted : COLORS.text, textDecoration: done ? "line-through" : "none", lineHeight: 1.4 }}>
-                        {habit.action}
+                        {lang === 'th' ? (habit.actionTh ?? habit.action) : habit.action}
                       </p>
-                      <p style={{ fontSize: 10.5, color: COLORS.muted, marginTop: 2, lineHeight: 1.4 }}>{habit.tip}</p>
+                      <p style={{ fontSize: 10.5, color: COLORS.muted, marginTop: 2, lineHeight: 1.4 }}>{lang === 'th' ? (habit.tipTh ?? habit.tip) : habit.tip}</p>
                     </div>
                   </motion.button>
                 );
@@ -232,6 +244,7 @@ function GoalCard({ goal, index, completedHabits, onToggleHabit }) {
 }
 
 export default function CarePlansTab() {
+  const { t, lang } = useLang();
   const reduceMotion = useReducedMotion();
   const generationTimer = useRef(null);
   const [entries, setEntries] = useState([]);
@@ -292,9 +305,9 @@ export default function CarePlansTab() {
     <div style={{ fontFamily: FONT_BODY }}>
       <TabHero
         theme="honey"
-        eyebrow="Care plan"
-        title={<>Your gentle plan<HeroAccent>for today.</HeroAccent></>}
-        subtitle="A few small, doable goals — built around how the last few days have felt."
+        eyebrow={t.carePlans.eyebrow}
+        title={<>{t.carePlans.title}<HeroAccent>{t.carePlans.titleAccent}</HeroAccent></>}
+        subtitle={t.carePlans.subtitle}
       />
       <TabSheet gap={16}>
       {/* Generate CTA */}
@@ -303,16 +316,16 @@ export default function CarePlansTab() {
           <div style={{ width: 56, height: 56, borderRadius: 16, background: COLORS.accentSoft, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <Sparkles style={{ width: 28, height: 28, color: COLORS.accent }} />
           </div>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.heading, marginBottom: 6 }}>Your personalized plan awaits</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.heading, marginBottom: 6 }}>{t.carePlans.planAwaitsCta}</h2>
           <p style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.6, marginBottom: 20, padding: "0 8px" }}>
-            Afterbloom will build a small care plan from your recent check-ins — kept gentle, kept doable.
+            {t.carePlans.planAwaitDescription}
           </p>
           <PrimaryButton
             onClick={generatePlan}
             disabled={loading}
             style={{ minHeight: 44, padding: 15, fontWeight: 700, fontSize: 14.5, boxShadow: `0 12px 24px ${COLORS.ctaShadow}` }}
           >
-            Generate my care plan
+            {t.carePlans.generateButton}
           </PrimaryButton>
         </Card>
       )}
@@ -326,7 +339,7 @@ export default function CarePlansTab() {
             aria-hidden="true"
             style={{ width: 40, height: 40, borderRadius: "50%", border: `4px solid ${COLORS.accentSoft}`, borderTopColor: COLORS.accent }}
           />
-          <p style={{ fontSize: 14, fontWeight: 600, color: COLORS.heading }}>Building your plan…</p>
+          <p style={{ fontSize: 14, fontWeight: 600, color: COLORS.heading }}>{t.carePlans.buildingPlan}</p>
         </div>
       )}
 
@@ -344,8 +357,8 @@ export default function CarePlansTab() {
             {totalHabits > 0 && (
               <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${COLORS.border}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.muted }}>Today's habits</span>
-                  <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.accentInk }}>{doneCount}/{totalHabits} done</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.muted }}>{t.carePlans.todaysHabits}</span>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.accentInk }}>{t.carePlans.progressLabel.replace("{{done}}", doneCount).replace("{{total}}", totalHabits)}</span>
                 </div>
                 <div
                   style={{ height: 8, background: COLORS.border, borderRadius: 999, overflow: "hidden" }}
@@ -368,7 +381,7 @@ export default function CarePlansTab() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {plan.goals?.map((goal, i) => (
-              <GoalCard key={goal.category} goal={goal} index={i} completedHabits={completedHabits} onToggleHabit={toggleHabit} />
+              <GoalCard key={goal.category} goal={goal} index={i} completedHabits={completedHabits} onToggleHabit={toggleHabit} t={t} lang={lang} />
             ))}
           </div>
 
@@ -378,7 +391,7 @@ export default function CarePlansTab() {
             disabled={loading}
             style={{ minHeight: 44, padding: 14, border: `2px solid ${COLORS.border}`, fontSize: 13, fontWeight: 700, color: COLORS.muted }}
           >
-            <RefreshCw style={{ width: 16, height: 16 }} /> Regenerate plan
+            <RefreshCw style={{ width: 16, height: 16 }} /> {t.carePlans.regenerateButton}
           </PrimaryButton>
         </>
       )}

@@ -1,6 +1,7 @@
 #env
 .env
 .env.*
+!.env.example
 
 # Logs
 /logs
@@ -41,6 +42,7 @@ skills-lock.json
 .claude/
 .impeccable/
 .playwright-mcp/
+.cocoindex_code/
 
 # Dev screenshots (not app assets)
 booking*.png
@@ -56,3 +58,13 @@ booking3.png
 
 # Admin Dashboard (separate project, tracked independently)
 Admin-Dashboard/
+!Admin-Dashboard/
+Admin-Dashboard/*
+!Admin-Dashboard/src/
+Admin-Dashboard/src/*
+!Admin-Dashboard/src/hooks/
+Admin-Dashboard/src/hooks/*
+!Admin-Dashboard/src/hooks/useFirestoreData.js
+!Admin-Dashboard/src/lib/
+Admin-Dashboard/src/lib/*
+!Admin-Dashboard/src/lib/alerts.js

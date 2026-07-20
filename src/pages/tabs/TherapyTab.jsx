@@ -1,212 +1,220 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { CalendarHeart, Clock, Shield, CheckCircle2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeft, CalendarHeart, CheckCircle2, ChevronRight, Clock } from "lucide-react";
 import TherapistCard from "../../components/booking/TherapistCard";
 import BookingFlow from "../../components/booking/BookingFlow";
-import SafetySection from "../../components/afterbloom/SafetySection";
-import { FONT_BODY, COLORS, Card, CardLabel, ACCENT_COLORS, PrimaryButton, TabHero, TabSheet, HeroAccent } from "../../lib/theme.jsx";
-import { THERAPISTS, getBookingState } from "../../lib/therapy-data";
+import { FONT_BODY, COLORS, ACCENT_COLORS, PrimaryButton, TabHero, TabSheet } from "../../lib/theme.jsx";
+import { useLang } from "../../lib/i18n";
+import { CAREGIVERS, THERAPISTS, getBookingState } from "../../lib/therapy-data";
 
-function getUpcomingDisplay(bookingState) {
-  if (!bookingState) return null;
-  const therapist = THERAPISTS.find((t) => t.id === bookingState.therapistId);
-  return {
-    name: bookingState.name,
-    icon: therapist?.icon || CalendarHeart,
-    color: bookingState.color,
-    date: bookingState.date,
-    time: bookingState.time,
-    mode: bookingState.mode,
-    durationLabel: bookingState.durationLabel,
-    note: bookingState.note,
-  };
+const FILTERS = ["All", "Nanny", "Midwife", "Lactation Consultant", "Postnatal Massage"];
+const PROVIDERS = [...CAREGIVERS, ...THERAPISTS];
+const THAI_LABELS = {
+  All: "ทั้งหมด",
+  Nanny: "พี่เลี้ยงเด็ก",
+  Midwife: "ผดุงครรภ์",
+  "Lactation Consultant": "ผู้เชี่ยวชาญการให้นม",
+  "Postnatal Massage": "นวดหลังคลอด",
+  "Caregiver Support": "การดูแลคุณแม่และลูก",
+  "Therapist Support": "การดูแลด้านสุขภาพจิต",
+  "Available today": "ว่างวันนี้",
+  "Available tomorrow": "ว่างพรุ่งนี้",
+  "Available this week": "ว่างภายในสัปดาห์นี้",
+};
+
+const COPY = {
+  en: {
+    eyebrow: "Care Circle",
+    title: "Find the right support",
+    subtitle: "Choose the kind of care that fits today.",
+    caregiver: "Caregiver Support",
+    caregiverHint: "Practical help for you and your baby.",
+    therapist: "Therapist Support",
+    therapistHint: "Psychologists and therapists for emotional care.",
+    choose: "Choose a support type",
+    providers: "Available providers",
+    all: "All",
+    viewDetails: "View details",
+    detail: "Provider details",
+    category: "Category",
+    expertise: "Expertise",
+    experience: "Experience",
+    bio: "About",
+    reviews: "reviews",
+    perHour: "/ hour",
+    appointment: "Book appointment",
+    back: "Back to providers",
+    sent: "Request sent successfully",
+    sentTo: "Your request was sent to",
+    awaiting: "Please wait for the provider to reply.",
+    home: "Back to Care Circle",
+    saved: "Your request is saved",
+    savedDetails: "This mock request stays on this device.",
+    today: "Available today",
+  },
+  th: {
+    eyebrow: "Care Circle",
+    title: "ค้นหาการดูแลที่เหมาะกับคุณ",
+    subtitle: "เลือกความช่วยเหลือที่ตรงกับวันนี้",
+    caregiver: "การดูแลคุณแม่และลูก",
+    caregiverHint: "ความช่วยเหลือด้านการดูแลคุณแม่และลูก",
+    therapist: "การดูแลด้านสุขภาพจิต",
+    therapistHint: "นักจิตวิทยา/นักบำบัดสำหรับการดูแลด้านสุขภาพจิต",
+    choose: "เลือกประเภทการดูแล",
+    providers: "ผู้ให้บริการที่พร้อมช่วย",
+    all: "ทั้งหมด",
+    viewDetails: "ดูรายละเอียด",
+    detail: "รายละเอียดผู้ให้บริการ",
+    category: "หมวดบริการ",
+    expertise: "ความเชี่ยวชาญ",
+    experience: "ประสบการณ์",
+    bio: "เกี่ยวกับผู้ให้บริการ",
+    reviews: "รีวิว",
+    perHour: "/ ชั่วโมง",
+    appointment: "นัดหมาย",
+    back: "กลับไปดูผู้ให้บริการ",
+    sent: "ส่งคำขอนัดหมายเรียบร้อยแล้ว",
+    sentTo: "คำขอของคุณถูกส่งไปยัง",
+    awaiting: "กรุณารอการตอบกลับจากผู้ให้บริการ",
+    home: "กลับหน้า Care Circle",
+    saved: "บันทึกคำขอของคุณแล้ว",
+    savedDetails: "คำขอจำลองนี้เก็บไว้ในอุปกรณ์นี้เท่านั้น",
+    today: "ว่างวันนี้",
+  },
+};
+
+function getProviderName(provider, lang) {
+  return lang === "th" ? provider.nameTh || provider.name : provider.name;
 }
 
-export default function TherapyTab() {
-  const [bookingTherapist, setBookingTherapist] = useState(null);
-  const [booked, setBooked] = useState(false);
+function getProviderLabel(value, provider, lang) {
+  if (lang !== "th") return value;
+  return THAI_LABELS[value] || provider?.availabilityTh || value;
+}
+
+function getProviderList(category, filter) {
+  const source = category === "caregiver" ? CAREGIVERS : THERAPISTS;
+  return category === "caregiver" && filter !== "All"
+    ? source.filter((provider) => provider.category === filter)
+    : source;
+}
+
+function ProviderDetail({ provider, lang, copy, onBack, onBook }) {
+  const colors = ACCENT_COLORS[provider.color] || ACCENT_COLORS.accent;
+  const Icon = provider.icon;
+  const name = getProviderName(provider, lang);
+  const specialty = lang === "th" ? provider.specialtyTh || provider.sub_specialty : provider.sub_specialty;
+  const bio = lang === "th" ? provider.careFitTh || provider.bio : provider.bio;
+  const expertise = lang === "th" ? provider.expertiseTh || provider.focusesTh || provider.expertise || provider.focuses || [] : provider.expertise || provider.focuses || [];
+  const experience = lang === "th" ? provider.experienceTh || provider.experience : provider.experience;
+
+  return (
+    <motion.section initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-labelledby="provider-detail-title">
+      <button type="button" onClick={onBack} style={{ alignSelf: "flex-start", border: 0, background: "transparent", color: COLORS.accentInk, fontFamily: FONT_BODY, fontWeight: 800, cursor: "pointer", padding: 0 }}>
+        <ArrowLeft style={{ width: 15, height: 15, verticalAlign: "middle", marginRight: 5 }} />{copy.back}
+      </button>
+      <div style={{ background: colors.bg, borderRadius: 18, padding: 18, display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ width: 72, height: 72, borderRadius: 18, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {provider.profile_photo ? <img src={provider.profile_photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 18 }} /> : <Icon style={{ width: 32, height: 32, color: colors.text }} />}
+        </div>
+        <div>
+          <p id="provider-detail-title" style={{ fontSize: 17, fontWeight: 800, color: COLORS.heading }}>{name}</p>
+          <p style={{ color: COLORS.muted, fontSize: 12, marginTop: 4 }}>{specialty}</p>
+          <p style={{ color: COLORS.muted, fontSize: 11, marginTop: 5 }}>★ {provider.rating} · {provider.review_count} {copy.reviews}</p>
+        </div>
+      </div>
+      <div style={{ background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div><p style={{ fontSize: 11, color: COLORS.muted }}>{copy.category}</p><p style={{ fontSize: 13, fontWeight: 700, color: COLORS.heading }}>{getProviderLabel(provider.category, null, lang)}</p></div>
+        <div><p style={{ fontSize: 11, color: COLORS.muted }}>{copy.expertise}</p><div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 5 }}>{expertise.map((item) => <span key={item} style={{ fontSize: 10, padding: "4px 8px", borderRadius: 999, background: colors.bg, color: colors.text, fontWeight: 700 }}>{item}</span>)}</div></div>
+        <div><p style={{ fontSize: 11, color: COLORS.muted }}>{copy.experience}</p><p style={{ fontSize: 13, fontWeight: 700, color: COLORS.heading }}>{experience}</p></div>
+        <div><p style={{ fontSize: 11, color: COLORS.muted }}>{copy.bio}</p><p style={{ fontSize: 13, lineHeight: 1.5, color: COLORS.text, marginTop: 3 }}>{bio}</p></div>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12, color: COLORS.muted }}><span><Clock style={{ width: 13, height: 13, verticalAlign: "middle", marginRight: 4 }} />{getProviderLabel(provider.availability, provider, lang)}</span><strong style={{ color: COLORS.heading }}>฿{provider.hourly_rate}{copy.perHour}</strong></div>
+      </div>
+      <PrimaryButton type="button" onClick={onBook} style={{ minHeight: 48, fontSize: 14 }}>{copy.appointment}</PrimaryButton>
+    </motion.section>
+  );
+}
+
+export default function TherapyTab({ initialCategory = "caregiver" }) {
+  const { lang } = useLang();
+  const copy = COPY[lang] || COPY.en;
+  const [category, setCategory] = useState(initialCategory);
+  const [filter, setFilter] = useState("All");
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [bookingProvider, setBookingProvider] = useState(null);
   const [bookingState, setBookingState] = useState(null);
-  const [supportOpen, setSupportOpen] = useState(false);
-  const reduceMotion = useReducedMotion();
+  const [booked, setBooked] = useState(false);
 
   useEffect(() => {
-    setBookingState(getBookingState());
-  }, []);
+    setCategory(initialCategory);
+    setSelectedProvider(null);
+    setFilter("All");
+  }, [initialCategory]);
 
-  const handleDone = () => {
-    setBookingTherapist(null);
-    setBooked(true);
-    setBookingState(getBookingState());
+  useEffect(() => setBookingState(getBookingState()), []);
+
+  const providers = useMemo(() => getProviderList(category, filter), [category, filter]);
+  const upcomingProvider = bookingState ? PROVIDERS.find((provider) => provider.id === bookingState.therapistId) : null;
+  const upcomingName = upcomingProvider ? getProviderName(upcomingProvider, lang) : bookingState?.name;
+
+  const chooseCategory = (next) => {
+    setCategory(next);
+    setFilter("All");
+    setSelectedProvider(null);
   };
 
-  const upcoming = getUpcomingDisplay(bookingState);
-  const upcomingColors = upcoming ? (ACCENT_COLORS[upcoming.color] || ACCENT_COLORS.accent) : ACCENT_COLORS.green;
-  const UpcomingIcon = upcoming?.icon || CalendarHeart;
-
-  const scrollToTherapists = () => {
-    document.getElementById("therapy-recommended")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  const handleDone = () => {
+    setBookingProvider(null);
+    setBooked(true);
+    setBookingState(getBookingState());
   };
 
   return (
     <>
       <div style={{ fontFamily: FONT_BODY }}>
-        <TabHero
-          theme="sage"
-          eyebrow="Support"
-          title={<>Support that fits<HeroAccent>today.</HeroAccent></>}
-          subtitle="Request private care when you're ready, or open immediate support if today feels unsafe."
-        />
+        <TabHero theme="sage" eyebrow={copy.eyebrow} title={copy.title} subtitle={copy.subtitle} />
         <TabSheet gap={14}>
-        {/* Care request saved banner */}
-        <AnimatePresence>
           {booked && (
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Card style={{ background: COLORS.greenSoft, border: `1px solid ${COLORS.greenSoft}`, display: "flex", alignItems: "flex-start", gap: 12, padding: 16 }}>
-                <CheckCircle2 style={{ width: 18, height: 18, color: COLORS.green, marginTop: 2, flexShrink: 0 }} />
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: COLORS.heading }}>Care request saved.</p>
-                  <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>These details stay on this device until booking is connected.</p>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Saved care request */}
-        <div style={{ background: upcoming ? upcomingColors.bg : "#fff", borderRadius: 16, padding: 18, border: `1px solid ${COLORS.border}`, boxShadow: upcoming ? "none" : "0 2px 12px rgba(80,56,42,.05)" }}>
-          {upcoming ? (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: upcomingColors.text }} />
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: upcomingColors.text }}>
-                  Saved care request
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <UpcomingIcon style={{ width: 22, height: 22, color: upcomingColors.text }} />
-                </div>
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>{upcoming.name}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11.5, color: COLORS.muted, marginTop: 2, flexWrap: "wrap" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <CalendarHeart style={{ width: 12, height: 12 }} />{upcoming.date}
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <Clock style={{ width: 12, height: 12 }} />{upcoming.time}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 4 }}>{upcoming.durationLabel} · {upcoming.mode}</p>
-                </div>
-              </div>
-              <PrimaryButton
-                onClick={scrollToTherapists}
-                style={{ minHeight: 44, padding: 13, fontWeight: 700, fontSize: 13.5, boxShadow: `0 10px 20px ${COLORS.ctaShadow}` }}
-              >
-                Change request time
-              </PrimaryButton>
-            </>
-          ) : (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 13 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.greenSoft, color: COLORS.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <CalendarHeart style={{ width: 20, height: 20 }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <CardLabel style={{ color: COLORS.green }}>No care request saved</CardLabel>
-                <p style={{ fontSize: 15, fontWeight: 800, color: COLORS.heading, marginTop: 5 }}>You can choose support when it feels right.</p>
-                <p style={{ fontSize: 12.5, color: COLORS.muted, lineHeight: 1.55, marginTop: 5 }}>
-                  Start with support matched to what has been hardest lately. Nothing leaves this device in this version.
-                </p>
-                <PrimaryButton
-                  onClick={scrollToTherapists}
-                  style={{ marginTop: 13, minHeight: 44, padding: 12, background: COLORS.green, fontSize: 13 }}
-                >
-                  See recommended support
-                </PrimaryButton>
-              </div>
+            <div role="status" style={{ background: COLORS.greenSoft, borderRadius: 14, padding: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <CheckCircle2 style={{ width: 18, height: 18, color: COLORS.green, flexShrink: 0 }} />
+              <div><p style={{ fontSize: 13, fontWeight: 800, color: COLORS.heading }}>{copy.saved}</p><p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 3 }}>{copy.savedDetails}</p></div>
             </div>
           )}
-        </div>
 
-        {/* Therapist List */}
-        <div id="therapy-recommended" style={{ scrollMarginTop: 12 }}>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>Recommended support</p>
-              <p style={{ fontSize: 11.5, color: COLORS.muted, marginTop: 2 }}>Choose by care fit, not pressure.</p>
+          {bookingState && (
+            <div style={{ background: COLORS.accentSoft, borderRadius: 14, padding: 14, display: "flex", alignItems: "center", gap: 10 }}>
+              <CalendarHeart style={{ width: 18, height: 18, color: COLORS.accent }} />
+              <div style={{ flex: 1 }}><p style={{ fontSize: 12, fontWeight: 800, color: COLORS.heading }}>{copy.saved}</p><p style={{ fontSize: 11, color: COLORS.muted, marginTop: 2 }}>{upcomingName} · {bookingState.date} · {bookingState.time}</p></div>
             </div>
-            <span style={{ fontSize: 10.5, fontWeight: 800, color: COLORS.label }}>{THERAPISTS.length} options</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {THERAPISTS.map((t, i) => (
-              <TherapistCard key={t.id} therapist={t} index={i} onSelect={setBookingTherapist} />
-            ))}
-          </div>
-        </div>
+          )}
 
-        {/* Immediate support is available without becoming the main booking flow. */}
-        <div style={{ background: "#FFF4F2", border: "1px solid #F0C8C8", borderRadius: 14, padding: 14 }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: "#F9DEDC", color: "#B84C45", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Shield style={{ width: 18, height: 18 }} />
+          {!selectedProvider && <>
+            <p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>{copy.choose}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[{ id: "caregiver", title: copy.caregiver, hint: copy.caregiverHint }, { id: "therapist", title: copy.therapist, hint: copy.therapistHint }].map((item) => (
+                <button key={item.id} type="button" onClick={() => chooseCategory(item.id)} aria-pressed={category === item.id} style={{ textAlign: "left", minHeight: 112, padding: 14, borderRadius: 15, border: `2px solid ${category === item.id ? COLORS.accent : COLORS.border}`, background: category === item.id ? COLORS.accentSoft : "#fff", cursor: "pointer", fontFamily: FONT_BODY }}>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: COLORS.heading }}>{item.title}</p><p style={{ fontSize: 11, color: COLORS.muted, lineHeight: 1.45, marginTop: 7 }}>{item.hint}</p><ChevronRight style={{ width: 15, height: 15, color: COLORS.accent, marginTop: 8 }} />
+                </button>
+              ))}
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13.5, fontWeight: 800, color: COLORS.heading }}>Need support right now?</p>
-              <p style={{ fontSize: 12, color: COLORS.muted, lineHeight: 1.45, marginTop: 3 }}>
-                Open the safety options if you do not feel safe or need someone now.
-              </p>
-              <button
-                type="button"
-                onClick={() => setSupportOpen((open) => !open)}
-                aria-expanded={supportOpen}
-                aria-controls="therapy-safety-options"
-                className="afterbloom-focus"
-                style={{ marginTop: 10, width: "100%", minHeight: 44, padding: 11, borderRadius: 11, border: 0, background: supportOpen ? "#F9DEDC" : "#B84C45", color: supportOpen ? "#B84C45" : "#fff", fontSize: 12.5, fontWeight: 800, fontFamily: FONT_BODY, cursor: "pointer" }}
-              >
-                {supportOpen ? "Hide safety options" : "Open safety options"}
-              </button>
+          </>}
+
+          {selectedProvider ? (
+            <ProviderDetail provider={selectedProvider} lang={lang} copy={copy} onBack={() => setSelectedProvider(null)} onBook={() => setBookingProvider(selectedProvider)} />
+          ) : <>
+            {category === "caregiver" && <div style={{ display: "flex", gap: 7, overflowX: "auto", scrollbarWidth: "thin", paddingBottom: 2 }} aria-label={lang === "th" ? "ตัวกรองผู้ดูแล" : "Caregiver filters"}>
+              {FILTERS.map((item) => <button key={item} type="button" onClick={() => setFilter(item)} aria-pressed={filter === item} style={{ flexShrink: 0, border: `1px solid ${filter === item ? COLORS.accent : COLORS.border}`, background: filter === item ? COLORS.accent : "#fff", color: filter === item ? "#fff" : COLORS.text, borderRadius: 999, padding: "8px 11px", fontSize: 11, fontWeight: 800, cursor: "pointer", fontFamily: FONT_BODY }}>{lang === "th" ? THAI_LABELS[item] : item}</button>)}
+            </div>}
+            <div id="therapy-recommended" style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}><p style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading }}>{category === "caregiver" ? copy.caregiver : copy.therapist}</p><span style={{ fontSize: 11, color: COLORS.muted }}>{providers.length}</span></div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {providers.map((provider, index) => <TherapistCard key={provider.id} therapist={provider} index={index} onSelect={setSelectedProvider} requestLabel={copy.viewDetails} />)}
             </div>
-          </div>
-
-          <AnimatePresence initial={false}>
-            {supportOpen && (
-              <motion.div
-                id="therapy-safety-options"
-                initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
-                style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #F0C8C8" }}
-              >
-                <SafetySection />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Privacy Note */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: COLORS.border + "55", borderRadius: 12, padding: 14 }}>
-          <Shield style={{ width: 15, height: 15, color: COLORS.muted, marginTop: 2, flexShrink: 0 }} />
-          <p style={{ fontSize: 11.5, color: COLORS.muted, lineHeight: 1.6 }}>
-            Care conversations are confidential. You deserve care without judgment.
-          </p>
-        </div>
+          </>}
         </TabSheet>
       </div>
 
-      {/* Care request flow overlay */}
       <AnimatePresence>
-        {bookingTherapist && (
-          <BookingFlow
-            therapist={bookingTherapist}
-            onClose={() => setBookingTherapist(null)}
-            onDone={handleDone}
-          />
-        )}
+        {bookingProvider && <BookingFlow therapist={bookingProvider} onClose={() => setBookingProvider(null)} onDone={handleDone} />}
       </AnimatePresence>
     </>
   );

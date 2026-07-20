@@ -1,14 +1,16 @@
 import { COLORS } from "../../lib/theme.jsx";
+import { useLang } from "../../lib/i18n";
 
 export default function BookingStepIndicator({ currentStep, totalSteps = 3 }) {
-  const labels = ["Date & Time", "Session", "Confirm"];
+  const { lang } = useLang();
+  const labels = lang === "th" ? ["วันและเวลา", "การนัดหมาย", "ยืนยัน"] : ["Date & Time", "Session", "Confirm"];
   const stepIndex = Math.max(0, currentStep - 1);
   return (
     <div
       style={{ display: "flex", alignItems: "center", gap: 6 }}
       role="status"
       aria-live="polite"
-      aria-label={`Booking step ${currentStep} of ${totalSteps}: ${labels[stepIndex]}`}
+      aria-label={lang === "th" ? `ขั้นตอนการนัดหมาย ${currentStep} จาก ${totalSteps}: ${labels[stepIndex]}` : `Booking step ${currentStep} of ${totalSteps}: ${labels[stepIndex]}`}
     >
       {Array.from({ length: totalSteps }).map((_, i) => (
         <div

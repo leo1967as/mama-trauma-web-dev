@@ -3,10 +3,13 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { saveOnboarding, setJustOnboarded } from "../../lib/user-data";
 import { syncProfile } from "../../lib/firebase-sync";
 import { signInWithGoogle } from "../../lib/firebase";
+import { authErrorKey, clearAuthIntent, isEmbeddedBrowser, setAuthIntent } from "../../lib/auth-flow";
 import { EASE_OUT_QUINT } from "../../lib/theme.jsx";
 import { useLang } from "../../lib/i18n";
 import DatePicker from "./DatePicker";
 import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
+
+import { ArrowLeft12Filled } from "@/components/ui/fluent-arrow-left-12-filled";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -41,7 +44,7 @@ function StepHeader({ onBack, step, total = 4 }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F,
         }}
-      >←</motion.button>
+      ><ArrowLeft12Filled style={{ width: 16, height: 16 }} /></motion.button>
 
       <ProgressDots current={step} total={total} />
 
@@ -58,60 +61,67 @@ const inputStyle = {
 
 // ── step 0: welcome ───────────────────────────────────────────────────────────
 
-function WelcomeBtn({ onReady }) {
-  const ckRef = useRef(null);
+function WelcomeBtn({ initialErrorCode }) {
   const [phase, setPhase] = useState("idle");
+  const [errorCode, setErrorCode] = useState(initialErrorCode);
   const { t } = useLang();
+
+  useEffect(() => setErrorCode(initialErrorCode), [initialErrorCode]);
 
   const handleClick = async () => {
     if (phase !== "idle") return;
+    if (isEmbeddedBrowser()) {
+      setErrorCode("embedded-browser");
+      return;
+    }
+
+    setErrorCode(null);
+    setAuthIntent();
     setPhase("loading");
 
     try {
       await signInWithGoogle();
-      setTimeout(() => {
-        setPhase("done");
-        ckRef.current?.classList.add("draw");
-        try { navigator.vibrate?.([12, 60, 20]); } catch {}
-        setTimeout(() => onReady(), 700);
-      }, 1300);
     } catch (err) {
+      clearAuthIntent();
       console.warn("Google sign-in cancelled or failed", err.code);
+      setErrorCode(err?.code || "auth/unknown");
       setPhase("idle");
     }
   };
 
+  const errorText = errorCode && t.onboarding.welcome[authErrorKey(errorCode)];
+
   return (
-    <button
-      className={`ci-btn${phase === "loading" ? " loading" : ""}${phase === "done" ? " done-state" : ""}`}
-      onClick={handleClick}
-    >
-      <div className="ci-btn__content">
-        {t.onboarding.welcome.cta}
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
-        </svg>
-      </div>
-      <div className="ci-btn__loading">
-        <div className="ci-spinner" />
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,.9)" }}>{t.onboarding.welcome.settingUp}</span>
-      </div>
-      <div className="ci-btn__done">
-        <svg ref={ckRef} className="ci-checkmark" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        {t.onboarding.welcome.ready}
-      </div>
-    </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <button type="button" className={`ci-btn${phase === "loading" ? " loading" : ""}`} onClick={handleClick}>
+        <div className="ci-btn__content">
+          {t.onboarding.welcome.cta}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div className="ci-btn__loading">
+          <div className="ci-spinner" />
+          <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,.9)" }}>{t.onboarding.welcome.settingUp}</span>
+        </div>
+      </button>
+      {errorText && <div role="alert" style={{ fontSize: 12, lineHeight: 1.5, textAlign: "center", color: "#8B5E57" }}>{errorText}</div>}
+      {errorCode === "embedded-browser" && (
+        <a
+          href={globalThis.location?.href || "https://afterbloom-app.vercel.app/"}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ alignSelf: "center", fontSize: 12.5, fontWeight: 700, color: "#8B5E57", textDecoration: "underline" }}
+        >
+          {t.onboarding.welcome.openExternalBrowser}
+        </a>
+      )}
+    </div>
   );
 }
 
-function StepWelcome({ onNext, onSkipAll }) {
-  const [showOverlay, setShowOverlay] = useState(false);
+function StepWelcome({ initialErrorCode }) {
   const { t } = useLang();
-
-  const handleReady = () => {
-    setShowOverlay(true);
-    setTimeout(() => onNext(), 1800);
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FAF0EC", position: "relative", overflow: "hidden" }}>
@@ -126,13 +136,15 @@ function StepWelcome({ onNext, onSkipAll }) {
       {/* centered text content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "0 30px", position: "relative", zIndex: 10 }}>
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.22em", textTransform: "uppercase", color: "#C8706A", marginBottom: 20 }}>
-            Afterbloom
-          </div>
+          <img
+            src="/logo-afterbloom.png"
+            alt="Afterbloom"
+            style={{ width: 58, height: 58, objectFit: "contain", marginBottom: 18 }}
+          />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75 }}>
           <div style={{ fontSize: 29, fontWeight: 700, color: "#2A1815", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
-            Welcome to
+            {t.onboarding.finishing.welcomeTo}
           </div>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.95 }}>
@@ -157,52 +169,97 @@ function StepWelcome({ onNext, onSkipAll }) {
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45 }}
         style={{ position: "relative", zIndex: 10, padding: "0 24px 44px", display: "flex", flexDirection: "column", gap: 12 }}
       >
-        <WelcomeBtn onReady={handleReady} />
-        <button onClick={onSkipAll} style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#A8908A", fontFamily: F, padding: "2px 0" }}>
-          {t.onboarding.welcome.alreadySetUp}
-        </button>
+        <WelcomeBtn initialErrorCode={initialErrorCode} />
       </motion.div>
+    </div>
+  );
+}
 
-      {/* ── Transition overlay ── */}
-      <AnimatePresence>
-        {showOverlay && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{
-              position: "absolute", inset: 0, zIndex: 50,
-              background: "#FBF6F3",
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center", gap: 12,
-            }}
-          >
+// ── consent gate: PDPA health-data sharing ──────────────────────────────────────
+
+function StepConsent({ onAgree, onSkip, onBack }) {
+  const { t } = useLang();
+  const c = t.onboarding.consent;
+  const items = Array.isArray(c?.items) ? c.items : [];
+  const scrollRef = useRef(null);
+  const [readEnd, setReadEnd] = useState(false);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    // Enable once the list is read to the bottom (or when it isn't scrollable at all).
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 24) setReadEnd(true);
+  };
+
+  useEffect(() => {
+    // If everything already fits without scrolling, don't gate the button.
+    const el = scrollRef.current;
+    if (el && el.scrollHeight - el.clientHeight < 24) setReadEnd(true);
+  }, []);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
+      <StepHeader onBack={onBack} step={0} total={0} />
+
+      <div style={{ padding: "8px 26px 4px" }}>
+        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C8706A", marginBottom: 14 }}>
+          {c?.eyebrow}
+        </div>
+        <div style={{ fontFamily: S, fontWeight: 500, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.01em", color: "#3E342C", marginBottom: 8 }}>
+          {c?.title}
+          <em style={{ display: "block", fontStyle: "italic", color: "#AF636A" }}>{c?.titleItalic}</em>
+        </div>
+        <div style={{ fontSize: 13.5, color: "#786A5C", marginBottom: 14, lineHeight: 1.6 }}>
+          {c?.subtitle}
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        onScroll={checkScroll}
+        style={{ flex: 1, minHeight: 0, padding: "2px 26px 8px", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", display: "flex", flexDirection: "column", gap: 10 }}
+      >
+        {items.map((text, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, background: "#fff", border: "1px solid #EFE6DC", borderRadius: 14, padding: "15px 16px", boxShadow: "0 2px 6px rgba(80,56,42,.04)" }}>
+            <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: "#F6E2E1", display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+              <svg viewBox="0 0 24 24" width="12" fill="none" stroke="#AF636A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <div style={{ flex: 1, fontSize: 13, color: "#4A3F38", lineHeight: 1.55 }}>{text}</div>
+          </div>
+        ))}
+        <div style={{ fontSize: 11.5, color: "#9E938B", lineHeight: 1.55, padding: "4px 2px 2px" }}>
+          {c?.footer}
+        </div>
+      </div>
+
+      <div style={{ padding: "14px 26px 40px", display: "flex", flexDirection: "column", gap: 10, background: "linear-gradient(to top, #FBF6F0 70%, rgba(251,246,240,0))" }}>
+        <AnimatePresence>
+          {!readEnd && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              style={{ fontFamily: S, fontStyle: "italic", fontWeight: 500, fontSize: 28, color: "#C8706A", letterSpacing: "-0.3px" }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, height: 0 }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "#B0A093" }}
             >
-              Afterbloom.
+              <svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M6 9l6 6 6-6" /></svg>
+              {c?.readHint}
             </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              style={{ fontSize: 13, fontWeight: 300, color: "#A08580", fontFamily: F }}
-            >
-              {t.onboarding.welcome.preparing}
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 1, 1], scale: [1, 1.5, 1], background: ["#EAD8D2", "#C8706A", "#EAD8D2"] }}
-              transition={{ delay: 0.5, duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-              style={{ width: 6, height: 6, borderRadius: "50%", marginTop: 8 }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+        <motion.button
+          className="ci-btn"
+          onClick={readEnd ? onAgree : undefined}
+          animate={{ opacity: readEnd ? 1 : 0.45 }}
+          transition={{ duration: 0.15 }}
+          style={{ cursor: readEnd ? "pointer" : "default", pointerEvents: readEnd ? "auto" : "none" }}
+        >
+          {c?.agreeAll}
+        </motion.button>
+        <button
+          onClick={onSkip}
+          style={{ background: "none", border: 0, cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#B0A8A4", fontFamily: F, padding: "2px 0" }}
+        >
+          {c?.skip}
+        </button>
+      </div>
     </div>
   );
 }
@@ -219,10 +276,9 @@ function daysSince(ymd) {
   return Math.max(0, Math.floor((Date.now() - new Date(ymd + "T00:00:00")) / 86400000));
 }
 
-function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
+function StepBirthDate({ value, onChange, onNext, onBack }) {
   const [confirming, setConfirming] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  const [warnSkip, setWarnSkip] = useState(false);
   const { t } = useLang();
 
   useEffect(() => {
@@ -238,16 +294,7 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
   const handleContinue = () => {
     if (value) { setConfirming(true); }
-    else { handleSkip(); }
-  };
-
-  const handleSkip = () => {
-    if (!value) {
-      setWarnSkip(true);
-      setTimeout(() => setWarnSkip(false), 3500);
-    } else {
-      onSkip();
-    }
+    else return;
   };
 
   const days = daysSince(value);
@@ -276,32 +323,10 @@ function StepBirthDate({ value, onChange, onNext, onBack, onSkip }) {
 
         <DatePicker value={value} onChange={v => { onChange(v); setConfirming(false); }} />
 
-        <AnimatePresence>
-          {warnSkip && (
-            <motion.div
-              initial={{ opacity: 0, y: 8, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              style={{ marginTop: 14, background: "#FEF0E7", border: "1px solid #F5D5B8", borderRadius: 10, padding: "12px 16px" }}
-            >
-              <div style={{ fontSize: 12.5, color: "#C2460A", fontWeight: 600, lineHeight: 1.5, marginBottom: 10 }}>
-                {t.onboarding.step1.skipWarn}
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => { setWarnSkip(false); onSkip(); }} style={{ fontSize: 11.5, fontWeight: 700, color: "#C2460A", background: "none", border: 0, cursor: "pointer", fontFamily: F, textDecoration: "underline" }}>
-                  {t.onboarding.step1.skipAnyway}
-                </button>
-                <button onClick={() => setWarnSkip(false)} style={{ fontSize: 11.5, fontWeight: 700, color: "#786A5C", background: "none", border: 0, cursor: "pointer", fontFamily: F }}>
-                  {t.onboarding.step1.addDate}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       <div style={{ padding: "20px 26px 44px" }}>
-        <button className="ci-btn" onClick={handleContinue}>{t.onboarding.step1.continue}</button>
+        <button className="ci-btn" onClick={handleContinue} disabled={!value} style={{ opacity: value ? 1 : 0.45, cursor: value ? "pointer" : "default" }}>{t.onboarding.step1.continue}</button>
       </div>
 
       {/* ── Confirm date popup ── */}
@@ -497,7 +522,7 @@ function StepPreferredName({ value, onChange, onNext, onBack }) {
       </div>
 
       <div style={{ padding: "20px 26px 44px" }}>
-        <button className="ci-btn" onClick={onNext}>{t.onboarding.step3.continue}</button>
+        <button className="ci-btn" onClick={value.trim() ? onNext : undefined} disabled={!value.trim()} style={{ opacity: value.trim() ? 1 : 0.45, cursor: value.trim() ? "pointer" : "default" }}>{t.onboarding.step3.continue}</button>
       </div>
     </div>
   );
@@ -723,7 +748,7 @@ function StepReminder({ value, onChange, onSave, onBack, onSkip }) {
 
 // ── step 5: ready ─────────────────────────────────────────────────────────────
 
-function StepReady({ name, hasBirthDate, onDone }) {
+function StepReady({ name, hasBirthDate, isFirstTimeMother, onDone }) {
   const { t } = useLang();
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: F }}>
@@ -749,7 +774,7 @@ function StepReady({ name, hasBirthDate, onDone }) {
                 {hasBirthDate ? t.onboarding.step6.personalised.label : t.onboarding.step6.day1.label}
               </div>
               <div style={{ fontSize: 13, color: "#786A5C", lineHeight: 1.55 }}>
-                {hasBirthDate ? t.onboarding.step6.personalised.body : t.onboarding.step6.day1.body}
+                {isFirstTimeMother === true ? t.onboarding.step6.firstTimeBody : hasBirthDate ? t.onboarding.step6.personalised.body : t.onboarding.step6.day1.body}
               </div>
             </div>
           </div>
@@ -952,11 +977,12 @@ function FinishingSetup({ name, reduceMotion, onWelcomeReady, onFadeOut }) {
 
 // ── main ──────────────────────────────────────────────────────────────────────
 
-export default function Onboarding({ onComplete }) {
+export default function Onboarding({ onComplete, initialErrorCode, resumeOnboarding = false }) {
   useBodyScrollLock();
   const reduceMotion = useReducedMotion();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(resumeOnboarding ? 1 : 0);
+  const [consent, setConsent] = useState(null); // health-data sharing consent (PDPA)
   const [birthDate, setBirthDate] = useState("");
   const [legalFirstName, setLegalFirstName] = useState("");
   const [legalLastName, setLegalLastName] = useState("");
@@ -983,6 +1009,8 @@ export default function Onboarding({ onComplete }) {
       mother_name: name.trim() || "",
       is_first_time_mother: toFirstTimeMother(childNumber),
       preferred_checkin_time: reminderTime || null,
+      health_data_consent: consent === true,
+      consent_at: consent === true ? new Date().toISOString() : null,
     };
     saveOnboarding(data);
     syncProfile(data);
@@ -1002,14 +1030,6 @@ export default function Onboarding({ onComplete }) {
     saveCompletion();
     setDashboardReady(true);
     requestAnimationFrame(onComplete);
-  };
-
-  const skipAll = () => {
-    const data = { baby_birth_date: null, legal_first_name: "", legal_last_name: "", phone: "", preferred_name: "", mother_name: "", is_first_time_mother: null, preferred_checkin_time: null };
-    saveOnboarding(data);
-    syncProfile(data);
-    setJustOnboarded();
-    onComplete();
   };
 
   const variants = {
@@ -1043,9 +1063,14 @@ export default function Onboarding({ onComplete }) {
           transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
           style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
         >
-          {step === 0 && <StepWelcome onNext={() => go(1)} onSkipAll={skipAll} />}
-          {step === 1 && <StepBirthDate value={birthDate} onChange={setBirthDate} onNext={() => go(2)} onBack={() => go(0)} onSkip={() => go(2)} />}
-          {step === 2 && (
+          {step === 0 && (
+            <StepWelcome
+              initialErrorCode={initialErrorCode}
+            />
+          )}
+          {step === 1 && <StepConsent onAgree={() => { setConsent(true); go(2); }} onSkip={() => { setConsent(false); go(2); }} onBack={() => go(0)} />}
+          {step === 2 && <StepBirthDate value={birthDate} onChange={setBirthDate} onNext={() => go(3)} onBack={() => go(1)} />}
+          {step === 3 && (
             <StepIdentity
               firstName={legalFirstName}
               lastName={legalLastName}
@@ -1055,14 +1080,14 @@ export default function Onboarding({ onComplete }) {
                 if (field === "lastName") setLegalLastName(value);
                 if (field === "phone") setPhone(value);
               }}
-              onNext={() => go(3)}
-              onBack={() => go(1)}
+              onNext={() => go(4)}
+              onBack={() => go(2)}
             />
           )}
-          {step === 3 && <StepPreferredName value={name} onChange={setName} onNext={() => go(4)} onBack={() => go(2)} />}
-          {step === 4 && <StepChildNumber value={childNumber} onChange={setChildNumber} onNext={() => go(5)} onBack={() => go(3)} />}
-          {step === 5 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(6)} onBack={() => go(4)} onSkip={() => { setReminderTime(null); go(6); }} />}
-          {step === 6 && <StepReady name={name.trim() || legalFirstName.trim() || "there"} hasBirthDate={!!birthDate} onDone={() => setFinishing(true)} />}
+          {step === 4 && <StepPreferredName value={name} onChange={setName} onNext={() => go(5)} onBack={() => go(3)} />}
+          {step === 5 && <StepChildNumber value={childNumber} onChange={setChildNumber} onNext={() => go(6)} onBack={() => go(4)} />}
+          {step === 6 && <StepReminder value={reminderTime} onChange={setReminderTime} onSave={() => go(7)} onBack={() => go(5)} onSkip={() => { setReminderTime(null); go(7); }} />}
+          {step === 7 && <StepReady name={name.trim()} hasBirthDate={!!birthDate} isFirstTimeMother={toFirstTimeMother(childNumber)} onDone={() => setFinishing(true)} />}
         </motion.div>
       </AnimatePresence>
 

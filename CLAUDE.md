@@ -37,11 +37,7 @@ npm run typecheck
 npm run preview
 ```
 
-The Admin Dashboard requires `Admin-Dashboard/.env.local`:
-```
-VITE_BASE44_APP_ID=<app_id>
-VITE_BASE44_APP_BASE_URL=<backend_url>
-```
+The Admin Dashboard connects to Firebase directly — config is hardcoded in `Admin-Dashboard/src/lib/firebase.js` (no `.env.local` required).
 
 ---
 
@@ -60,7 +56,8 @@ Single-page app. The only route is `/` → `Dashboard.jsx`, which acts as a shel
 - `EpdsFlow` — Edinburgh Postnatal Depression Scale (10-question scored)
 - "I Need Help" (`SafetySection`) — crisis/safety resources, always accessible, focus-trapped, logged every open
 
-**Data layer — all localStorage, no backend:**
+**Data layer — localStorage for app state, Firebase/Firestore for cross-app sync:**
+- `src/lib/firebase-sync.js` pushes profile, check-in, EPDS score, safety-log-access, and journal events to Firestore (`mothers/{uid}` doc + `checkins`, `epds_scores`, `safety_log` subcollections) so the Admin Dashboard (clinic side) can read them. All local features still read/write localStorage as primary storage; Firestore sync is additive, one-way (Afterbloom → Admin Dashboard).
 - `src/lib/user-data.js` — onboarding state, baby birth date, postpartum STAGES, day label, display name
 - `src/lib/mood-data.js` — mood history, check-in drafts, safety access log, SUPPORT_LEVELS thresholds
 - `src/lib/epds-data.js` — EPDS scoring (10-question, reverse-scored on questions 2,4–9), support level thresholds
@@ -78,18 +75,15 @@ Single-page app. The only route is `/` → `Dashboard.jsx`, which acts as a shel
 
 ## Admin Dashboard architecture
 
-Backend-connected app using the **Base44 SDK** (`@base44/sdk`). The `db` object from `src/api/base44Client.js` is injected at runtime by `@base44/vite-plugin` — the exported stub in that file is only a build-time placeholder.
+Backend-connected app that reads/writes Firestore directly via `src/lib/firestore.js` and `src/lib/firebase.js` (config hardcoded, no env vars). `src/hooks/useFirestoreData.js` wraps `firestore.js` in React hooks (`useMothers`, `useMother`, `useCheckins`, `useEpdsScores`, `useCaseNotes`, `useDashboardStats`) and normalizes raw Firestore docs (postpartum stage/day derivation, support-level resolution, alert flags).
 
-**Auth flow** (`src/lib/AuthContext.jsx`):
-1. Fetch app public settings via `/api/apps/public/prod/public-settings/by-id/{appId}`
-2. If a token exists, call `db.auth.me()` to hydrate user
-3. `authError.type` can be `'auth_required'` (redirect to login) or `'user_not_registered'` (show error screen)
+**Auth flow** (`src/lib/AuthContext.jsx`): a hardcoded `admin`/`admin` credential check that sets an `isAuthenticated` flag in localStorage — no real backend auth, no Base44.
 
-**Data access pattern**: `db.entities.<EntityName>.filter(...)` / `.get(id)` / `.create(data)` / `.update(id, data)` / `.delete(id)`. All async.
+**Data access pattern**: `firestore.js` exports plain async functions (`getMothers`, `getMother`, `getCheckins`, `addCheckin`, `getEpdsScores`, `addEpdsScore`, `getCaseNotes`, `addCaseNote`, `updateCaseStatus`, `getDashboardStats`, etc.) plus `subscribeMothers`/`subscribeCaseNotes` real-time listeners. `resolveSupportLevel(data)` is the dual-read helper that normalizes the legacy 3-tier `riskLevel` field (from older documents) into the current 4-tier `supportLevel` (`steady`/`gentle`/`extra`/`immediate`).
 
 **Page layout**: `AppLayout` wraps all routes with `Sidebar` + `TopBar`. Pages import feature components from `src/components/dashboard/`, `src/components/detail/`, and `src/components/shared/`.
 
-**Mock data**: `src/lib/mockData.js` provides Thai-language hospital/patient fixtures for local dev without a live backend.
+**Mock data**: `src/lib/mockData.js` provides Thai-language hospital/patient fixtures, used by `src/lib/seedFirestore.js` to seed a dev Firestore instance — not used as a runtime data source (the live app reads Firestore via the hooks above).
 
 ---
 

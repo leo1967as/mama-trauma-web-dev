@@ -6,6 +6,7 @@ import {
   getMoodSummary, hasMoodChartData, subscribeToMoodHistory,
 } from "../../lib/mood-data";
 import { COLORS, FONT_BODY, FONT_SERIF, PrimaryButton, TabHero, TabSheet, HeroAccent } from "../../lib/theme.jsx";
+import { useLang } from "../../lib/i18n";
 
 const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
 
@@ -27,8 +28,16 @@ const SCORE_FACE = {
 
 const SLEEP_LABEL = { 1: "Almost none", 2: "Very little", 3: "Some", 4: "Enough", 5: "Slept well" };
 
+// Score words/labels are looked up from i18n (reusing the check-in scale
+// text) at render time; these maps are only the English fallback.
+function moodWord(score, t) {
+  return t?.checkin?.questions?.[0]?.labels?.[score - 1] ?? SCORE_FACE[score]?.word;
+}
+function sleepWord(score, t) {
+  return t?.checkin?.questions?.[1]?.labels?.[score - 1] ?? SLEEP_LABEL[score];
+}
+
 const insightIconMap = { sleep: Moon, support: MessageCircleHeart, tag: AlertCircle, trend: TrendingUp };
-const insightLabels = ["Pattern to notice", "Another signal", "One more thing"];
 
 const insightColors = [
   { bg: COLORS.amberSoft, color: COLORS.amber },
@@ -37,11 +46,11 @@ const insightColors = [
 ];
 
 const supportStyle = {
-  unassessed: { bg: "#F8F4EF", border: "#E6DBCF", text: "#6C5F56", tag: "#F2EAE2", cta: "Take your first check-in", action: "checkin" },
-  immediate: { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2", cta: "Open urgent support", action: "help" },
-  extra: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0", cta: "Take emotional check", action: "epds" },
-  gentle: { bg: COLORS.amberSoft, border: "#E8D3A0", text: COLORS.amber, tag: "#F2E2BE", cta: "Update check-in", action: "checkin" },
-  steady: { bg: COLORS.greenSoft, border: "#C8DFC9", text: COLORS.green, tag: "#D8EDD9", cta: "Keep today noted", action: "checkin" },
+  unassessed: { bg: "#F8F4EF", border: "#E6DBCF", text: "#6C5F56", tag: "#F2EAE2", action: "checkin" },
+  immediate: { bg: "#FEECEC", border: "#F5C2C2", text: "#B91C1C", tag: "#FEE2E2", action: "help" },
+  extra: { bg: "#FEF0E7", border: "#F5D5B8", text: "#C2460A", tag: "#FDE8D0", action: "epds" },
+  gentle: { bg: COLORS.amberSoft, border: "#E8D3A0", text: COLORS.amber, tag: "#F2E2BE", action: "checkin" },
+  steady: { bg: COLORS.greenSoft, border: "#C8DFC9", text: COLORS.green, tag: "#D8EDD9", action: "checkin" },
 };
 
 function Card({ children, style, ...props }) {
@@ -100,21 +109,20 @@ function MoodFace({ face, size = 44 }) {
 }
 
 function TodaySummary({ todayEntry, onCheckIn }) {
+  const { t } = useLang();
   const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
-  const sleepLabel = todayEntry?.sleepScore != null
-    ? (SLEEP_LABEL[todayEntry.sleepScore] ?? `${todayEntry.sleepScore}/5`)
-    : null;
+  const sleepLabel = todayEntry?.sleepScore != null ? sleepWord(todayEntry.sleepScore, t) : null;
 
   if (!face) {
     return (
       <Card aria-labelledby="mood-today-title">
-        <SectionLabel id="mood-today-title">Today</SectionLabel>
+        <SectionLabel id="mood-today-title">{t.mood.todayHeading}</SectionLabel>
         <p style={{ fontSize: 14, color: COLORS.muted, lineHeight: 1.55, margin: "10px 0 16px" }}>
-          No check-in yet. Start with one short log; you can change it later.
+          {t.mood.noCheckinYet}
         </p>
-        <PrimaryButton onClick={onCheckIn} aria-label="Complete today's mood check-in">
+        <PrimaryButton onClick={onCheckIn} aria-label={t.mood.aria.completeCheckin}>
           <Pencil size={16} aria-hidden="true" />
-          Complete today's check-in
+          {t.mood.completeCheckin}
         </PrimaryButton>
       </Card>
     );
@@ -123,11 +131,11 @@ function TodaySummary({ todayEntry, onCheckIn }) {
   return (
     <Card aria-labelledby="mood-today-title">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-        <SectionLabel id="mood-today-title">Today's log</SectionLabel>
+        <SectionLabel id="mood-today-title">{t.mood.todayLog}</SectionLabel>
         <button
           type="button"
           onClick={onCheckIn}
-          aria-label="Edit today's mood check-in"
+          aria-label={t.mood.aria.editCheckin}
           className="afterbloom-focus mood-action"
           style={{
             display: "inline-flex",
@@ -146,22 +154,22 @@ function TodaySummary({ todayEntry, onCheckIn }) {
             fontFamily: F,
           }}
         >
-          <Pencil size={12} aria-hidden="true" /> Edit
+          <Pencil size={12} aria-hidden="true" /> {t.mood.edit}
         </button>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: todayEntry.tags?.length ? 14 : 0 }}>
         <MoodFace face={face} size={48} />
         <div>
-          <div style={{ fontFamily: S, fontSize: 22, fontWeight: 500, color: COLORS.text }}>{face.word}</div>
+          <div style={{ fontFamily: S, fontSize: 22, fontWeight: 500, color: COLORS.text }}>{moodWord(todayEntry.moodScore, t)}</div>
           {sleepLabel && (
-            <div style={{ fontSize: 12.5, color: COLORS.label, marginTop: 2 }}>Sleep · {sleepLabel}</div>
+            <div style={{ fontSize: 12.5, color: COLORS.label, marginTop: 2 }}>{t.mood.sleepPrefix} · {sleepLabel}</div>
           )}
         </div>
       </div>
 
       {todayEntry.tags?.length > 0 && (
-        <div role="list" aria-label="Today's mood tags" style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+        <div role="list" aria-label={t.mood.aria.todayTags} style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {todayEntry.tags.map((tag) => (
             <span
               key={tag}
@@ -177,7 +185,7 @@ function TodaySummary({ todayEntry, onCheckIn }) {
                 textTransform: "capitalize",
               }}
             >
-              {tag}
+              {t.moodTags[tag] ?? tag}
             </span>
           ))}
         </div>
@@ -187,10 +195,11 @@ function TodaySummary({ todayEntry, onCheckIn }) {
 }
 
 function TrendCard({ chartData, showChart }) {
+  const { t } = useLang();
   const trendValues = chartData.filter((row) => row.mood != null).map((row) => row.mood);
   const trendSummary = trendValues.length
-    ? `Mood values this week range from ${Math.min(...trendValues)} to ${Math.max(...trendValues)} out of 5.`
-    : "No mood values saved yet.";
+    ? t.mood.trendRange.replace("{{min}}", Math.min(...trendValues)).replace("{{max}}", Math.max(...trendValues))
+    : t.mood.trendEmpty;
 
   return (
     <Card aria-labelledby="mood-trend-title">
@@ -212,7 +221,7 @@ function TrendCard({ chartData, showChart }) {
           <TrendingUp size={16} />
         </span>
         <div>
-          <SectionLabel id="mood-trend-title">7-day trend</SectionLabel>
+          <SectionLabel id="mood-trend-title">{t.mood.sevenDayTrend}</SectionLabel>
           <p style={{ fontSize: 12.5, color: COLORS.muted, marginTop: 3 }}>{trendSummary}</p>
         </div>
       </div>
@@ -223,7 +232,7 @@ function TrendCard({ chartData, showChart }) {
         {!showChart && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
             <p style={{ fontSize: 12, color: COLORS.muted, textAlign: "center", fontFamily: F, maxWidth: 220 }}>
-              Complete a check-in to start your trend line.
+              {t.mood.trendChartEmpty}
             </p>
           </div>
         )}
@@ -233,6 +242,7 @@ function TrendCard({ chartData, showChart }) {
 }
 
 function InsightCard({ insight, index }) {
+  const { t } = useLang();
   const Icon = insightIconMap[insight.type] || TrendingUp;
   const ic = insightColors[index] || insightColors[0];
   return (
@@ -255,7 +265,7 @@ function InsightCard({ insight, index }) {
           <Icon size={16} />
         </div>
         <SectionLabel id={`mood-insight-${index}`}>
-          {insightLabels[index]}
+          {t.mood.insightLabels[index]}
         </SectionLabel>
       </div>
       <p style={{ fontSize: 14, color: COLORS.text, lineHeight: 1.55 }}>{insight.text}</p>
@@ -264,8 +274,15 @@ function InsightCard({ insight, index }) {
 }
 
 function SupportCard({ supportSummary, onCheckIn, onEpds, onNeedHelp }) {
+  const { t } = useLang();
   const ss = supportStyle[supportSummary.level] ?? supportStyle.steady;
+  const level = t.supportLevels[supportSummary.level];
+  const label = level?.label ?? supportSummary.label;
+  const message = level?.message ?? supportSummary.message;
+  const action = level?.action ?? supportSummary.action;
+  const cta = t.mood.supportCta[supportSummary.level] ?? t.mood.supportCta.steady;
   const handleAction = ss.action === "help" ? onNeedHelp : ss.action === "epds" ? onEpds : onCheckIn;
+  const ariaLabel = ss.action === "help" ? t.mood.aria.actionHelp : ss.action === "epds" ? t.mood.aria.actionEpds : t.mood.aria.actionCheckin;
 
   return (
     <section
@@ -279,7 +296,7 @@ function SupportCard({ supportSummary, onCheckIn, onEpds, onNeedHelp }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-        <span id="mood-support-title" style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>Today's support level</span>
+        <span id="mood-support-title" style={{ fontSize: 15, fontWeight: 800, color: ss.text }}>{t.home.cards.todaysSupportLevel}</span>
         <span
           style={{
             fontSize: 10,
@@ -293,46 +310,39 @@ function SupportCard({ supportSummary, onCheckIn, onEpds, onNeedHelp }) {
             whiteSpace: "nowrap",
           }}
         >
-          {supportSummary.label}
+          {label}
         </span>
       </div>
-      <p style={{ fontSize: 13, color: ss.text, lineHeight: 1.55, marginBottom: 10 }}>{supportSummary.message}</p>
-      <p style={{ fontSize: 12.5, fontWeight: 800, color: ss.text, marginBottom: 14 }}>Next step: {supportSummary.action}</p>
+      <p style={{ fontSize: 13, color: ss.text, lineHeight: 1.55, marginBottom: 10 }}>{message}</p>
+      <p style={{ fontSize: 12.5, fontWeight: 800, color: ss.text, marginBottom: 14 }}>{t.checkin.result.nextStep.replace("{{action}}", action)}</p>
       <PrimaryButton
         variant="secondary"
         onClick={handleAction}
-        aria-label={
-          ss.action === "help"
-            ? "Open urgent support from mood support level"
-            : ss.action === "epds"
-              ? "Start emotional check from mood support level"
-              : "Update today's check-in from mood support level"
-        }
+        aria-label={ariaLabel}
       >
-        {ss.cta}
+        {cta}
       </PrimaryButton>
     </section>
   );
 }
 
 function RecentHistory({ history }) {
+  const { t } = useLang();
   const recent = history.filter((entry) => entry.moodScore != null).slice(0, 7);
   if (!recent.length) return null;
 
   return (
     <Card style={{ padding: 0, overflow: "hidden" }} aria-labelledby="recent-mood-title">
       <div style={{ padding: "18px 20px 12px" }}>
-        <SectionLabel id="recent-mood-title">Recent days</SectionLabel>
+        <SectionLabel id="recent-mood-title">{t.mood.recentDays}</SectionLabel>
       </div>
-      <div role="list" aria-label="Recent mood logs">
+      <div role="list" aria-label={t.mood.aria.recentLogs}>
         {recent.map((entry) => {
           const face = SCORE_FACE[entry.moodScore];
           if (!face) return null;
-          const sleepLabel = entry.sleepScore != null
-            ? (SLEEP_LABEL[entry.sleepScore] ?? `${entry.sleepScore}/5`)
-            : null;
+          const sleepLabel = entry.sleepScore != null ? sleepWord(entry.sleepScore, t) : null;
           const tags = entry.tags?.slice(0, 2) || [];
-          const dateLabel = formatHistoryDate(entry.dateKey);
+          const dateLabel = formatHistoryDate(entry.dateKey, t);
 
           return (
             <div
@@ -350,7 +360,7 @@ function RecentHistory({ history }) {
               <MoodFace face={face} size={38} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                  <span style={{ fontFamily: S, fontSize: 16, fontWeight: 500, color: COLORS.text }}>{face.word}</span>
+                  <span style={{ fontFamily: S, fontSize: 16, fontWeight: 500, color: COLORS.text }}>{moodWord(entry.moodScore, t)}</span>
                   {tags.map((tag) => (
                     <span
                       key={tag}
@@ -365,12 +375,12 @@ function RecentHistory({ history }) {
                         textTransform: "capitalize",
                       }}
                     >
-                      {tag}
+                      {t.moodTags[tag] ?? tag}
                     </span>
                   ))}
                 </div>
                 {sleepLabel && (
-                  <div style={{ fontSize: 12, color: COLORS.label, marginTop: 2 }}>Sleep · {sleepLabel}</div>
+                  <div style={{ fontSize: 12, color: COLORS.label, marginTop: 2 }}>{t.mood.sleepPrefix} · {sleepLabel}</div>
                 )}
               </div>
               <time dateTime={entry.dateKey} style={{ fontSize: 11.5, fontWeight: 800, color: COLORS.label, flexShrink: 0 }}>
@@ -385,6 +395,7 @@ function RecentHistory({ history }) {
 }
 
 export default function MoodTab({ onCheckIn, onEpds, onNeedHelp }) {
+  const { t, lang } = useLang();
   const [history, setHistory] = useState(() => getMoodHistory());
   useEffect(() => {
     const unsub = subscribeToMoodHistory(setHistory);
@@ -394,23 +405,22 @@ export default function MoodTab({ onCheckIn, onEpds, onNeedHelp }) {
   const summary = useMemo(() => getMoodSummary(history), [history]);
   const todayEntry = summary.todayEntry;
   const supportSummary = useMemo(() => getMoodSupportSummary(history), [history]);
-  const insights = useMemo(() => getMoodInsights(history), [history]);
-  const chartData = useMemo(() => getMoodChartData(history, 7), [history]);
+  const insights = useMemo(() => getMoodInsights(history, t), [history, t]);
+  const chartData = useMemo(() => getMoodChartData(history, 7, { locale: lang === "th" ? "th-TH" : "en-US" }), [history, lang]);
   const showChart = hasMoodChartData(chartData);
   const face = todayEntry?.moodScore ? SCORE_FACE[todayEntry.moodScore] : null;
+  const faceWord = face ? moodWord(todayEntry.moodScore, t) : null;
 
   return (
     <div style={{ fontFamily: F }}>
       <TabHero
         theme="rose"
-        eyebrow="Mood"
-        title={<>Mood patterns,<HeroAccent>without pressure.</HeroAccent></>}
-        subtitle={summary.hasTodayCheckIn
-          ? "Today's check-in is saved. Review the pattern, then choose whether anything needs attention."
-          : "Use this as a private read on the week, not a scorecard."}
+        eyebrow={t.mood.eyebrow}
+        title={<>{t.mood.title}<HeroAccent>{t.mood.titleAccent}</HeroAccent></>}
+        subtitle={summary.hasTodayCheckIn ? t.mood.subtitleDone : t.mood.subtitleNotDone}
         rightSlot={face && (
           <div
-            aria-label={`Today's mood is ${face.word}`}
+            aria-label={t.mood.aria.todayMoodIs.replace("{{word}}", faceWord)}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -422,7 +432,7 @@ export default function MoodTab({ onCheckIn, onEpds, onNeedHelp }) {
             }}
           >
             <MoodFace face={face} size={22} />
-            <span style={{ fontSize: 12, fontWeight: 800, color: COLORS.text }}>{face.word} today</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: COLORS.text }}>{t.mood.todayBadge.replace("{{word}}", faceWord)}</span>
           </div>
         )}
       />

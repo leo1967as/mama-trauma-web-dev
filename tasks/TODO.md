@@ -1,24 +1,25 @@
-- Run the fresh tracer on the new identity/state model: onboarding with legal first+last name, preferred name, and phone -> verify Admin shows `ยังไม่ประเมิน`, `ยังไม่เก็บจากคุณแม่`, and `รอทีมดูแลกรอก` in the correct places before any clinical event.
-- Trigger one flagged clinical path after that fresh onboarding (Check-in extra/immediate, EPDS Q10, or urgent Help) and confirm Admin Alerts, Mother Detail, and timeline preserve `caseSource` correctly.
-- Human-check the new onboarding step order and Home settings edit sheet on a visible mobile-width browser; confirm required identity fields, optional preferred name, and final welcome bridge all feel coherent.
-- Human-check the final onboarding "Go to my dashboard" handoff on a visible mobile-width browser; Progression should be the only visible layer, Welcome should hold clearly, and Dashboard Home should already be ready behind the 2s fade.
-- Run a human browser smoke check on the Afterbloom shell and verify the global I Need Help sheet.
-- Tune the support-level thresholds and CTA copy after browser QA if the results feel too aggressive or too soft.
-- Consider removing the `riskLevel` compatibility alias once all old consumers are gone.
-- Decide whether `.agents/skills/` and `skills-lock.json` from the caveman install should be committed, ignored, or removed from this app repo.
-- If caveman or other newly installed skills do not appear, restart/open a fresh Codex session and re-check the skill inventory before changing the install layout.
-- Do a final human visual pass on Mood, BottomNav safe-area spacing, Check-in result scrolling, Therapy/Plans tone, and small-screen fold behavior after the interaction fixes.
-- Decide whether `.claude/skills/impeccable` should live in this app repo alongside `.agents/skills/impeccable` or be ignored/removed.
-- Manually check OS/browser reduced-motion mode against the implemented Afterbloom screens.
-- Replace or clearly gate prototype safety/support phone/contact placeholders before any production release.
-- Run a de-slop visual system pass: reduce repeated blurred blobs, all-caps eyebrow labels, ghost-card border+shadow styling, rounded icon tiles, and glassy nav treatment.
-- Rebalance Check-in result and EPDS screens so support guidance leads and raw score/data density stays secondary.
-- Consider font self-hosting/subsetting or prototype analytics gating if improving mobile LCP beyond 3.8s becomes the priority.
-- Run the live tracer check with a fresh mother: onboarding -> flagged Check-in/EPDS Q10/urgent Help -> Admin alert -> reviewed/contacted/referred -> note -> resolved -> refresh.
-- Re-run the Check-in follow-up path specifically after deploy: core 4 questions -> follow-up tags/journal/baby connection or support request -> result -> Admin alert consistency.
-- Re-run the Check-in edit path after deploy: reopen today's saved check-in, verify answers/follow-up fields preload, open details, and confirm tiny goal/no crash.
-- Confirm the Admin mother detail displays the same Check-in values, EPDS score/Q10 state, event time, and Help path produced by the Mother App.
-- Re-open the fresh mother in Admin after deploy and verify normalized profile output: no raw `Unknown`, Thai journey stage matches postpartum day, and onboarding appears in timeline before the first check-in.
-- Add worklist owner assignment, SLA/overdue state, and next-follow-up filtering after the tracer check passes.
-- Replace client-side `admin/admin` auth with real staff authentication/RBAC and reviewed Firestore rules before using any real patient data.
-- Repair the Admin JS typecheck configuration/component typings, add route-level code splitting, and add responsive sidebar/table behavior after workflow validation.
+1. Both Vercel production links now redirect to the working Firebase same-origin app; WebKit, desktop Chrome, and Android Chrome emulation reach Google Accounts without OAuth errors. Pending: credentialed physical Safari/PWA login, then verify Check-In updates both directions within 2-5 seconds, offline/reconnect merge, account isolation, and logout/login. The former Check-in -> Admin resolve/retrigger flow was removed in the B2C cutover. Register both Vercel callbacks later only if the Vercel hostname must remain visible.
+2. Done: deployed updated Mother PWA; stable production manifest, icons, and service worker return HTTP 200 and `skipWaiting` is present.
+2. Done: approved and implemented the Care Journey 1807 contract with 9 phases, Day 8/22/181 EPDS checkpoints, max-2 Problem Tags, and raw-only worry persistence.
+3. Done: full Thai/English Care Journey with matching four-section details, current-first native details, global Help, permanent 1323 footer, accordion auto-scroll, focused tests, 390px/desktop Playwright QA, and Mother Hosting deployment.
+4. Verify Mother and Admin show identical score values, event time, trigger reason, case source, and resolved state from live Firestore.
+5. Obsolete after the B2C cutover: pilot-hospital callback integration, hospital alert SLA, and hospital payload format. Keep `1323` as an emergency path.
+6. Demo security deployed: Google Auth allowlist plus owner-only Firestore access. Before real use, replace the single email allowlist with custom claims/RBAC.
+7. Done in code: owner-scoped realtime Check-In hydration with local offline merge. Pending: complete the two-device tracer, then replace browser snapshots with encrypted native storage before iOS/Android release.
+8. Repair Admin JavaScript typecheck and split the large Mother/Admin production bundles after workflow validation.
+9. Decide whether repo-local agent/index artifacts should be committed or ignored.
+10. Deferred: upgrade Firebase `afterbloom-18d15` to Blaze, generate/import a Web Push VAPID pair, and set `VITE_FIREBASE_VAPID_KEY` in local/Vercel environments.
+11. Deferred: deploy Functions, enable the hidden Push control, then verify foreground/background/closed delivery on Android Chrome and an iOS 16.4+ Home Screen install. Mother PWA itself is deployed.
+12. Deployed the restored tab backgrounds, transparent web logo, and white-background PWA icons; visually verify all four tabs and installed-app metadata on production.
+13. Review `docs/Mood_Check_In_1807_UPDATE_LIST.md` with the Clinical Advisor and choose one approved source before changing the Mood contract.
+14. Done in preview: source-only CareCircle flow from Home and I Need Help, mock caregiver/therapist data, four caregiver filters, detail, simple appointment request, and confirmation. No separate Therapy nav, backend, or real booking workflow.
+15. Done locally: restored `headroom-ai` 0.30.0 importability after pip rollback leftovers broke `headroom proxy`; optional next step is `headroom wrap codex` if Codex should route through Headroom.
+16. Done locally: Extra/Immediate Check-in Result actions open the existing Care Circle mock; I Need Help → Therapist uses the same TherapyTab surface.
+17. Done locally: Admin active routes are read-only Dashboard, Mother List, and Mother Detail; B2B routes, controls, case-note reads, mutation tools, and staff Firestore writes are blocked. Legacy source remains unreferenced.
+18. Done: root tests 31/31, root/Admin lint and builds, Firestore rules review, Mother Care Journey Playwright at 390px/1280px, Admin retired-route smoke, and Firebase Hosting/Rules deployment all pass.
+19. Done locally: added `docs/DEMO_PITCH.md` and marked Google Doc t.0 legacy, t.95 timing-pending, and t.p2 mock-aligned in the source-of-truth review.
+20. Done: translated active Thai demo copy/provider data and deployed Mother Hosting plus Firestore rules. Next: rehearse the seeded 5–7 minute demo flow against the live URL.
+21. Done: finished active Thai/English Care Journey label wiring (`Day`/`Week`/`Month`, `Sources`, progress aria-label, Home date), removed the pending-translation placeholder, added matching full English detail for all 9 phases, added regression coverage, reran checks, and redeployed. Next: rehearse the demo.
+22. Done: split the full Care Journey into its own bottom-nav tab with a shared sage Hero, kept Home as a compact summary, moved profile/settings ownership to Profile, removed rendered Sources disclosures, normalized the nav label to `EPDS`, and deployed Firebase Hosting. Root/Admin checks and 390px/1280px live Playwright QA pass. Next: rehearse the demo.
+23. Done: made Mood Check-In Result support levels prominent as localized color-coded labels and enlarged the support message for faster reading. Root tests 31/31, lint, and build pass.
+24. Done: deployed the current Mother workspace to Firebase Hosting `afterbloom-18d15`; live app, manifest, and CheckInFlow chunk returned HTTP 200 and the homepage referenced the current build hash.

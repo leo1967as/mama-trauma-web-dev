@@ -3,12 +3,27 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "firebase-messaging-sw.js",
+      registerType: "autoUpdate",
+      injectRegister: false,
+      manifest: false,
+      includeAssets: ["fonts/*.woff2", "icons/*.png"],
+      injectManifest: {
+        globIgnores: ["**/firebase-messaging-sw.js"],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

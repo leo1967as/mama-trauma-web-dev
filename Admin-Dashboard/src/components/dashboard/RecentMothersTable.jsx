@@ -9,10 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Eye, AlertCircle } from 'lucide-react';
+import { Search, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMothers } from '@/hooks/useFirestoreData';
-import RiskBadge from '@/components/shared/RiskBadge';
+import SupportBadge from '@/components/shared/SupportBadge';
 import TrendIndicator from '@/components/shared/TrendIndicator';
 import { formatDateTime } from '@/lib/dateUtils';
 
@@ -20,20 +20,20 @@ export default function RecentMothersTable() {
   const navigate = useNavigate();
   const { mothers, loading } = useMothers();
   const [search, setSearch] = useState('');
-  const [riskFilter, setRiskFilter] = useState('all');
+  const [supportFilter, setSupportFilter] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
 
   const filtered = mothers.filter((m) => {
     const matchSearch = !search || [m.name, m.hn, m.phone].some((value) => String(value || '').includes(search));
-    const matchRisk = riskFilter === 'all' || m.riskLevel === riskFilter;
+    const matchSupport = supportFilter === 'all' || m.supportLevel === supportFilter;
     const matchStage = stageFilter === 'all' || m.postpartumStage === stageFilter;
-    return matchSearch && matchRisk && matchStage;
+    return matchSearch && matchSupport && matchStage;
   });
 
-  // Sort: high risk first, then attention, then others
+  // Sort: immediate first, then extra, then gentle, then steady, then inactive
   const sorted = [...filtered].sort((a, b) => {
-    const order = { high: 0, attention: 1, unassessed: 2, low: 3, inactive: 4 };
-    return (order[a.riskLevel] ?? 4) - (order[b.riskLevel] ?? 4);
+    const order = { immediate: 0, extra: 1, unassessed: 2, gentle: 3, steady: 4, inactive: 5 };
+    return (order[a.supportLevel] ?? 5) - (order[b.supportLevel] ?? 5);
   });
 
   const stages = [...new Set(mothers.map((m) => m.postpartumStage))];
@@ -75,17 +75,18 @@ export default function RecentMothersTable() {
               className="pl-9 h-9 text-sm"
             />
           </div>
-          <Select value={riskFilter} onValueChange={setRiskFilter}>
+          <Select value={supportFilter} onValueChange={setSupportFilter}>
             <SelectTrigger className="w-[160px] h-9 text-sm">
               <SelectValue placeholder="ระดับการดูแล" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">ทุกระดับ</SelectItem>
               <SelectItem value="unassessed">ยังไม่ประเมิน</SelectItem>
-              <SelectItem value="high">เร่งด่วน</SelectItem>
-              <SelectItem value="attention">ต้องการความใส่ใจ</SelectItem>
-              <SelectItem value="low">ดูแลน้อย</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="immediate">เร่งด่วน</SelectItem>
+              <SelectItem value="extra">ต้องการความใส่ใจเพิ่ม</SelectItem>
+              <SelectItem value="gentle">ดูแลเบาๆ</SelectItem>
+              <SelectItem value="steady">มั่นคงดี</SelectItem>
+              <SelectItem value="inactive">ไม่ใช้งาน</SelectItem>
             </SelectContent>
           </Select>
           <Select value={stageFilter} onValueChange={setStageFilter}>
@@ -112,7 +113,6 @@ export default function RecentMothersTable() {
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">เช็คอินล่าสุด</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">ระดับการดูแล</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">แนวโน้ม 7 วัน</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">หมายเหตุ</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground"></th>
               </tr>
             </thead>
@@ -135,18 +135,10 @@ export default function RecentMothersTable() {
                     {formatDateTime(m.lastCheckIn)}
                   </td>
                   <td className="px-4 py-3">
-                    <RiskBadge level={m.riskLevel} />
+                    <SupportBadge level={m.supportLevel} />
                   </td>
                   <td className="px-4 py-3">
                     <TrendIndicator trend={m.trend} />
-                  </td>
-                  <td className="px-4 py-3">
-                    {m.needsAttentionReason && (
-                      <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate max-w-[140px]">{m.needsAttentionReason}</span>
-                      </div>
-                    )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button

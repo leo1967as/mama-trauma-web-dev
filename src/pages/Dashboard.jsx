@@ -10,26 +10,35 @@ import HomeTab from "./tabs/HomeTab";
 // Lazy: heavy modals + secondary tabs -> out of initial chunk.
 const tabLoaders = {
   mood: () => import("./tabs/MoodTab"),
+  journey: () => import("./tabs/JourneyTab"),
   legacy: () => import("./tabs/LegacyTab"),
   therapy: () => import("./tabs/TherapyTab"),
+  epds: () => import("./tabs/EpdsTab"),
+  profile: () => import("./tabs/ProfileTab"),
   careplans: () => import("./tabs/CarePlansTab"),
   circle: () => import("./tabs/CircleTab"),
 };
 
 const MoodTab = lazy(tabLoaders.mood);
+const JourneyTab = lazy(tabLoaders.journey);
 const CheckInFlow = lazy(() => import("../components/afterbloom/CheckInFlow"));
 const EpdsFlow = lazy(() => import("../components/afterbloom/EpdsFlow"));
 const SafetySection = lazy(() => import("../components/afterbloom/SafetySection"));
 const LegacyTab = lazy(tabLoaders.legacy);
 const TherapyTab = lazy(tabLoaders.therapy);
+const EpdsTab = lazy(tabLoaders.epds);
+const ProfileTab = lazy(tabLoaders.profile);
 const CircleTab = lazy(tabLoaders.circle);
 const CarePlansTab = lazy(tabLoaders.careplans);
 
 const tabComponents = {
   home: HomeTab,
   mood: MoodTab,
+  journey: JourneyTab,
   legacy: LegacyTab,
   therapy: TherapyTab,
+  epds: EpdsTab,
+  profile: ProfileTab,
   careplans: CarePlansTab,
   circle: CircleTab,
 };
@@ -38,12 +47,14 @@ const SECRET = "ADMIN";
 const TAP_TARGET = 5;
 const TAP_WINDOW_MS = 2000;
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("home");
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [epdsOpen, setEpdsOpen] = useState(false);
   const [epdsTrigger, setEpdsTrigger] = useState("manual");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpPath, setHelpPath] = useState(null);
+  const [therapyCategory, setTherapyCategory] = useState("caregiver");
   const [legacyUnlocked, setLegacyUnlocked] = useState(false);
   const [toast, setToast] = useState(null);
   const bufferRef = useRef("");
@@ -59,14 +70,16 @@ export default function Dashboard() {
   const navVisible = !checkInOpen && !epdsOpen && !helpOpen;
 
   // Spec: I Need Help is reachable from every state and each access is logged.
-  const openHelp = (source) => {
+  const openHelp = (source, path = null) => {
     helpReturnFocusRef.current = typeof document !== "undefined" ? document.activeElement : null;
     logSafetyAccess({ source: source || activeTab });
+    setHelpPath(path);
     setHelpOpen(true);
   };
 
   const closeHelp = () => {
     setHelpOpen(false);
+    setHelpPath(null);
     window.requestAnimationFrame(() => {
       helpReturnFocusRef.current?.focus?.();
       helpReturnFocusRef.current = null;
@@ -86,6 +99,12 @@ export default function Dashboard() {
       return;
     }
     loadTab().finally(() => setActiveTab(nextTab));
+  };
+
+  const openCareCircle = (category = "caregiver") => {
+    setTherapyCategory(category);
+    closeHelp();
+    changeTab("therapy");
   };
 
   const triggerUnlock = () => {
@@ -214,7 +233,7 @@ export default function Dashboard() {
           </button>
         </div>
         <Suspense fallback={null}>
-          <SafetySection onLog={(action) => logSafetyAccess({ action })} />
+          <SafetySection initialPath={helpPath} onLog={(action) => logSafetyAccess({ action })} onNavigate={openCareCircle} />
         </Suspense>
       </motion.div>
     </motion.div>
@@ -235,11 +254,19 @@ export default function Dashboard() {
           >
             <Suspense fallback={null}>
               {activeTab === "home"
-                ? <HomeTab onNavigate={changeTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onSecretTap={handleSecretTap} />
+                ? <HomeTab onNavigate={(tab) => { if (tab === "therapy") setTherapyCategory("caregiver"); changeTab(tab); }} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("home")} onNeedHelp={() => openHelp("care_journey")} onSecretTap={handleSecretTap} />
                 : activeTab === "mood"
                   ? <MoodTab onNavigate={changeTab} onCheckIn={() => setCheckInOpen(true)} onEpds={() => openEpds("mood")} onNeedHelp={() => openHelp("mood")} />
+                  : activeTab === "journey"
+                    ? <JourneyTab onEpds={() => openEpds("journey")} onNeedHelp={() => openHelp("care_journey")} onNavigate={changeTab} />
                   : activeTab === "legacy"
                     ? <LegacyTab onNavigate={changeTab} />
+                  : activeTab === "therapy"
+                      ? <TherapyTab initialCategory={therapyCategory} />
+                    : activeTab === "epds"
+                      ? <EpdsTab onStart={() => openEpds("epds_tab")} onNeedHelp={() => openHelp("epds_tab")} />
+                    : activeTab === "profile"
+                      ? <ProfileTab onLogout={onLogout} />
                     : <TabContent />}
             </Suspense>
           </motion.div>
@@ -250,7 +277,6 @@ export default function Dashboard() {
         <BottomNav
           activeTab={activeTab}
           onTabChange={changeTab}
-          legacyUnlocked={legacyUnlocked}
           onHelp={() => openHelp("global")}
           showHelp
         />
@@ -259,7 +285,13 @@ export default function Dashboard() {
       <AnimatePresence>
         {checkInOpen && (
           <Suspense fallback={null} key="checkin">
-            <CheckInFlow onClose={() => setCheckInOpen(false)} onNeedHelp={() => openHelp("checkin")} />
+            <CheckInFlow
+              onClose={() => setCheckInOpen(false)}
+              onNeedHelp={(path) => openHelp("checkin", path)}
+              onNavigate={(tab = "home") => { setCheckInOpen(false); if (tab === "therapy") setTherapyCategory("caregiver"); changeTab(tab); }}
+              onEpds={() => { setCheckInOpen(false); openEpds("support_level_extra"); }}
+              onAcknowledgeSafe={() => { logSafetyAccess({ source: "checkin_result", action: "with_safe_person" }); setCheckInOpen(false); }}
+            />
           </Suspense>
         )}
         {epdsOpen && (

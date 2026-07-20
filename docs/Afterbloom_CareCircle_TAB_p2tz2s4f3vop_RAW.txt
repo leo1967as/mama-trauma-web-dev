@@ -1,0 +1,192 @@
+﻿Care Circle — Development Scope (MVP)
+Project: AfterBloom (B2C)
+Feature: Care Circle
+สำหรับ: พี่ลีโอ (Developer)
+________________
+
+
+ภาพรวมฟีเจอร์
+Care Circle คือ Marketplace ภายในแอป AfterBloom ที่ช่วยให้คุณแม่หลังคลอดสามารถค้นหาและส่งคำขอใช้บริการจากผู้ให้บริการที่เกี่ยวข้องกับการดูแลตนเองและลูกได้
+MVP รอบนี้มีจุดประสงค์เพื่อ Validate แนวคิดและ User Flow เท่านั้น จึงยังไม่จำเป็นต้องเชื่อมต่อ Backend จริง หรือระบบการจองจริง ทุกข้อมูลสามารถใช้ Mock Data ได้ทั้งหมด
+________________
+
+
+User Flow
+ผู้ใช้สามารถเข้า Care Circle ได้ 2 ทาง
+* Home → Care Circle
+* I Need Help → Therapist
+ทั้งสองทางจะเข้าหน้าเดียวกัน
+________________
+
+
+Screen 1 : Care Circle (Home)
+เป็นหน้าหลักสำหรับเลือกหมวดบริการ
+มี 2 หมวดหลัก
+1. Caregiver Support
+ผู้ช่วยดูแลคุณแม่และลูก
+เช่น
+* Nanny
+* Midwife
+* Lactation Consultant
+* Postnatal Massage
+________________
+
+
+2. Therapist Support
+นักจิตวิทยา/นักบำบัด สำหรับการพูดคุยและดูแลด้านสุขภาพจิต
+________________
+________________
+
+
+Screen 2 : Caregiver Support
+แสดงรายชื่อผู้ให้บริการในรูปแบบ Card
+แต่ละ Card ประกอบด้วย
+* รูปโปรไฟล์
+* ชื่อ
+* Tag ประเภทบริการ
+* คำอธิบายสั้น
+* Rating
+* จำนวนรีวิว
+* ราคา/ชั่วโมง
+* สถานะการว่าง เช่น "ว่างวันนี้"
+________________
+
+
+Filter
+ด้านบนมี Filter แบบ Chip
+* All
+* Nanny
+* Midwife
+* Lactation Consultant
+* Postnatal Massage
+เมื่อกด Filter ให้แสดงเฉพาะข้อมูลในหมวดนั้น
+ใช้การ Filter จาก Mock Data ได้เลย ไม่ต้องเรียก API
+________________
+
+
+Screen 3 : Therapist Support
+Layout เหมือนหน้า Caregiver
+แต่ไม่ต้องมี Filter
+แสดงรายชื่อนักจิตวิทยา/นักบำบัดทั้งหมด
+________________
+
+
+Screen 4 : Provider Detail
+เมื่อกดการ์ดผู้ให้บริการ
+แสดงข้อมูล
+* รูปใหญ่
+* ชื่อ
+* หมวด
+* ความเชี่ยวชาญ
+* ประสบการณ์
+* Bio
+* Rating
+* จำนวนรีวิว
+* ราคา
+* สถานะการว่าง
+ด้านล่างมีปุ่มหลัก
+นัดหมาย
+________________
+
+
+Screen 5 : Appointment Request (Mock)
+เมื่อกด "นัดหมาย"
+ไปยังหน้าส่งคำขอนัดหมาย
+ข้อมูลที่เลือก
+วันที่
+สามารถใช้ตัวเลือกง่าย ๆ เช่น
+* วันนี้
+* พรุ่งนี้
+* เลือกวันอื่น
+ไม่จำเป็นต้องทำ Calendar จริง
+________________
+
+
+ช่วงเวลา
+* เช้า
+* บ่าย
+* เย็น
+________________
+
+
+ปุ่ม
+ส่งคำขอนัดหมาย
+ไม่มี Logic จริง
+________________
+
+
+Screen 6 : Confirmation
+เมื่อกดส่งคำขอ
+แสดงหน้าสำเร็จ
+เช่น
+✅ ส่งคำขอนัดหมายเรียบร้อยแล้ว
+คำขอของคุณถูกส่งไปยัง [ชื่อผู้ให้บริการ]
+กรุณารอการตอบกลับ
+มีปุ่ม
+กลับหน้าหลัก
+________________
+
+
+Mock Data
+ใช้ Mock Data ทั้งหมด
+ข้อมูลของ Provider ควรมี
+* provider_id
+* name
+* profile_photo
+* category
+* sub_specialty
+* bio
+* experience
+* expertise
+* hourly_rate
+* rating
+* review_count
+* availability
+แนะนำ
+* Caregiver ประมาณ 12–15 คน
+* Therapist ประมาณ 5 คน
+ข้อมูลแต่ละคนควรแตกต่างกัน ไม่ใช้ Placeholder ซ้ำทั้งหมด
+________________
+
+
+สิ่งที่ ไม่ต้องทำใน MVP
+* Payment Gateway
+* ระบบชำระเงิน
+* ระบบจองคิวจริง
+* Calendar แบบ Real-time
+* Provider Login
+* Provider Dashboard
+* ระบบยืนยันใบประกอบวิชาชีพ
+* ระบบ Chat
+* Video Call
+* ระบบรีวิวจริง
+* Push Notification
+* Backend Integration
+ทุกอย่างสามารถใช้ Mock Data ได้ก่อน
+________________
+
+
+Acceptance Criteria
+ฟีเจอร์ถือว่าเสร็จเมื่อ
+* เข้า Care Circle ได้จาก Home และ I Need Help
+* เลือก Caregiver หรือ Therapist ได้
+* Filter Caregiver ได้ทั้ง 4 ประเภท
+* เปิดดูรายละเอียดผู้ให้บริการได้
+* กด "นัดหมาย" ได้
+* ส่งคำขอจนถึงหน้า Confirmation ได้
+* ใช้ Mock Data ทั้งหมด
+* ไม่มี Payment หรือ Backend จริง
+________________
+
+
+UI Direction
+ใช้ Design Language เดียวกับ AfterBloom
+* Pastel Pink Theme
+* ดูอบอุ่น สบายตา
+* White Background
+* Card ขอบโค้ง
+* ปุ่มทรง Pill
+* Soft Shadow
+* เน้นความเป็น Healthcare แต่ไม่ดูเป็นโรงพยาบาล
+* ให้ความรู้สึกปลอดภัย เป็นมิตร และเหมาะกับคุณแม่หลังคลอด
+

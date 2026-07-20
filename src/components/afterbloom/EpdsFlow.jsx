@@ -5,6 +5,9 @@ import { LAYERS, LAYOUT, EASE_OUT_QUINT } from "../../lib/theme.jsx";
 import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
 import { useLang } from "../../lib/i18n";
 
+import { ArrowLeft12Filled } from "@/components/ui/fluent-arrow-left-12-filled";
+import { Dismiss12Filled } from "@/components/ui/fluent-dismiss-12-filled";
+
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
 
@@ -21,7 +24,7 @@ const QUESTIONS = [
   { isSensitive: true },
 ];
 
-function Top({ step, onBack, onClose, onHelp, epdsTitle }) {
+function Top({ step, onBack, onClose, onHelp }) {
   const { t } = useLang();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px 8px" }}>
@@ -31,10 +34,10 @@ function Top({ step, onBack, onClose, onHelp, epdsTitle }) {
         aria-label={step === 1 ? "Close emotional check" : "Go back"}
         style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", border: "1px solid #EFE6DC", display: "flex", alignItems: "center", justifyContent: "center", color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F }}
       >
-        {step === 1 ? "✕" : "←"}
+        {step === 1 ? <Dismiss12Filled style={{ width: 16, height: 16 }} /> : <ArrowLeft12Filled style={{ width: 16, height: 16 }} />}
       </motion.button>
       <div style={{ flex: 1, padding: "0 12px", textAlign: "center" }}>
-        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#786A5C", marginBottom: 6 }}>{epdsTitle}</div>
+        <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#786A5C", marginBottom: 6 }}>{t.epds.title}</div>
         <div style={{ height: 5, background: "#EFE6DC", borderRadius: 18, overflow: "hidden" }}>
           <motion.div animate={{ width: `${(step / 10) * 100}%` }} transition={{ duration: 0.35 }} style={{ height: "100%", background: "linear-gradient(90deg,#C77E83,#DBA0A2)", borderRadius: 18 }} />
         </div>
@@ -44,14 +47,13 @@ function Top({ step, onBack, onClose, onHelp, epdsTitle }) {
   );
 }
 
-function Question({ questionIndex, answer, onSelect, onNext, onBack, onClose, onHelp }) {
+function Question({ questionIndex, answer, onSelect, onNext }) {
   const { t } = useLang();
   const q = { ...QUESTIONS[questionIndex], ...t.epds.questions[questionIndex] };
   const step = questionIndex + 1;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#FBF6F0", fontFamily: F }}>
-      <Top step={step} onBack={onBack} onClose={onClose} onHelp={onHelp} epdsTitle={t.epds.title} />
       <div style={{ flex: 1, padding: `22px 24px ${LAYOUT.flowScrollPadding}`, overflowY: "auto", overscrollBehavior: "contain" }}>
         <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#B8C9B0", marginBottom: 16 }}>
           {t.epds.questionOf.replace("{{n}}", step)}
@@ -268,6 +270,7 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
       aria-modal="true"
       style={{ position: "fixed", inset: 0, zIndex: LAYERS.flowOverlay, background: "#FBF6F0", display: "flex", flexDirection: "column", maxWidth: 448, margin: "0 auto", fontFamily: F }}
     >
+      {isQuestion && <Top step={step} onBack={handleBack} onClose={onClose} onHelp={onNeedHelp} />}
       <AnimatePresence mode="wait" custom={dir}>
         <motion.div key={step} custom={dir} variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           {isQuestion && (
@@ -276,9 +279,6 @@ export default function EpdsFlow({ onClose, onNeedHelp, trigger = "manual" }) {
               answer={answers[step - 1]}
               onSelect={(val) => setAnswer(step - 1, val)}
               onNext={handleNext}
-              onBack={handleBack}
-              onClose={onClose}
-              onHelp={onNeedHelp}
             />
           )}
           {step === "result" && <Result answers={answers} onClose={onClose} onNeedHelp={onNeedHelp} />}

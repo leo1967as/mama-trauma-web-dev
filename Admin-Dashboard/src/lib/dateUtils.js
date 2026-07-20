@@ -33,5 +33,8 @@ export function formatRelative(value, fallback = '—') {
 export function daysSince(value) {
   const d = toDate(value);
   if (!d) return null;
-  return Math.floor((Date.now() - d.getTime()) / 86400000);
+  const now = new Date();
+  const currentDay = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDay = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.floor((currentDay - startDay) / 86400000);
 }

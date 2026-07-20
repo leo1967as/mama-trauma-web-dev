@@ -10,13 +10,18 @@ import { LangProvider } from '@/lib/i18n';
 import Dashboard from './pages/Dashboard';
 import Onboarding from './components/afterbloom/Onboarding';
 import { isOnboarded } from './lib/user-data';
-import { getUid } from './lib/firebase';
-import { clearSupportEpisode, checkAndClearIfResolved } from './lib/support-episode';
+import { auth, getCurrentUid, getUid, observeAuthState, resolveRedirectSignIn, signOutCurrentUser } from './lib/firebase';
+import { flushPendingSync, hydrateProfile, subscribeToCheckins } from './lib/firebase-sync';
+import { mergeRemoteMoodHistory } from './lib/mood-data';
+import { activateUserSession, archiveAndClearActiveSession, getActiveSessionUid, saveActiveSessionSnapshot } from './lib/session-data';
+import { clearAuthIntent } from './lib/auth-flow';
 
-const AuthenticatedApp = () => {
+const AuthenticatedApp = ({ onLogout }) => {
+  useEffect(() => subscribeToCheckins(mergeRemoteMoodHistory), []);
+
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
+      <Route path="/" element={<Dashboard onLogout={onLogout} />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -68,39 +73,121 @@ function DeferredVercelTelemetry() {
 }
 
 function App() {
-  const [onboarded, setOnboarded] = useState(() => isOnboarded());
+  const [onboarded, setOnboarded] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [resumeOnboarding, setResumeOnboarding] = useState(false);
+  const [authErrorCode, setAuthErrorCode] = useState(null);
 
   useEffect(() => {
-    // Restore Google identity when available; guests receive a stable device ID.
-    void getUid().catch((error) => {
-      console.warn('Firebase identity initialization failed', error?.code || error?.message);
-    });
+    let cancelled = false;
+    let unsubscribe = () => {};
 
-    // Care-team resolution: deep-link fallback
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('resolve_support') === '1') {
-      clearSupportEpisode();
-      const clean = new URL(window.location.href);
-      clean.searchParams.delete('resolve_support');
-      window.history.replaceState({}, '', clean.toString());
-    } else {
-      // Primary path: poll own Firestore doc for Admin resolution
-      void checkAndClearIfResolved();
-    }
+    const clearVisibleSession = (uid) => {
+      try {
+        archiveAndClearActiveSession(uid);
+      } catch (error) {
+        console.warn('Local session cleanup failed', error?.message);
+      } finally {
+        queryClientInstance.clear();
+        setOnboarded(false);
+      }
+    };
+
+    const initializeSession = async () => {
+      let redirectUser = null;
+      try {
+        const result = await resolveRedirectSignIn();
+        redirectUser = result?.user || auth.currentUser;
+      } catch (error) {
+        setAuthErrorCode(error?.code || 'auth/unknown');
+      } finally {
+        clearAuthIntent();
+      }
+
+      try {
+        const uid = await getUid();
+        activateUserSession(uid);
+        await hydrateProfile();
+      } catch (error) {
+        console.warn('Firebase identity initialization failed', error?.code || error?.message);
+      }
+
+      if (cancelled) return;
+      const setupComplete = isOnboarded();
+      setOnboarded(setupComplete);
+      setResumeOnboarding(Boolean(redirectUser?.uid && !setupComplete));
+      setSessionReady(true);
+
+      unsubscribe = observeAuthState(async (user) => {
+        if (cancelled) return;
+
+        const activeUid = getActiveSessionUid();
+        if (user?.uid) {
+          if (activeUid !== user.uid) {
+            try {
+              activateUserSession(user.uid);
+              queryClientInstance.clear();
+              await hydrateProfile();
+              setOnboarded(isOnboarded());
+            } catch (error) {
+              console.warn('Account switch failed', error?.message);
+              clearVisibleSession(activeUid);
+            }
+          }
+          return;
+        }
+
+        if (activeUid && !activeUid.startsWith('device-')) {
+          clearVisibleSession(activeUid);
+        }
+      });
+
+    };
+
+    void initializeSession();
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
+
+  const handleLogout = async () => {
+    const uid = getActiveSessionUid() || getCurrentUid();
+    const synced = await flushPendingSync();
+    if (!synced) console.warn('Logout continued with Firestore writes still pending');
+    saveActiveSessionSnapshot(uid);
+    await signOutCurrentUser();
+    try {
+      archiveAndClearActiveSession(uid);
+    } catch (error) {
+      console.warn('Local session cleanup failed', error?.message);
+    } finally {
+      queryClientInstance.clear();
+      setOnboarded(false);
+    }
+  };
+
+  if (!sessionReady) {
+    return <div className="min-h-screen bg-transparent" aria-busy="true" />;
+  }
 
   return (
     <LangProvider>
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthenticatedApp key={onboarded ? "onboarded" : "onboarding"} />
+          {onboarded && <AuthenticatedApp key="onboarded" onLogout={handleLogout} />}
         </Router>
         <Toaster />
         <DeferredVercelTelemetry />
         <AnimatePresence>
           {!onboarded && (
-            <Onboarding key="onboarding" onComplete={() => setOnboarded(true)} />
+            <Onboarding
+              key="onboarding"
+              initialErrorCode={authErrorCode}
+              resumeOnboarding={resumeOnboarding}
+              onComplete={() => setOnboarded(true)}
+            />
           )}
         </AnimatePresence>
       </QueryClientProvider>

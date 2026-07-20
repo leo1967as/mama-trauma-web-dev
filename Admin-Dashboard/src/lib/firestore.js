@@ -3,18 +3,21 @@ import {
   doc,
   getDoc,
   getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   query,
-  where,
   orderBy,
-  limit,
   onSnapshot,
-  serverTimestamp,
-  writeBatch,
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+// ─── Support level (dual-read: old docs only have riskLevel) ──
+export const RISK_TO_SUPPORT_LEVEL = { low: 'steady', attention: 'extra', high: 'immediate', critical: 'immediate' };
+export function resolveSupportLevel(data) {
+  return data?.supportLevel ?? data?.support_level ?? RISK_TO_SUPPORT_LEVEL[data?.riskLevel ?? data?.risk_level] ?? 'steady';
+}
+
+const read = (data, camel, snake) => data?.[camel] ?? data?.[snake];
+const timestampMs = value => toDate(value)?.getTime() || 0;
+const sortByTime = (items, camel, snake) => items.sort((a, b) => timestampMs(read(b, camel, snake)) - timestampMs(read(a, camel, snake)));
 
 // ─── Collections ───────────────────────────────────────────────
 const MOTHERS = 'mothers';
@@ -22,18 +25,16 @@ const checkins = (motherId) => collection(db, MOTHERS, motherId, 'checkins');
 const epdsScores = (motherId) => collection(db, MOTHERS, motherId, 'epds_scores');
 const caseNotes = (motherId) => collection(db, MOTHERS, motherId, 'case_notes');
 const safetyEvents = (motherId) => collection(db, MOTHERS, motherId, 'safety_log');
+const READ_ONLY_ERROR = 'Admin Dashboard is read-only; mutations are disabled.';
+const readOnlyMutation = () => { throw new Error(READ_ONLY_ERROR); };
 
 // ─── Mothers ───────────────────────────────────────────────────
 
 export async function getMothers(filters = {}) {
-  let q = collection(db, MOTHERS);
-  const constraints = [];
-  if (filters.riskLevel) constraints.push(where('riskLevel', '==', filters.riskLevel));
-  if (filters.status)    constraints.push(where('status', '==', filters.status));
-  constraints.push(orderBy('updatedAt', 'desc'));
-  if (constraints.length) q = query(q, ...constraints);
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(collection(db, MOTHERS));
+  return sortByTime(snap.docs.map(d => ({ id: d.id, ...d.data() })), 'updatedAt', 'updated_at')
+    .filter(mother => !filters.supportLevel || resolveSupportLevel(mother) === filters.supportLevel)
+    .filter(mother => !filters.status || mother.status === filters.status);
 }
 
 export async function getMother(id) {
@@ -41,98 +42,46 @@ export async function getMother(id) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function updateMother(id, patch) {
-  await updateDoc(doc(db, MOTHERS, id), { ...patch, updatedAt: serverTimestamp() });
-}
+export async function updateMother() { readOnlyMutation(); }
 
 // Real-time listener — returns unsubscribe fn
 export function subscribeMothers(callback) {
-  const q = query(collection(db, MOTHERS), orderBy('updatedAt', 'desc'));
-  return onSnapshot(q, snap => {
-    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  return onSnapshot(collection(db, MOTHERS), snap => {
+    callback(sortByTime(snap.docs.map(d => ({ id: d.id, ...d.data() })), 'updatedAt', 'updated_at'));
   });
 }
 
 // ─── Case status ───────────────────────────────────────────────
 // status: 'none' | 'new' | 'reviewed' | 'contacted' | 'referred' | 'resolved'
 
-export async function updateCaseStatus(motherId, status, staffName, note = '') {
-  const patch = {
-    caseStatus: status,
-    caseSource: status === 'none' ? 'none' : 'manual',
-    caseStatusUpdatedAt: serverTimestamp(),
-    lastActionBy: staffName,
-    updatedAt: serverTimestamp(),
-  };
-  if (status === 'resolved') {
-    Object.assign(patch, {
-      supportRequest: false,
-      alertReason: null,
-      caseClosedAt: serverTimestamp(),
-    });
-  }
-  await updateDoc(doc(db, MOTHERS, motherId), patch);
-  await addDoc(caseNotes(motherId), {
-    action: status,
-    staffName,
-    note: note || `เปลี่ยนสถานะเคสเป็น ${status}`,
-    createdAt: serverTimestamp(),
-  });
-}
+export async function updateCaseStatus() { readOnlyMutation(); }
 
-export async function scheduleFollowUp(motherId, followUpAt, staffName) {
-  await updateDoc(doc(db, MOTHERS, motherId), {
-    nextFollowUp: followUpAt,
-    caseStatus: 'contacted',
-    caseSource: 'manual',
-    caseStatusUpdatedAt: serverTimestamp(),
-    lastActionBy: staffName,
-    updatedAt: serverTimestamp(),
-  });
-  await addDoc(caseNotes(motherId), {
-    action: 'follow_up_scheduled',
-    staffName,
-    note: `นัดติดตาม ${followUpAt}`,
-    createdAt: serverTimestamp(),
-  });
-}
+export async function scheduleFollowUp() { readOnlyMutation(); }
 
 // ─── Check-ins ─────────────────────────────────────────────────
 
 export async function getCheckins(motherId, limitCount = 14) {
-  const q = query(checkins(motherId), orderBy('dateKey', 'desc'), limit(limitCount));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(checkins(motherId));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => String(read(b, 'dateKey', 'date_key') || '').localeCompare(String(read(a, 'dateKey', 'date_key') || '')))
+    .slice(0, limitCount);
 }
 
-export async function addCheckin(motherId, data) {
-  const ref = await addDoc(checkins(motherId), { ...data, createdAt: serverTimestamp() });
-  // Update mother's risk + last check-in timestamp
-  await updateDoc(doc(db, MOTHERS, motherId), {
-    lastCheckIn: serverTimestamp(),
-    riskLevel: data.riskLevel ?? 'low',
-    updatedAt: serverTimestamp(),
-  });
-  return ref.id;
-}
+export async function addCheckin() { readOnlyMutation(); }
 
 // ─── EPDS Scores ───────────────────────────────────────────────
 
 export async function getEpdsScores(motherId) {
-  const q = query(epdsScores(motherId), orderBy('createdAt', 'desc'), limit(5));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(epdsScores(motherId));
+  return sortByTime(snap.docs.map(d => ({ id: d.id, ...d.data() })), 'createdAt', 'created_at').slice(0, 5);
 }
 
 export async function getSafetyEvents(motherId) {
-  const q = query(safetyEvents(motherId), orderBy('createdAt', 'desc'), limit(10));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(safetyEvents(motherId));
+  return sortByTime(snap.docs.map(d => ({ id: d.id, ...d.data() })), 'createdAt', 'created_at').slice(0, 10);
 }
 
-export async function addEpdsScore(motherId, data) {
-  return addDoc(epdsScores(motherId), { ...data, createdAt: serverTimestamp() });
-}
+export async function addEpdsScore() { readOnlyMutation(); }
 
 // ─── Case Notes ────────────────────────────────────────────────
 
@@ -149,14 +98,7 @@ export function subscribeCaseNotes(motherId, callback) {
   });
 }
 
-export async function addCaseNote(motherId, staffName, note) {
-  return addDoc(caseNotes(motherId), {
-    action: 'note',
-    staffName,
-    note,
-    createdAt: serverTimestamp(),
-  });
-}
+export async function addCaseNote() { readOnlyMutation(); }
 
 // ─── Dashboard stats (derived) ────────────────────────────────
 
@@ -174,9 +116,8 @@ export async function getDashboardStats() {
   const today = new Date().toDateString();
   return {
     totalMothers: all.length,
-    checkedIn: all.filter(m => toDate(m.lastCheckIn)?.toDateString() === today).length,
-    atRisk: all.filter(m => m.riskLevel === 'attention').length,
-    highRisk: all.filter(m => m.riskLevel === 'high' || m.riskLevel === 'critical').length,
-    needHelp: all.filter(m => m.supportRequest === true).length,
+    checkedIn: all.filter(m => toDate(read(m, 'lastCheckIn', 'last_check_in'))?.toDateString() === today).length,
+    atRisk: all.filter(m => resolveSupportLevel(m) === 'extra').length,
+    highRisk: all.filter(m => resolveSupportLevel(m) === 'immediate').length,
   };
 }

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { getMoodEntryByDateKey, getMoodSupportSummary, getTodaysMoodEntry, upsertMoodEntry, saveCheckinDraft, getCheckinDraft, clearCheckinDraft, isSupportNeedTriggered } from "../../lib/mood-data";
+import { CANONICAL_PROBLEM_TAGS, getMoodEntryByDateKey, getMoodSupportSummary, getTodaysMoodEntry, upsertMoodEntry, saveCheckinDraft, getCheckinDraft, clearCheckinDraft, isPhase2Triggered } from "../../lib/mood-data";
 import { getSuggestedGoals, setDailyGoal } from "../../lib/goals-data";
-import { recordSupportAnswer } from "../../lib/support-episode";
-import { LAYERS, LAYOUT, EASE_OUT_QUINT } from "../../lib/theme.jsx";
+import { LAYERS, LAYOUT, EASE_OUT_QUINT, MoodFace } from "../../lib/theme.jsx";
 import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
 import { useLang } from "../../lib/i18n";
+
+import { ArrowLeft12Filled } from "@/components/ui/fluent-arrow-left-12-filled";
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif";
 const S = "'Newsreader', serif";
@@ -30,14 +31,9 @@ const CORE_QUESTIONS_BASE = [
     key: "worryScore",
     step: 4,
     total: 4,
+    reverse: true, // option 1 ("none") is the calm/positive end, option 5 ("overwhelmed") the heavy end
   },
 ];
-
-function getComposite(values) {
-  const scored = [values.moodScore, values.sleepScore, values.energyScore, 6 - values.worryScore].filter((value) => Number.isFinite(value));
-  if (!scored.length) return null;
-  return scored.reduce((sum, value) => sum + value, 0) / scored.length;
-}
 
 function Progress({ step, total }) {
   return (
@@ -64,7 +60,7 @@ function Header({ step, total, onBack, onHelp, showBack = true, title, helpLabel
           aria-label="Go back"
           style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", border: "1px solid #EFE6DC", display: "flex", alignItems: "center", justifyContent: "center", color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F }}
         >
-          ←
+          <ArrowLeft12Filled style={{ width: 16, height: 16 }} />
         </motion.button>
       ) : (
         <div style={{ width: 44 }} />
@@ -91,6 +87,8 @@ function Header({ step, total, onBack, onHelp, showBack = true, title, helpLabel
    Keyed by step in the parent so it replays per question, never on each answer tap. */
 function QuestionBody({ question, value, onSelect, selectedStr }) {
   const labels = Array.isArray(question?.labels) ? question.labels : [];
+  const descriptions = Array.isArray(question?.descriptions) ? question.descriptions : [];
+  const reverse = Boolean(question?.reverse);
   const selectedLabel = value ? labels[value - 1] : null;
   const ease = [0.22, 1, 0.36, 1];
 
@@ -128,6 +126,8 @@ function QuestionBody({ question, value, onSelect, selectedStr }) {
         {labels.map((label, idx) => {
           const optionValue = idx + 1;
           const on = value === optionValue;
+          const level = reverse ? labels.length - idx : idx + 1;
+          const desc = descriptions[idx];
           return (
             <motion.button
               key={label}
@@ -136,28 +136,30 @@ function QuestionBody({ question, value, onSelect, selectedStr }) {
               transition={{ type: "spring", stiffness: 420, damping: 22 }}
               style={{
                 display: "flex", alignItems: "center", gap: 14,
-                padding: "16px 18px",
+                padding: "13px 16px",
                 background: on ? "#FBEDEC" : "#fff",
                 border: `1.5px solid ${on ? "#C77E83" : "#EFE6DC"}`,
-                borderRadius: 12, cursor: "pointer", textAlign: "left",
+                borderRadius: 14, cursor: "pointer", textAlign: "left",
                 fontFamily: F, width: "100%",
                 boxShadow: on ? "0 4px 14px rgba(199,126,131,.14)" : "0 2px 6px rgba(80,56,42,.04)",
               }}
             >
-              <motion.div
-                animate={{ width: on ? 22 : 20, height: on ? 22 : 20, background: on ? "#C77E83" : "#fff", border: on ? "none" : "1.5px solid #D6CEC8" }}
-                transition={{ type: "spring", stiffness: 420, damping: 22 }}
-                style={{ borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                {on && (
-                  <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8">
-                    <path d="M5 13l4 4L19 7"/>
-                  </svg>
+              <MoodFace level={level} selected={on} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: on ? 700 : 600, color: on ? "#AF636A" : "#3E342C", lineHeight: 1.25 }}>{label}</div>
+                {desc && (
+                  <div style={{ fontSize: 12.5, color: on ? "#B07A7E" : "#8C7F74", marginTop: 2, lineHeight: 1.35 }}>{desc}</div>
                 )}
-              </motion.div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: on ? 700 : 500, color: on ? "#AF636A" : "#3E342C" }}>{label}</div>
               </div>
+              <motion.div
+                animate={{ scale: on ? 1 : 0, opacity: on ? 1 : 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, background: "#C77E83", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <svg viewBox="0 0 24 24" width="11" fill="none" stroke="white" strokeWidth="2.8">
+                  <path d="M5 13l4 4L19 7"/>
+                </svg>
+              </motion.div>
             </motion.button>
           );
         })}
@@ -180,7 +182,7 @@ function FollowUpShell({ title, onBack, onHelp, children, footer }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 24px 8px", gap: 8 }}>
         <motion.button onClick={onBack} whileTap={{ scale: 0.9 }} aria-label="Go back"
           style={{ width: 44, height: 44, borderRadius: "50%", background: "#fff", border: "1px solid #EFE6DC", display: "flex", alignItems: "center", justifyContent: "center", color: "#6C5F56", cursor: "pointer", fontSize: 16, fontWeight: 700, fontFamily: F }}>
-          ←
+          <ArrowLeft12Filled style={{ width: 16, height: 16 }} />
         </motion.button>
         <div style={{ flex: 1, minWidth: 0, textAlign: "center", fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#786A5C" }}>{title}</div>
         <button onClick={onHelp} style={{ width: 44, height: 44, borderRadius: "50%", background: "#F6E2E1", border: 0, color: "#9A4C53", fontSize: 11, fontWeight: 800, cursor: "pointer", lineHeight: 1, padding: 0 }}>{t.checkin.help}</button>
@@ -208,10 +210,9 @@ function ContinueBtn({ onClick, disabled, label }) {
 }
 
 /* 3.5 Problem Tag — pick up to 2 + optional "Something else" text */
-function ProblemTagScreen({ selected, setSelected, otherText, setOtherText, onBack, onContinue, onHelp, problemTags, continueLabel = "Continue", tagScreenStrings, headerTitle = "Follow-up · 1 of 3" }) {
+function ProblemTagScreen({ selected, setSelected, otherText, setOtherText, onBack, onContinue, onHelp, problemTags, lang, continueLabel = "Continue", tagScreenStrings, headerTitle = "Follow-up · 1 of 3" }) {
   const toggle = (tag) => setSelected((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : (prev.length >= 2 ? prev : [...prev, tag]));
-  const somethingElseLabel = problemTags[problemTags.length - 1]; // "Something else" is the last item
-  const showOther = selected.includes(somethingElseLabel);
+  const showOther = selected.includes("other");
   return (
     <FollowUpShell title={headerTitle} onBack={onBack} onHelp={onHelp}
       footer={<ContinueBtn onClick={onContinue} disabled={showOther && !otherText.trim()} label={continueLabel} />}>
@@ -219,11 +220,11 @@ function ProblemTagScreen({ selected, setSelected, otherText, setOtherText, onBa
       <FollowSub>{tagScreenStrings?.subtitle ?? ""}</FollowSub>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
         {problemTags.map((tag) => {
-          const on = selected.includes(tag);
+          const on = selected.includes(tag.id);
           return (
-            <button key={tag} onClick={() => toggle(tag)}
+            <button key={tag.id} onClick={() => toggle(tag.id)}
               style={{ border: `1px solid ${on ? "#C77E83" : "#E6DBCF"}`, background: on ? "#FBEDEC" : "#fff", color: on ? "#AF636A" : "#6C5F56", fontFamily: F, fontSize: 13, fontWeight: 700, padding: "11px 15px", borderRadius: 18, cursor: "pointer" }}>
-              {tag}
+              {lang === "en" ? tag.en : tag.th}
             </button>
           );
         })}
@@ -282,24 +283,6 @@ function BabyConnectionScreen({ value, setValue, onBack, onContinue, onHelp, bab
 }
 
 /* 3.9 Support Need — pattern-triggered only; mother answers Yes/No herself */
-function SupportNeedScreen({ onAnswer, onBack, onHelp, supportNeedStrings, headerTitle = "Reaching out" }) {
-  return (
-    <FollowUpShell title={headerTitle} onBack={onBack} onHelp={onHelp} footer={null}>
-      <FollowH>{supportNeedStrings?.title ?? ""}</FollowH>
-      <FollowSub>{supportNeedStrings?.subtitle ?? ""}</FollowSub>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-        <motion.button onClick={() => onAnswer(true)} whileTap={{ scale: 0.97 }}
-          style={{ padding: 18, borderRadius: 12, background: "#C77E83", color: "#fff", fontWeight: 700, fontSize: 15, border: 0, boxShadow: "0 12px 22px rgba(175,99,106,.28)", cursor: "pointer", fontFamily: F }}>
-          {supportNeedStrings?.yes ?? ""}
-        </motion.button>
-        <motion.button onClick={() => onAnswer(false)} whileTap={{ scale: 0.97 }}
-          style={{ padding: 17, borderRadius: 12, background: "#fff", color: "#6C5F56", fontWeight: 700, fontSize: 14, border: "1px solid #E6DBCF", cursor: "pointer", fontFamily: F }}>
-          {supportNeedStrings?.no ?? ""}
-        </motion.button>
-      </div>
-    </FollowUpShell>
-  );
-}
 
 /* Phase 8 — offer one tiny goal after the result; selectable + skippable */
 function TinyGoalSection({ level, goalStrings }) {
@@ -311,7 +294,7 @@ function TinyGoalSection({ level, goalStrings }) {
     noPressure: "",
     skipMsg: "",
   };
-  const [options] = useState(() => getSuggestedGoals(level, 3));
+  const options = Array.isArray(strings.options) ? strings.options : getSuggestedGoals(level);
   const [chosen, setChosen] = useState(null);
   const [skipped, setSkipped] = useState(false);
 
@@ -351,12 +334,12 @@ function TinyGoalSection({ level, goalStrings }) {
   );
 }
 
-function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels, goalStrings }) {
+function ResultScreen({ entry, onClose, onNeedHelp, onNavigate, onEpds, onAcknowledgeSafe, resultStrings, summaryLabels, goalStrings }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const { t } = useLang();
   const support = getMoodSupportSummary([entry]);
-  const needsSupportNow = support.level === "immediate" || support.level === "extra" || entry.supportRequest;
+  const needsSupportNow = support.level === "immediate" || support.level === "extra";
   const badgeColor = {
     steady: { bg: "#E7EFE8", color: "#577A62" },
     gentle: { bg: "#F7EDD8", color: "#9A7322" },
@@ -370,10 +353,23 @@ function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels
     [summaryLabels.energy, entry.energyScore],
     [summaryLabels.worry, entry.worryScore],
   ];
+  const actions = Array.isArray(resultStrings.actions?.[support.level]) ? resultStrings.actions[support.level] : [];
+  const supportLabel = t.supportLevels[support.level]?.label ?? support.label;
+  const [supportLevelBefore, supportLevelAfter] = (resultStrings.supportLevelIs ?? "{{level}}").split("{{level}}");
+  const runAction = (key) => {
+    if (key === "journey") onNavigate?.("journey");
+    if (key === "tiny_goal") setDetailsOpen(true);
+    if (key === "breathing") onNeedHelp?.("safe");
+    if (key === "epds") onEpds?.();
+    if (key === "trusted") onNeedHelp?.("trusted");
+    if (key === "safe_person") onAcknowledgeSafe?.();
+    if (key === "care_circle") onNavigate?.("therapy");
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, overflow: "hidden", fontFamily: F }}>
-      <div style={{ background: "#F2E4DE", padding: "0 28px 44px", position: "relative", overflow: "hidden", flexShrink: 0 }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" }}>
+      <div style={{ background: "#F2E4DE", padding: "0 28px 48px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "relative", display: "inline-flex", margin: "24px 0 20px" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 9, fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#fff", background: "rgba(255,255,255,.25)", padding: "8px 16px", borderRadius: 18 }}>
             <svg viewBox="0 0 24 24" width="13" fill="none" stroke="currentColor" strokeWidth="2.8"><path d="M5 13l4 4L19 7"/></svg>
@@ -381,33 +377,41 @@ function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels
           </span>
         </div>
         <div style={{ fontFamily: S, fontWeight: 500, fontSize: 36, lineHeight: 1.05, letterSpacing: "-0.015em", color: "#4A2F2C", position: "relative", marginBottom: 12 }}>
-          {resultStrings.supportLevelTitle}
-          <em style={{ display: "block", fontStyle: "italic" }}>{resultStrings.supportLevelIs.replace('{{level}}', t.supportLevels[support.level]?.label ?? support.label)}</em>
+          <span style={{ display: "block" }}>{resultStrings.supportLevelTitle}</span>
+          <span style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 10, fontFamily: F, fontSize: 15, fontWeight: 700, lineHeight: 1.45, letterSpacing: 0, color: "#6B4641" }}>
+            {supportLevelBefore}
+            <strong style={{ display: "inline-block", padding: "7px 13px", borderRadius: 18, background: badgeColor.bg, color: badgeColor.color, fontSize: 19, fontWeight: 800, lineHeight: 1.15, letterSpacing: "-0.01em" }}>
+              {supportLabel}
+            </strong>
+            {supportLevelAfter}
+          </span>
         </div>
         <div style={{ position: "relative", fontSize: 13.5, fontWeight: 700, color: "rgba(74,47,44,.68)", lineHeight: 1.5, maxWidth: 280 }}>
           {resultStrings.numbersNote}
         </div>
+        <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 64, background: "linear-gradient(to bottom, transparent, #FBF6F0)", pointerEvents: "none" }} />
       </div>
 
-      <div style={{ flex: 1, minHeight: 0, background: "#FBF6F0", borderRadius: "18px 18px 0 0", marginTop: -16, padding: "24px 22px", overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", display: "flex", flexDirection: "column", gap: 13 }}>
+      <div style={{ background: "#FBF6F0", borderRadius: "18px 18px 0 0", marginTop: -16, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 13 }}>
         <div style={{ background: "#fff", border: "1px solid #EFE6DC", borderRadius: 14, padding: "18px 20px", boxShadow: "0 2px 8px rgba(80,56,42,.05)" }}>
           <span style={{ display: "inline-block", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 12px", borderRadius: 18, background: badgeColor.bg, color: badgeColor.color, marginBottom: 10 }}>
-            {t.supportLevels[support.level]?.label ?? support.label}
+            {supportLabel}
           </span>
-          <p style={{ fontSize: 13.5, color: "#6C5F56", lineHeight: 1.6, marginBottom: 10 }}>{t.supportLevels[support.level]?.message ?? support.message}</p>
+          <p style={{ fontFamily: S, fontSize: 18, fontWeight: 500, color: "#3E342C", lineHeight: 1.45, whiteSpace: "pre-line", marginBottom: 12 }}>{t.supportLevels[support.level]?.message ?? support.message}</p>
           <p style={{ fontSize: 12.5, color: "#3E342C", fontWeight: 700 }}>{(resultStrings.nextStep ?? "{{action}}").replace("{{action}}", t.supportLevels[support.level]?.action ?? support.action)}</p>
         </div>
 
-        {entry.supportRequest && (
-          <div style={{ background: "#FEECEC", border: "1px solid #F5C2C2", borderRadius: 14, padding: "18px 20px" }}>
-            <div style={{ fontSize: 12.5, fontWeight: 800, color: "#B91C1C", marginBottom: 8 }}>
-              {resultStrings.supportRequestFlagged}
-            </div>
-            <p style={{ fontSize: 13, color: "#7F1D1D", lineHeight: 1.55 }}>
-              {resultStrings.supportRequestBody}
-            </p>
-          </div>
-        )}
+        <div style={{ display: "grid", gap: 9 }}>
+          {actions.map((action) => action.key === "emergency" ? (
+            <a key={action.key} href="tel:1323" style={{ minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "#B91C1C", color: "#fff", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>
+              {action.label}
+            </a>
+          ) : (
+            <button key={action.key} type="button" onClick={() => runAction(action.key)} style={{ minHeight: 44, padding: "11px 14px", borderRadius: 12, border: "1px solid #E6DBCF", background: action.key === "epds" ? "#C77E83" : "#fff", color: action.key === "epds" ? "#fff" : "#6C5F56", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: F }}>
+              {action.label}
+            </button>
+          ))}
+        </div>
 
         <button
           type="button"
@@ -451,8 +455,10 @@ function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels
           )}
         </AnimatePresence>
       </div>
+      </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, padding: `14px 22px ${LAYOUT.flowFooterPadding}`, background: "#FBF6F0" }}>
+      <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, padding: `14px 22px ${LAYOUT.flowFooterPadding}`, background: "#FBF6F0" }}>
+        <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, top: -20, height: 20, background: "linear-gradient(to top, #FBF6F0, transparent)", pointerEvents: "none" }} />
         {needsSupportNow && (
           <button
             onClick={onNeedHelp}
@@ -480,10 +486,10 @@ function ResultScreen({ entry, onClose, onNeedHelp, resultStrings, summaryLabels
   );
 }
 
-export default function CheckInFlow({ onClose, onNeedHelp }) {
+export default function CheckInFlow({ onClose, onNeedHelp, onNavigate, onEpds, onAcknowledgeSafe }) {
   useBodyScrollLock();
   const reduceMotion = useReducedMotion();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   // Build questions with merged translations
   const questions = useMemo(() =>
@@ -502,7 +508,7 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
   );
 
   // Get translated data
-  const problemTagsList = useMemo(() => (Array.isArray(t.checkin?.problemTags?.tags) ? t.checkin.problemTags.tags : []), [t.checkin?.problemTags?.tags]);
+  const problemTagsList = CANONICAL_PROBLEM_TAGS;
   const babyConnectionLabels = useMemo(() => (Array.isArray(t.checkin?.babyConnection?.labels) ? t.checkin.babyConnection.labels : []), [t.checkin?.babyConnection?.labels]);
   const summaryLabels = useMemo(() => (t.checkin?.result?.summaryLabels ?? { mood: "Mood", sleep: "Sleep", energy: "Energy", worry: "Worry" }), [t.checkin?.result?.summaryLabels]);
   const resultStrings = useMemo(() => (t.checkin?.result ?? {}), [t.checkin?.result]);
@@ -523,7 +529,6 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
   const [problemOther, setProblemOther] = useState(() => savedEntry?.problemOtherText ?? "");
   const [journalEntry, setJournalEntry] = useState(() => savedEntry?.journalEntry ?? "");
   const [babyConnection, setBabyConnection] = useState(() => savedEntry?.babyConnectionScore ?? null);
-  const [supportRequest, setSupportRequest] = useState(() => savedEntry?.supportRequest === true ? true : false);
   const [resultEntry, setResultEntry] = useState(null);
 
   // Persist an in-progress draft (core steps only) so the day's check-in can resume after closing.
@@ -532,10 +537,7 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
   }, [step, answers]);
 
   const currentQuestion = useMemo(() => questions.find((item) => item.step === step), [step, questions]);
-  const composite = getComposite(answers);
-  // "any core indicator = 1" uses worry's adjusted value (6 - raw), since worry is reversed.
-  const shouldFollowUp = Boolean(composite !== null && (composite < 2.5 || [answers.moodScore, answers.sleepScore, answers.energyScore, 6 - answers.worryScore].includes(1)));
-  const otherProblemLabel = problemTagsList[problemTagsList.length - 1] ?? null;
+  const shouldFollowUp = isPhase2Triggered(answers);
 
   const localDateKey = () => {
     const d = new Date();
@@ -550,18 +552,16 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
     if (step < 4) { setStep(step + 1); return; }
     if (step === 4) {
       if (shouldFollowUp) { setStep(5); return; }
-      if (isSupportNeedTriggered(answers)) { setStep(8); return; }
       finish(); return;
     }
     if (step === 5) { setStep(6); return; }
     if (step === 6) { setStep(7); return; }
     if (step === 7) {
-      if (isSupportNeedTriggered(answers)) { setStep(8); return; }
       finish(); return;
     }
   };
 
-  const finish = (supportRequestValue = supportRequest) => {
+  const finish = () => {
     const followUp = shouldFollowUp;
     const patch = {
       moodScore: answers.moodScore,
@@ -569,9 +569,8 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
       energyScore: answers.energyScore,
       worryScore: answers.worryScore,
       followUpTriggered: followUp,
-      supportRequest: supportRequestValue === true,
       problemTags: followUp ? problemTags : [],
-      problemOtherText: followUp && otherProblemLabel && problemTags.includes(otherProblemLabel) ? problemOther.trim() : "",
+      problemOtherText: followUp && problemTags.includes("other") ? problemOther.trim() : "",
       journalEntry: followUp ? journalEntry.trim() : "",
       babyConnectionScore: followUp ? babyConnection : null,
       dateKey: localDateKey(),
@@ -584,16 +583,8 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
     setStep(9);
   };
 
-  const handleSupportAnswer = (value) => {
-    setSupportRequest(value);
-    const dateKey = localDateKey();
-    recordSupportAnswer(value, dateKey, `support_request:${dateKey}`);
-    finish(value);
-  };
-
   const handleBack = () => {
     if (step === 1 || step === 9) { onClose?.(); return; }
-    if (step === 8) { setStep(shouldFollowUp ? 7 : 4); return; }
     if (step === 5) { setStep(4); return; }
     setStep((prev) => Math.max(1, prev - 1));
   };
@@ -643,7 +634,7 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
 
         {step === 5 && (
           <motion.div key="ptag" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <ProblemTagScreen selected={problemTags} setSelected={setProblemTags} otherText={problemOther} setOtherText={setProblemOther} onBack={handleBack} onContinue={handleNext} onHelp={onNeedHelp} problemTags={problemTagsList} continueLabel={t.checkin.continue} tagScreenStrings={t.checkin.problemTags} headerTitle={followUpStrings.header1} />
+            <ProblemTagScreen selected={problemTags} setSelected={setProblemTags} otherText={problemOther} setOtherText={setProblemOther} onBack={handleBack} onContinue={handleNext} onHelp={onNeedHelp} problemTags={problemTagsList} lang={lang} continueLabel={t.checkin.continue} tagScreenStrings={t.checkin.problemTags} headerTitle={followUpStrings.header1} />
           </motion.div>
         )}
 
@@ -659,15 +650,9 @@ export default function CheckInFlow({ onClose, onNeedHelp }) {
           </motion.div>
         )}
 
-        {step === 8 && (
-          <motion.div key="support" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <SupportNeedScreen onAnswer={handleSupportAnswer} onBack={handleBack} onHelp={onNeedHelp} supportNeedStrings={t.checkin.supportNeed} headerTitle={followUpStrings.reachingOut} />
-          </motion.div>
-        )}
-
         {step === 9 && resultEntry && (
           <motion.div key="result" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <ResultScreen entry={resultEntry} onClose={onClose} onNeedHelp={onNeedHelp} resultStrings={resultStrings} summaryLabels={summaryLabels} goalStrings={goalStrings} />
+            <ResultScreen entry={resultEntry} onClose={onClose} onNeedHelp={onNeedHelp} onNavigate={onNavigate} onEpds={onEpds} onAcknowledgeSafe={onAcknowledgeSafe} resultStrings={resultStrings} summaryLabels={summaryLabels} goalStrings={goalStrings} />
           </motion.div>
         )}
       </AnimatePresence>

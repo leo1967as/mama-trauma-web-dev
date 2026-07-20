@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Phone, MapPin, Calendar, User, Baby } from 'lucide-react';
-import RiskBadge from '@/components/shared/RiskBadge';
+import SupportBadge from '@/components/shared/SupportBadge';
 import { getFlagLabel } from '@/lib/mockData';
 import { formatDate } from '@/lib/dateUtils';
 
@@ -29,14 +29,14 @@ export default function ProfileSummary({ mother }) {
           <InfoItem icon={MapPin} label="ที่อยู่" value={mother.display?.location || 'รอทีมดูแลกรอก'} />
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">ระดับการดูแล</span>
-            <RiskBadge level={mother.riskLevel} />
+            <SupportBadge level={mother.supportLevel} />
           </div>
         </div>
 
-        {/* Quick Flags */}
+        {/* สัญญาณที่ต้องติดตาม */}
         {Array.isArray(mother.flags) && mother.flags.length > 0 && (
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Quick Flags</p>
+            <p className="text-xs text-muted-foreground mb-2">สัญญาณที่ต้องติดตาม</p>
             <div className="flex flex-wrap gap-2">
               {mother.flags.map((flag) => (
                 <Badge

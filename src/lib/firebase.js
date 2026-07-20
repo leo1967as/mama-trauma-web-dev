@@ -1,10 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, getRedirectResult, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { firebaseAuthDomain } from './auth-flow';
+import { getActiveSessionUid } from './session-data';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDFYjRw5IyRHE5XS7EmMRo_jHhfKKNKGNY',
-  authDomain: 'afterbloom-18d15.firebaseapp.com',
+  authDomain: firebaseAuthDomain(),
   projectId: 'afterbloom-18d15',
   storageBucket: 'afterbloom-18d15.firebasestorage.app',
   messagingSenderId: '442426425962',
@@ -17,7 +19,10 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 const googleProvider = new GoogleAuthProvider();
-export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const signInWithGoogle = () => signInWithRedirect(auth, googleProvider);
+export const resolveRedirectSignIn = () => getRedirectResult(auth);
+export const signOutCurrentUser = () => signOut(auth);
+export const observeAuthState = (callback) => onAuthStateChanged(auth, callback);
 
 const DEVICE_ID_KEY = 'afterbloom_device_id';
 
@@ -28,6 +33,10 @@ function getDeviceId() {
   const deviceId = `device-${randomId}`;
   localStorage.setItem(DEVICE_ID_KEY, deviceId);
   return deviceId;
+}
+
+export function getCurrentUid() {
+  return auth.currentUser?.uid || getActiveSessionUid() || getDeviceId();
 }
 
 function waitForRestoredUser() {
@@ -52,5 +61,5 @@ function waitForRestoredUser() {
 export async function getUid() {
   const restoredUser = auth.currentUser || await waitForRestoredUser();
   if (restoredUser) return restoredUser.uid;
-  return getDeviceId();
+  return getCurrentUid();
 }

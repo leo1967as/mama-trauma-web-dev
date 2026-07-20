@@ -1,12 +1,14 @@
 import { Bell, Settings } from "lucide-react";
 import { HeartSvg } from "../../lib/faces";
 import { motion } from "framer-motion";
+import { getDisplayName } from "../../lib/user-data";
 
 export default function Header() {
   const shortDate = new Date().toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
   });
+  const name = getDisplayName();
 
   return (
     <div className="flex items-center justify-between px-1 pt-2 pb-4">
@@ -31,7 +33,7 @@ export default function Header() {
           transition={{ delay: 0.05 }}
           className="text-2xl font-bold text-foreground tracking-tight"
         >
-          Hey there <HeartSvg size={16} color="#C77E83" />
+          {name} <HeartSvg size={16} color="#C77E83" />
         </motion.h1>
       </div>
       <div className="flex items-center gap-2">

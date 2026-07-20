@@ -145,7 +145,6 @@
   100% { left: 130%;  opacity: 0; }
 }
 @keyframes ci-spin { to { transform: rotate(360deg); } }
-@keyframes ci-draw-check { to { stroke-dashoffset: 0; } }
 @keyframes ci-ripple { to { transform: scale(4.5); opacity: 0; } }
 
 .ci-btn {
@@ -185,21 +184,14 @@
   box-shadow: 0 4px 10px rgba(168,72,72,.25), 0 1px 4px rgba(168,72,72,.15), inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.1) !important;
   transition: transform .06s ease, box-shadow .06s ease;
 }
-.ci-btn.loading, .ci-btn.done-state { cursor: default; pointer-events: none; }
+.ci-btn.loading { cursor: default; pointer-events: none; }
 .ci-btn__content { display:flex;align-items:center;justify-content:center;gap:9px;position:relative;z-index:2;transition:opacity .18s,transform .18s; }
 .ci-btn__loading { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:9px;z-index:2;opacity:0;pointer-events:none;transition:opacity .2s; }
-.ci-btn__done    { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;z-index:2;opacity:0;pointer-events:none;transition:opacity .2s;font-size:13.5px;font-weight:600;color:#fff; }
 /* state transitions */
 .ci-btn.loading   .ci-btn__content { opacity:0; transform:scale(.88); }
 .ci-btn.loading   .ci-btn__loading { opacity:1; }
-.ci-btn.done-state .ci-btn__content { opacity:0; }
-.ci-btn.done-state .ci-btn__loading { opacity:0; }
-.ci-btn.done-state .ci-btn__done    { opacity:1; }
 /* spinner */
 .ci-spinner { width:17px;height:17px;border:2px solid rgba(255,255,255,.25);border-top-color:rgba(255,255,255,.9);border-radius:50%;animation:ci-spin .7s linear infinite;flex-shrink:0; }
-/* checkmark draw */
-.ci-checkmark { width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:20;stroke-dashoffset:20; }
-.ci-checkmark.draw { animation:ci-draw-check .35s ease forwards .05s; }
 /* ripple */
 .ci-ripple { position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);pointer-events:none;animation:ci-ripple .6s ease-out forwards;z-index:3; }
 
@@ -270,33 +262,6 @@
 .dawn-blob-3 { animation: blob-3 var(--blob-speed-3, 22s) ease-in-out infinite; }
 .dawn-blob-4 { animation: blob-4 var(--blob-speed-4, 42s) ease-in-out infinite; }
 
-/* ── Dawn breathing glow — single soft pulse, echoes the 4-7-8 rhythm ──────── */
-@keyframes dawn-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.45; }
-  50%      { transform: scale(1.18); opacity: 0.75; }
-}
-.dawn-glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  will-change: transform, opacity;
-  animation: dawn-breathe 7s ease-in-out infinite;
-}
-
-/* ── Dawn light sweep — soft diagonal band drifting like morning light ────── */
-@keyframes dawn-sweep {
-  0%   { transform: translate(-25%, -8%) rotate(8deg); }
-  100% { transform: translate(25%, 8%) rotate(8deg); }
-}
-.dawn-sweep {
-  position: absolute;
-  inset: -30% -50%;
-  pointer-events: none;
-  will-change: transform;
-  background: linear-gradient(75deg, transparent 38%, rgba(255,255,255,0.4) 50%, transparent 62%);
-  animation: dawn-sweep 22s ease-in-out infinite alternate;
-}
-
 .afterbloom-focus:focus-visible {
   outline: 3px solid rgba(175, 99, 106, 0.42);
   outline-offset: 3px;
@@ -349,16 +314,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dawn-blob,
-  .dawn-glow,
-  .dawn-sweep,
   .welcome-blob,
   .ci-btn::after,
   .ci-spinner,
   .ci-ripple,
-  .ci-checkmark.draw {
-    animation: none !important;
-  }
-
   .afterbloom-action {
     transition: none !important;
   }
@@ -390,4 +349,18 @@
   width: 18px; height: 18px; border-radius: 50%;
   background: #fff; border: 2px solid #C77E83;
   box-shadow: 0 1px 4px rgba(175,99,106,.25); cursor: pointer;
+}
+
+[aria-label="Caregiver filters"],
+[aria-label="ตัวกรองผู้ดูแล"] {
+  scrollbar-width: thin;
+}
+[aria-label="Caregiver filters"]::-webkit-scrollbar,
+[aria-label="ตัวกรองผู้ดูแล"]::-webkit-scrollbar {
+  height: 4px;
+}
+[aria-label="Caregiver filters"]::-webkit-scrollbar-thumb,
+[aria-label="ตัวกรองผู้ดูแล"]::-webkit-scrollbar-thumb {
+  background: #D6CEC8;
+  border-radius: 4px;
 }

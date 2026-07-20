@@ -1,18 +1,16 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { SlidersHorizontal } from "lucide-react";
 import { useLang } from "../../lib/i18n";
-import { syncProfile } from "../../lib/firebase-sync";
 
 const MoodTrendChart = lazy(() => import("../../components/afterbloom/MoodTrendChart"));
 import { getMoodHistory, getMoodSummary, getMoodSupportSummary, getMoodChartData, hasMoodChartData, subscribeToMoodHistory } from "../../lib/mood-data";
-import { getDisplayName, getDayLabel, consumeJustOnboarded, getOnboardingData, saveOnboarding, getPreferredCheckinTime, getCurrentStage, getHeaderMotion } from "../../lib/user-data";
+import { getDisplayName, getDayLabel, consumeJustOnboarded, getPreferredCheckinTime, getCurrentStage } from "../../lib/user-data";
 import { isEpdsDue, getDaysUntilNextEpds } from "../../lib/epds-data";
-import DatePicker from "../../components/afterbloom/DatePicker";
 import CareTimeline from "../../components/afterbloom/CareTimeline";
 import DailyGoal from "../../components/afterbloom/DailyGoal";
 import CheckInBtn from "../../components/afterbloom/CheckInBtn";
-import { FONT_BODY, FONT_SERIF, CardLabel } from "../../lib/theme.jsx";
+import { FONT_BODY, FONT_SERIF, CardLabel, MoodFace } from "../../lib/theme.jsx";
 
 function heroHeading(hasTodayCheckIn, todayMood, t) {
   if (!hasTodayCheckIn) return t.home.hero.noCheckin;
@@ -22,26 +20,10 @@ function heroHeading(hasTodayCheckIn, todayMood, t) {
   return t.home.hero.highMood;
 }
 
-const HEADER_MOTION_OPTIONS = [
-  { value: "blobs", label: "Two blooms", swatch: "radial-gradient(circle at 32% 32%, #D3979B, #E6B97B 70%)" },
-  { value: "glow", label: "Breathing glow", swatch: "radial-gradient(circle, #F6E2E1, #FBF6F0 70%)" },
-  { value: "sweep", label: "Light sweep", swatch: "linear-gradient(75deg, #FBF2EC 28%, #fff 50%, #FBF2EC 72%)" },
-];
-
-export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) {
+export default function HomeTab({ onNavigate, onCheckIn, onEpds, onNeedHelp, onSecretTap }) {
   const { lang, toggle, t } = useLang();
   const [moodEntries, setMoodEntries] = useState([]);
   const [justOnboarded] = useState(() => consumeJustOnboarded());
-  // settings panel
-  const [showSettings, setShowSettings] = useState(false);
-  const [settingsPreferredName, setSettingsPreferredName] = useState(() => getOnboardingData().preferred_name || getOnboardingData().mother_name || "");
-  const [settingsLegalFirstName, setSettingsLegalFirstName] = useState(() => getOnboardingData().legal_first_name || "");
-  const [settingsLegalLastName, setSettingsLegalLastName] = useState(() => getOnboardingData().legal_last_name || "");
-  const [settingsPhone, setSettingsPhone] = useState(() => getOnboardingData().phone || "");
-  const [settingsBirthDate, setSettingsBirthDate] = useState(() => getOnboardingData().baby_birth_date || "");
-  const [settingsSaved, setSettingsSaved] = useState(false);
-  const [settingsShowDate, setSettingsShowDate] = useState(false);
-  const [headerMotion, setHeaderMotion] = useState(() => getHeaderMotion());
 
   useEffect(() => {
     setMoodEntries(getMoodHistory());
@@ -52,6 +34,8 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
   const moodSummary = getMoodSummary(moodEntries);
   const todayMood = moodSummary.todayEntry?.moodScore ?? null;
   const supportSummary = getMoodSupportSummary(moodEntries);
+  // Heavy day → hide the mood-face snapshot; a wall of sad faces rubs in a bad day. [[adaptive-checkin-snapshot]]
+  const heavyDay = supportSummary.level === "extra" || supportSummary.level === "immediate";
   const trendData = getMoodChartData(moodEntries, 7);
   const showTrend = hasMoodChartData(trendData);
   const reminderCopy = t.home.checkinTimeCopy[getPreferredCheckinTime()] || null;
@@ -64,22 +48,14 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
       <div
         className="relative px-[22px] pb-8 overflow-hidden"
         style={{
-          background: "linear-gradient(180deg,#FBF2EC 0%,#FBF6F0 100%)",
+          background: "transparent",
         }}
       >
-        {/* ambient drift — chosen in Settings, kept subtle behind the content */}
-        {headerMotion === "blobs" && (
-          <>
-            <div aria-hidden="true" className="dawn-blob dawn-blob-2" style={{ top: -90, right: -60, width: 260, height: 260, background: "radial-gradient(circle, rgba(211,151,155,0.95), transparent 70%)", filter: "blur(75px)" }} />
-            <div aria-hidden="true" className="dawn-blob dawn-blob-1" style={{ top: 50, left: -80, width: 220, height: 220, background: "radial-gradient(circle, rgba(230,185,123,0.95), transparent 70%)", filter: "blur(75px)" }} />
-          </>
-        )}
-        {headerMotion === "glow" && (
-          <div aria-hidden="true" className="dawn-glow" style={{ top: -60, left: "50%", marginLeft: -170, width: 340, height: 340, background: "radial-gradient(circle, rgba(246,226,225,0.9), transparent 70%)", filter: "blur(70px)" }} />
-        )}
-        {headerMotion === "sweep" && (
-          <div aria-hidden="true" className="dawn-sweep" />
-        )}
+        {/* ambient drift — fixed to the Afterbloom default */}
+        <>
+          <div aria-hidden="true" className="dawn-blob dawn-blob-2" style={{ top: -90, right: -60, width: 260, height: 260, background: "radial-gradient(circle, rgba(211,151,155,0.95), transparent 70%)", filter: "blur(75px)" }} />
+          <div aria-hidden="true" className="dawn-blob dawn-blob-1" style={{ top: 50, left: -80, width: 220, height: 220, background: "radial-gradient(circle, rgba(230,185,123,0.95), transparent 70%)", filter: "blur(75px)" }} />
+        </>
 
         {/* dbar */}
         <div className="relative flex items-center justify-between pt-3.5">
@@ -88,7 +64,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
             style={{ color: "#8A4F4C" }}
             onClick={onSecretTap}
           >
-            {getDayLabel()}
+            {getDayLabel(lang)}
           </span>
           <div className="flex gap-2">
             <button
@@ -109,148 +85,16 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
               {lang.toUpperCase()}
             </button>
             <button
-              onClick={() => {
-                setShowSettings((s) => !s);
-                setSettingsShowDate(false);
-                setSettingsSaved(false);
-              }}
+              type="button"
+              onClick={() => onNavigate?.("profile")}
+              aria-label={t.nav.profile}
               className="w-11 h-11 rounded-full flex items-center justify-center"
-              style={{ background: showSettings ? "rgba(255,255,255,.7)" : "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
+              style={{ background: "rgba(255,255,255,.42)", border: "1px solid rgba(255,255,255,.6)", color: "#7A453F" }}
             >
               <SlidersHorizontal size={16} strokeWidth={1.9} />
             </button>
           </div>
         </div>
-
-        {/* settings panel */}
-        <AnimatePresence>
-          {showSettings && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 30 }}
-              className="overflow-hidden"
-            >
-              <div className="mt-3 rounded-xl flex flex-col gap-3" style={{ background: "rgba(255,255,255,.62)", backdropFilter: "blur(12px)", padding: "16px 16px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8A4F4C" }}>{t.home.settings.title}</div>
-
-                {/* profile fields */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 5 }}>{t.home.settings.preferredName}</div>
-                  <input
-                    type="text" placeholder={t.home.settings.preferredNamePlaceholder} maxLength={30}
-                    value={settingsPreferredName}
-                    onChange={e => { setSettingsPreferredName(e.target.value); setSettingsSaved(false); }}
-                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 8, color: "#3E342C", outline: "none" }}
-                  />
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 5 }}>{t.home.settings.legalFirstName}</div>
-                  <input
-                    type="text" placeholder={t.home.settings.legalFirstNamePlaceholder} maxLength={40}
-                    value={settingsLegalFirstName}
-                    onChange={e => { setSettingsLegalFirstName(e.target.value); setSettingsSaved(false); }}
-                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 8, color: "#3E342C", outline: "none" }}
-                  />
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 5 }}>{t.home.settings.legalLastName}</div>
-                  <input
-                    type="text" placeholder={t.home.settings.legalLastNamePlaceholder} maxLength={40}
-                    value={settingsLegalLastName}
-                    onChange={e => { setSettingsLegalLastName(e.target.value); setSettingsSaved(false); }}
-                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 8, color: "#3E342C", outline: "none" }}
-                  />
-                </div>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 5 }}>{t.home.settings.phone}</div>
-                  <input
-                    type="tel" placeholder={t.home.settings.phonePlaceholder} maxLength={20}
-                    value={settingsPhone}
-                    onChange={e => { setSettingsPhone(e.target.value); setSettingsSaved(false); }}
-                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 8, color: "#3E342C", outline: "none" }}
-                  />
-                </div>
-
-                {/* birth date field */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 5 }}>{t.home.settings.babyArrivalDate}</div>
-                  <button
-                    onClick={() => setSettingsShowDate(s => !s)}
-                    style={{ width: "100%", padding: "10px 12px", fontSize: 13.5, fontFamily: FONT_BODY, background: "rgba(255,255,255,.8)", border: "1px solid rgba(239,230,220,.8)", borderRadius: 8, color: settingsBirthDate ? "#3E342C" : "#786A5C", textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                  >
-                    <span>{settingsBirthDate ? new Date(settingsBirthDate + "T00:00:00").toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', { month: "long", day: "numeric", year: "numeric" }) : t.home.settings.notSet}</span>
-                    <span style={{ fontSize: 11, color: "#9A4C53", fontWeight: 700 }}>{settingsShowDate ? t.home.settings.close : t.home.settings.change}</span>
-                  </button>
-                  <AnimatePresence>
-                    {settingsShowDate && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden" style={{ marginTop: 8 }}>
-                        <DatePicker value={settingsBirthDate} onChange={v => { setSettingsBirthDate(v); setSettingsSaved(false); }} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* background motion */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7A453F", marginBottom: 8 }}>{t.home.settings.backgroundMotion}</div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {HEADER_MOTION_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          setHeaderMotion(opt.value);
-                          saveOnboarding({ header_motion: opt.value });
-                        }}
-                        aria-pressed={headerMotion === opt.value}
-                        className="afterbloom-focus"
-                        style={{
-                          flex: 1,
-                          display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                          padding: "10px 6px 9px",
-                          borderRadius: 10,
-                          border: headerMotion === opt.value ? "1.5px solid #C77E83" : "1px solid rgba(239,230,220,.8)",
-                          background: headerMotion === opt.value ? "rgba(247,226,225,.5)" : "rgba(255,255,255,.8)",
-                          cursor: "pointer",
-                          fontFamily: FONT_BODY,
-                        }}
-                      >
-                        <span aria-hidden="true" style={{ width: 26, height: 26, borderRadius: "50%", background: opt.swatch, border: "1px solid rgba(239,230,220,.8)" }} />
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7A453F", textAlign: "center" }}>{t.home.headerMotion[opt.value]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* save button */}
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  onClick={() => {
-                    const profile = {
-                      preferred_name: settingsPreferredName || "",
-                      mother_name: settingsPreferredName || "",
-                      legal_first_name: settingsLegalFirstName || "",
-                      legal_last_name: settingsLegalLastName || "",
-                      phone: settingsPhone || "",
-                      baby_birth_date: settingsBirthDate || null,
-                    };
-                    saveOnboarding(profile);
-                    syncProfile(profile);
-                    setSettingsSaved(true);
-                    setSettingsShowDate(false);
-                    setTimeout(() => { setSettingsSaved(false); setShowSettings(false); }, 1200);
-                  }}
-                  style={{ padding: "11px 0", borderRadius: 8, background: settingsSaved ? "#83A48B" : "#C77E83", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: FONT_BODY, border: 0, cursor: "pointer", transition: "background 0.2s" }}
-                >
-                  {settingsSaved ? t.home.settings.saved : t.home.settings.saveChanges}
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* hello */}
         <div className="relative mt-[26px]">
@@ -327,10 +171,42 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
               <p className="relative text-[13.5px] leading-[1.6] max-w-[90%]" style={{ color: "#6C5F56", marginBottom: 22 }}>
                 {moodSummary.hasTodayCheckIn ? t.home.normalCheckin.checkinDoneBody : t.home.normalCheckin.noCheckinBody}
               </p>
-              <CheckInBtn
-                label={moodSummary.hasTodayCheckIn ? t.home.normalCheckin.ctaEdit : t.home.normalCheckin.ctaComplete}
-                onCheckIn={onCheckIn}
-              />
+              {moodSummary.hasTodayCheckIn && !heavyDay ? (
+                <div className="relative">
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {[
+                      [moodSummary.todayEntry?.moodScore, t.checkin.result.summaryLabels.mood, false],
+                      [moodSummary.todayEntry?.sleepScore, t.checkin.result.summaryLabels.sleep, false],
+                      [moodSummary.todayEntry?.energyScore, t.checkin.result.summaryLabels.energy, false],
+                      [moodSummary.todayEntry?.worryScore, t.checkin.result.summaryLabels.worry, true],
+                    ].map(([score, label, reverse], i) => (
+                      <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "#FBF6F0", border: "1px solid #EFE6DC", borderRadius: 12, padding: "12px 4px 10px" }}>
+                        <MoodFace level={reverse ? 6 - (score ?? 3) : (score ?? 3)} size={34} />
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#786A5C" }}>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={onCheckIn}
+                    className="afterbloom-focus"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 14, background: "none", border: 0, padding: "4px 2px", cursor: "pointer", fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, color: "#AF636A" }}
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+                    {t.home.normalCheckin.ctaEdit}
+                  </button>
+                </div>
+              ) : moodSummary.hasTodayCheckIn ? (
+                <button
+                  onClick={onCheckIn}
+                  className="afterbloom-focus"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: 0, padding: "4px 2px", cursor: "pointer", fontFamily: FONT_BODY, fontSize: 13, fontWeight: 700, color: "#AF636A" }}
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+                  {t.home.normalCheckin.ctaEdit}
+                </button>
+              ) : (
+                <CheckInBtn label={t.home.normalCheckin.ctaComplete} onCheckIn={onCheckIn} />
+              )}
               {!moodSummary.hasTodayCheckIn && reminderCopy && (
                 <p className="relative text-[12px] mt-3 flex items-center gap-1.5" style={{ color: "#786A5C" }}>
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -347,10 +223,11 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
         </div>
 
         {/* ribbon */}
-        <CareTimeline />
+        <CareTimeline mode="summary" onNavigate={onNavigate} onEpds={onEpds} onNeedHelp={onNeedHelp} />
 
         {/* Support card */}
         <motion.button
+          onClick={() => onNavigate?.("therapy")}
           whileTap={{ scale: 0.98 }}
           transition={{ type: "spring", stiffness: 400, damping: 22 }}
           style={{
@@ -410,7 +287,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
           <span style={{ flex: 1 }}>
             <CardLabel style={{ marginBottom: 4 }}>{t.home.cards.emotionalCheck}</CardLabel>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: "#3E342C" }}>{isEpdsDue() ? t.home.cards.emotionalCheckDueTitle : t.home.cards.emotionalCheckDoneTitle}</span>
-            <span style={{ display: "block", fontSize: 12, color: "#786A5C", marginTop: 2 }}>{isEpdsDue() ? t.home.cards.emotionalCheckDueBody : t.home.cards.emotionalCheckDoneBody.replace('{{days}}', getDaysUntilNextEpds())}</span>
+            <span style={{ display: "block", fontSize: 12, color: "#786A5C", marginTop: 2 }}>{isEpdsDue() ? t.home.cards.emotionalCheckDueBody : (() => { const d = getDaysUntilNextEpds(); return d > 0 ? t.home.cards.emotionalCheckDoneBody.replace('{{days}}', d) : t.home.cards.emotionalCheckDoneBodyNoDays; })()}</span>
           </span>
           <svg viewBox="0 0 24 24" width="15" fill="none" stroke="#C8BEB8" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
         </motion.button>
@@ -423,6 +300,7 @@ export default function HomeTab({ onNavigate, onCheckIn, onEpds, onSecretTap }) 
         {/* vspace */}
         <div style={{ height: 20 }} />
       </div>
+
     </div>
   );
 }

@@ -51,3 +51,80 @@
 - Alternatives considered: Keep using `riskLevel=low` as the default fallback; add richer hospital fields immediately instead of clarifying state semantics first; hide empty cards until data exists.
 - Rationale: Product validation depends on operational clarity more than completeness; staff must be able to tell the difference between "no clinical signal yet", "mother has not entered this", and "hospital has not filled this in".
 - Revisit if: clinical advisors redefine the assessment lifecycle, or the hospital dashboard gains a separate staff-owned data-entry surface that changes which fields belong to mother vs. staff.
+
+## 2026-07-14 — Write snake_case and dual-read legacy check-in fields
+- Context: Mother App local records and older Firestore documents use camelCase, while the approved developer brief defines snake_case fields consumed by Admin.
+- Decision: Write new Firestore profile, check-in, EPDS, safety, and goal fields in snake_case; keep Mother and Admin readers compatible with both forms.
+- Alternatives considered: migrate every existing document immediately; keep writing camelCase and translate only in Admin.
+- Rationale: New data follows the product contract without breaking existing prototype records or requiring a risky bulk migration.
+- Revisit if: all legacy records are migrated and compatibility reads can be removed with tests.
+
+## 2026-07-14 — Isolate browser sessions per Firebase UID
+- Context: Logout previously had no real Firebase sign-out or local-data boundary, so another account could inherit Mother App state on the same browser.
+- Decision: Archive local Mother App data per UID, clear the active view on logout/account change, observe Firebase auth continuously, and pin each Firestore write to its invocation UID.
+- Alternatives considered: clear all data permanently; keep one shared local profile; implement full Firestore hydration now.
+- Rationale: Per-UID snapshots close the immediate cross-account privacy gap while preserving same-device continuity with a small patch.
+- Revisit if: native packaging begins, cross-device continuity is required, or real patient data is used.
+
+## 2026-07-15 — Hydrate returning profile setup from the signed-in UID
+- Context: Logout clears the active browser view for privacy, so a returning account without a local snapshot could be sent through PDPA and setup again even though its profile was already saved in Firestore.
+- Decision: Restore the per-UID local snapshot first; when setup is absent or incomplete, read only `mothers/{auth.currentUser.uid}` and merge the profile into onboarding state before routing to Dashboard.
+- Alternatives considered: keep Firestore write-only; use one shared local profile; hydrate all history in the same change.
+- Rationale: This fixes the Demo's same-account login experience with a small owner-scoped read while avoiding cross-account leakage and a broad data migration.
+- Revisit if: cross-device check-in/history continuity or encrypted health-data storage becomes a release requirement.
+
+## 2026-07-16 — Merge owner Check-Ins in realtime with Firestore precedence
+- Context: Check-Ins wrote to Firestore but another device kept showing its localStorage history until refresh or local entry.
+- Decision: Listen to `mothers/{uid}/checkins`, normalize snapshots through the existing mood model, let Firestore replace same-date local entries, and retain local-only dates for pending offline writes without syncing remote merges back.
+- Alternatives considered: replace local history with every snapshot; add timestamps and a custom conflict resolver; hydrate Profile, EPDS, Goal, and Journal in the same change.
+- Rationale: Date-key merging delivers the requested realtime Check-In flow without losing offline entries, creating write loops, changing schema, or adding dependencies.
+- Revisit if: deleted records must propagate, concurrent same-day edits need stronger conflict handling, or history volume requires query limits.
+
+## 2026-07-17 — Use redirect auth across web platforms
+- Context: `signInWithPopup` flashed and failed on unauthorized hosts and is unreliable in mobile or embedded browsers.
+- Decision: use Firebase `signInWithRedirect` for normal browsers, block embedded WebViews with external-browser guidance, and preserve onboarding intent across the redirect.
+- Alternatives considered: keep popup auth on desktop with redirect fallback on mobile; add more popup retries.
+- Rationale: one cross-platform path removes popup blockers and desktop/mobile branching from the login flow.
+- Revisit if: native app auth is introduced or a verified popup experience becomes a product requirement.
+
+## 2026-07-18 — Serve redirect-auth helpers from each production origin
+- Context: Safari 16.1+ blocks the cross-origin storage used when the Vercel app redirects through Firebase helpers on `firebaseapp.com`; the app has two Vercel production aliases.
+- Decision: Transparently proxy `/__/auth/**` through Vercel and use the current registered production alias as `authDomain`; keep Firebase Hosting as the same-origin fallback and direct embedded WebViews to an external browser.
+- Alternatives considered: restore popup auth, redirect every alias to one canonical hostname, self-host Firebase helper files, or replace Firebase Auth with provider-specific SDKs.
+- Rationale: Transparent rewrites preserve one Firebase redirect flow with no new dependency while satisfying Safari's same-origin storage requirement on both public aliases.
+- Revisit if: a custom canonical domain is introduced, a native auth flow replaces browser redirect auth, or a production alias is added or removed.
+
+## 2026-07-18 — Temporarily canonicalize Vercel aliases to Firebase Hosting
+- Context: Both Vercel aliases were production-ready at the CDN but their Google OAuth callbacks remained unregistered, while the Firebase-hosted app already passed the Safari same-origin flow.
+- Decision: Return temporary 307 redirects from both Vercel aliases to `afterbloom-18d15.firebaseapp.com`; canonicalize non-root Vercel entrypoints client-side and migrate stale Vercel workers by clearing caches, reloading clients, and unregistering.
+- Alternatives considered: leave both links broken pending manual OAuth configuration or restore popup auth.
+- Rationale: One reversible routing rule uses the already verified deployment and avoids cross-origin storage without new authentication code.
+- Revisit if: preserving the Vercel hostname is required after both exact OAuth callback URIs are registered.
+
+## 2026-07-18 — Adopt the approved Care Journey 1807 clinical contract
+- Context: Runtime phase boundaries, EPDS timing, detailed content, and worry persistence disagreed with the approved Thai Care Journey plan.
+- Decision: Use 1-based calendar postpartum days, nine inclusive phases, latest-only EPDS checkpoints at Day 8/22/181, Thai-only detailed content, raw worry persistence, and the permanent global Help/1323 path.
+- Alternatives considered: Preserve zero-based stages, queue every missed EPDS checkpoint, or publish an unreviewed English detailed journey.
+- Rationale: One explicit contract removes boundary drift and avoids surfacing stale screening prompts or unapproved clinical translations.
+- Revisit if: a year-two phase contract or clinically approved English copy is provided.
+
+## 2026-07-19 - Move AfterBloom from hospital B2B2C to direct B2C
+- Context: Product validation showed the hospital staff channel did not work as the supported delivery path.
+- Decision: The Mother App has no hospital onboarding, hospital dashboard, hospital callback, or hospital alert integration. Do not create `support_request` or `hospital_contact_initiated`; retain emergency paths and source-only CareCircle until its replacement flow is approved.
+- Alternatives considered: Preserve the B2B2C workflow; route Support Need immediately to CareCircle without a confirmed booking or provider contract.
+- Rationale: Remove unsupported destinations and avoid storing or advertising a dead workflow while keeping emergency access available.
+- Revisit if: A hospital partnership returns or the CareCircle provider and booking contract is approved.
+
+## 2026-07-20 — Keep Admin as a read-only B2C observer
+- Context: The hospital-mediated delivery path is retired, while historical Firestore records and Admin source remain useful for inspection.
+- Decision: Keep only Dashboard, Mother List, and Mother Detail active. Route elevated Mother CTAs to the existing mock Care Circle. Staff may read clinical data but cannot write, resolve, add notes, seed, or clear through Admin.
+- Alternatives considered: delete the Admin source and legacy fields; keep the former case workflow active; add a new Care Circle backend now.
+- Rationale: This preserves 1807 clinical history and the smallest useful observer surface without creating a new schema or unsupported operational workflow.
+- Revisit if: a real Care Circle provider/booking contract or hospital partnership is approved.
+
+## 2026-07-20 — Make Journey a first-class Mother tab
+- Context: The full Care Journey was too dense when expanded inside Home, while the requested Mother navigation needs six clear destinations.
+- Decision: Keep Home as a compact current-stage summary and move the full bilingual 1807 Journey into a dedicated bottom tab with the shared sage `TabHero`. Keep EPDS and Profile as true tabs, and render `EPDS` as the compact nav label.
+- Alternatives considered: Keep the full Journey on Home; add a new route; keep a long `Emotional Check` nav label.
+- Rationale: The existing tab shell and `CareTimeline` already provide the needed behavior without a route or schema change, while the shorter labels preserve one-handed mobile navigation.
+- Revisit if: Journey needs deep-linking, a clinician-approved content model replaces the current data source, or the nav grows beyond six primary destinations.

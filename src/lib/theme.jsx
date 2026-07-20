@@ -204,6 +204,60 @@ export function HeroAccent({ children }) {
   return <em style={{ display: "block", fontStyle: "italic" }}>{children}</em>;
 }
 
+// Mood face SVGs (level 1 = heaviest … 5 = lightest). Muted diverging scale:
+// cool/blue when heavy → warm coral-rose when good. `level` is the sentiment 1–5
+// (already un-reversed by the caller). Shared by CheckIn options + Home snapshot.
+const FACE_THEME = {
+  1: { face: "#94ABCB", ink: "#3B4557" },
+  2: { face: "#B3AFCB", ink: "#45445A" },
+  3: { face: "#E4D4B6", ink: "#5B4E39" },
+  4: { face: "#F1BA95", ink: "#5C4130" },
+  5: { face: "#ED9F8B", ink: "#5C382D" },
+};
+
+export function MoodFace({ level = 3, size = 40, selected = false }) {
+  const lv = Math.min(5, Math.max(1, Math.round(level)));
+  const { face, ink } = FACE_THEME[lv];
+  const eye = (cx) => <circle cx={cx} cy="18" r="1.7" fill={ink} />;
+  const happyEye = (cx) => (
+    <path d={`M${cx - 2.4},18.6 Q${cx},${16.4} ${cx + 2.4},18.6`} stroke={ink} strokeWidth="2" strokeLinecap="round" fill="none" />
+  );
+  const brow = (path) => <path d={path} stroke={ink} strokeWidth="1.8" strokeLinecap="round" fill="none" />;
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true"
+      style={{ flexShrink: 0, display: "block", transform: `scale(${selected ? 1.06 : 1})`, transition: "transform .2s ease" }}>
+      <circle cx="20" cy="20" r="18" fill={face} />
+      {lv === 1 && (<>
+        {brow("M11.2,15 Q13.9,12.7 16.6,14.6")}
+        {brow("M23.4,14.6 Q26.1,12.7 28.8,15")}
+        {eye(14.5)}{eye(25.5)}
+        <path d="M25.5,21.5 q2.4,3.3 0,5.7 q-2.4,-2.4 0,-5.7 Z" fill="#5E86BE" />
+        <path d="M13.5,29.5 Q20,24.5 26.5,29.5" stroke={ink} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      </>)}
+      {lv === 2 && (<>
+        {brow("M11.8,15 Q14.3,13.5 16.8,14.9")}
+        {brow("M23.2,14.9 Q25.7,13.5 28.2,15")}
+        {eye(14.5)}{eye(25.5)}
+        <path d="M14,28.5 Q20,25.5 26,28.5" stroke={ink} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      </>)}
+      {lv === 3 && (<>
+        {eye(14.5)}{eye(25.5)}
+        <path d="M14.5,27 L25.5,27" stroke={ink} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      </>)}
+      {lv === 4 && (<>
+        {eye(14.5)}{eye(25.5)}
+        <path d="M14,26 Q20,31 26,26" stroke={ink} strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      </>)}
+      {lv === 5 && (<>
+        <ellipse cx="11.5" cy="24.5" rx="2.8" ry="2" fill="#F1BFA8" opacity="0.75" />
+        <ellipse cx="28.5" cy="24.5" rx="2.8" ry="2" fill="#F1BFA8" opacity="0.75" />
+        {happyEye(14.5)}{happyEye(25.5)}
+        <path d="M13.5,25 Q20,32 26.5,25" stroke={ink} strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      </>)}
+    </svg>
+  );
+}
+
 export function TabHero({ eyebrow, title, subtitle, rightSlot, theme = "rose" }) {
   const tone = HERO_THEMES[theme] || HERO_THEMES.rose;
   return (
@@ -228,7 +282,6 @@ export function TabHero({ eyebrow, title, subtitle, rightSlot, theme = "rose" })
           </p>
         )}
       </div>
-
       <div
         className="absolute bottom-0 left-0 right-0 pointer-events-none"
         style={{ height: 64, background: "linear-gradient(to bottom, transparent 0%, #FBF6F0 100%)" }}

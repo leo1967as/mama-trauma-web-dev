@@ -8,13 +8,14 @@ import { useCaseNotes } from '@/hooks/useFirestoreData';
 import { addCaseNote } from '@/lib/firestore';
 import { formatDateTime } from '@/lib/dateUtils';
 
-const roleColors = {
-  nurse: 'bg-blue-50 text-blue-600 border-blue-200',
-  doctor: 'bg-violet-50 text-violet-600 border-violet-200',
-  psychologist: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-  Nurse: 'bg-blue-50 text-blue-600 border-blue-200',
-  Doctor: 'bg-violet-50 text-violet-600 border-violet-200',
-  Psychologist: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+const actionColors = {
+  note: 'bg-blue-50 text-blue-600 border-blue-200',
+  new: 'bg-slate-50 text-slate-600 border-slate-200',
+  reviewed: 'bg-amber-50 text-amber-600 border-amber-200',
+  contacted: 'bg-sky-50 text-sky-600 border-sky-200',
+  referred: 'bg-violet-50 text-violet-600 border-violet-200',
+  resolved: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  follow_up_scheduled: 'bg-cyan-50 text-cyan-600 border-cyan-200',
 };
 
 export default function CareNotes({ motherId }) {
@@ -95,7 +96,7 @@ export default function CareNotes({ motherId }) {
                   <User className="w-3 h-3 text-primary" />
                 </div>
                 <span className="text-xs font-medium text-foreground">{note.staffName}</span>
-                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${roleColors[note.action] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${actionColors[note.action] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                   {note.action === 'note' ? 'บันทึก' : note.action}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground ml-auto">

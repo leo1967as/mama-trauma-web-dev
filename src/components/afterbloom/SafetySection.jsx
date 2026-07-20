@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ShieldAlert, Phone, Wind, Eye, Hand, Ear, Heart, X, ChevronRight, HeartHandshake, Building2, Leaf } from "lucide-react";
+import { ShieldAlert, Phone, Wind, Eye, Hand, Ear, Heart, X, ChevronRight, HeartHandshake, Leaf, Brain } from "lucide-react";
 import { EASE_OUT_QUINT } from "../../lib/theme.jsx";
 import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
 import { useLang } from "../../lib/i18n";
@@ -306,10 +306,10 @@ function HelplineList({ lines }) {
   );
 }
 
-export default function SafetySection({ onLog }) {
+export default function SafetySection({ onLog, onNavigate, initialPath = null }) {
   const { t } = useLang();
   const [panicOpen, setPanicOpen] = useState(false);
-  const [path, setPath] = useState(null); // null | trusted | hospital | safe | urgent
+  const [path, setPath] = useState(initialPath); // null | trusted | safe | urgent
   const reduceMotion = useReducedMotion();
 
   const urgentLines = [
@@ -335,14 +335,21 @@ export default function SafetySection({ onLog }) {
 
   const TRIAGE = [
     { key: "trusted", icon: HeartHandshake },
-    { key: "hospital", icon: Building2 },
     { key: "safe", icon: Leaf },
+    { key: "therapist", icon: Brain },
   ].map((item) => ({
     ...item,
     ...t.safety.triage[item.key]
   }));
 
-  const choose = (p) => { setPath(p); onLog?.(p); };
+  const choose = (p) => {
+    onLog?.(p);
+    if (p === "therapist") {
+      onNavigate?.("therapist");
+      return;
+    }
+    setPath(p);
+  };
 
   return (
     <>
@@ -414,28 +421,6 @@ export default function SafetySection({ onLog }) {
                   <a href="sms:" className="afterbloom-focus block w-full mt-1 py-3 rounded-lg bg-primary/10 text-primary text-sm font-bold text-center">{t.safety.paths.trusted.cta}</a>
                 </div>
               )}
-              {path === "hospital" && (
-                <div className="rounded-xl border border-border/50 bg-white p-4 space-y-3">
-                  <p className="text-sm font-bold text-foreground">{t.safety.paths.hospital.title}</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{t.safety.paths.hospital.body}</p>
-                  <div className="rounded-xl bg-rose-50 border border-rose-100 p-3.5 space-y-3">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-4 h-4 text-rose-700" />
-                      </div>
-                      <p className="text-xs text-rose-700/85 leading-relaxed min-w-0">
-                        {t.safety.paths.hospital.note}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-lg bg-white/70 border border-rose-100 px-3 py-2.5">
-                      <Phone className="w-3.5 h-3.5 text-rose-700 flex-shrink-0" />
-                      <span className="text-xs font-bold text-rose-700 leading-snug">
-                        {t.safety.paths.hospital.callNote}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
               {path === "safe" && (
                 <div className="rounded-xl border border-border/50 bg-white p-4 space-y-3">
                   <p className="text-sm font-bold text-foreground">{t.safety.paths.safe.title}</p>
@@ -447,8 +432,11 @@ export default function SafetySection({ onLog }) {
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3">
                   <p className="text-sm font-bold text-red-700">{t.safety.paths.urgent.title}</p>
                   <p className="text-xs text-red-700/90 leading-relaxed">{t.safety.paths.urgent.body}</p>
-                  <HelplineList lines={urgentLines} />
-                  <button type="button" onClick={() => setPanicOpen(true)} className="afterbloom-focus w-full py-3 rounded-lg bg-red-600 text-white text-sm font-bold">{t.safety.paths.urgent.cta}</button>
+                  <div className="grid gap-2">
+                    <a href="tel:1669" onClick={() => onLog?.("urgent")} className="afterbloom-focus w-full rounded-lg bg-red-600 py-3 text-center text-sm font-bold text-white">{t.safety.paths.urgent.callEmergency}</a>
+                    <a href="tel:1323" onClick={() => onLog?.("urgent")} className="afterbloom-focus w-full rounded-lg border border-red-200 bg-white py-3 text-center text-sm font-bold text-red-700">{t.safety.paths.urgent.mentalHealthLine}</a>
+                    <a href="sms:" onClick={() => onLog?.("urgent")} className="afterbloom-focus w-full rounded-lg border border-red-200 bg-white py-3 text-center text-sm font-bold text-red-700">{t.safety.paths.urgent.messageTrusted}</a>
+                  </div>
                 </div>
               )}
             </motion.div>

@@ -3,25 +3,23 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowLeft, X } from "lucide-react";
 import BookingStepIndicator from "./BookingStepIndicator";
 import StepSelectTime from "./StepSelectTime";
-import StepSelectDuration from "./StepSelectDuration";
 import StepConfirm from "./StepConfirm";
 import { FONT_BODY, COLORS, LAYERS, LAYOUT, EASE_OUT_QUINT } from "../../lib/theme.jsx";
+import { useLang } from "../../lib/i18n";
 import { useBodyScrollLock } from "../../hooks/use-body-scroll-lock";
 
 // Step 0 = therapist list (handled by parent), steps 1-3 handled here
 export default function BookingFlow({ therapist, onClose, onDone }) {
   useBodyScrollLock();
+  const { t, lang } = useLang();
   const dialogRef = useRef(null);
-  const [step, setStep] = useState(1); // 1=time, 2=duration, 3=confirm
+  const [step, setStep] = useState(1); // 1=date/period, 2=confirmation
   const [dateTime, setDateTime] = useState(null);
-  const [duration, setDuration] = useState(null);
-  const [mode, setMode] = useState(null);
   const reduceMotion = useReducedMotion();
 
   const stepTitles = {
-    1: "Choose a time",
-    2: "Choose session type",
-    3: "Review privately",
+    1: lang === "th" ? "เลือกวันที่และช่วงเวลา" : "Choose date and time",
+    2: lang === "th" ? "ยืนยันคำขอนัดหมาย" : "Confirm request",
   };
 
   const handleBack = () => {
@@ -55,15 +53,15 @@ export default function BookingFlow({ therapist, onClose, onDone }) {
     >
       {/* Top Bar */}
       <div style={{ maxWidth: 448, margin: "0 auto", width: "100%", padding: "16px 16px 12px", display: "flex", alignItems: "center", gap: 12, borderBottom: `1px solid ${COLORS.border}` }}>
-        <button type="button" onClick={handleBack} style={navBtnStyle} aria-label={step === 1 ? "Close booking" : "Go back one step"}>
+        <button type="button" onClick={handleBack} style={navBtnStyle} aria-label={step === 1 ? t.therapy.booking.closeBooking : t.therapy.booking.backStep}>
           <ArrowLeft style={{ width: 16, height: 16, color: COLORS.heading }} />
         </button>
         <div style={{ flex: 1 }}>
           <p id="booking-flow-title" style={{ fontSize: 14, fontWeight: 800, color: COLORS.heading, fontFamily: FONT_BODY }}>{stepTitles[step]}</p>
-          <p style={{ fontSize: 11.5, color: COLORS.muted, margin: "2px 0 6px" }}>With {therapist.name}</p>
-          <BookingStepIndicator currentStep={step} totalSteps={3} />
+          <p style={{ fontSize: 11.5, color: COLORS.muted, margin: "2px 0 6px" }}>{t.therapy.booking.with} {therapist.name}</p>
+          <BookingStepIndicator currentStep={step} totalSteps={2} />
         </div>
-        <button type="button" onClick={onClose} style={navBtnStyle} aria-label="Close booking">
+        <button type="button" onClick={onClose} style={navBtnStyle} aria-label={t.therapy.booking.closeDialog}>
           <X style={{ width: 16, height: 16, color: COLORS.heading }} />
         </button>
       </div>
@@ -80,21 +78,12 @@ export default function BookingFlow({ therapist, onClose, onDone }) {
             />
           )}
           {step === 2 && (
-            <StepSelectDuration
-              key="duration"
-              onNext={(d) => { setDuration(d.duration); setMode(d.mode); setStep(3); }}
-              onBack={() => setStep(1)}
-            />
-          )}
-          {step === 3 && (
             <StepConfirm
               key="confirm"
               therapist={therapist}
               dateTime={dateTime}
-              duration={duration}
-              mode={mode}
               onConfirm={onDone}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(1)}
             />
           )}
         </AnimatePresence>
